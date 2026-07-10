@@ -203,6 +203,8 @@ class RealtimeMusicAnalyzer:
         self.last_beat_time = 0.0
         self.last_plp_analysis_time = 0.0
         self.latest_status_frame: Optional[MusicFrame] = None
+        self.inactive_since: Optional[float] = None
+        self.activity_release_sec = 0.5
         self.recent_onset_times: deque[float] = deque(maxlen=128)
         self.cached_spectral_contrast = 0.0
         self.cached_mfcc_1 = 0.0
@@ -250,6 +252,7 @@ class RealtimeMusicAnalyzer:
         self.last_beat_time = 0.0
         self.last_plp_analysis_time = 0.0
         self.latest_status_frame = None
+        self.inactive_since = None
         self.recent_onset_times.clear()
         self.cached_spectral_contrast = 0.0
         self.cached_mfcc_1 = 0.0
@@ -299,7 +302,19 @@ class RealtimeMusicAnalyzer:
 
         noise_reference = self.calibrated_noise_rms
         active_threshold = max(self.noise_gate_rms, noise_reference * self.noise_gate_ratio)
-        is_active = (not calibrating) and rms >= active_threshold
+        raw_active = (not calibrating) and rms >= active_threshold
+        if raw_active:
+            self.inactive_since = None
+        elif self.inactive_since is None:
+            self.inactive_since = now
+        recently_active = (
+            not calibrating
+            and self.latest_status_frame is not None
+            and self.latest_status_frame.is_active
+            and self.inactive_since is not None
+            and (now - self.inactive_since) < self.activity_release_sec
+        )
+        is_active = raw_active or recently_active
 
         if rms > self.rms_peak:
             self.rms_peak = rms
@@ -309,6 +324,7 @@ class RealtimeMusicAnalyzer:
         if not is_active:
             rms_norm = 0.0
             self.estimator.reset()
+            self.last_beat_time = 0.0
 
         onset_reference = max(self.onset_floor, self.calibrated_noise_onset_delta)
         threshold = max(1e-5, self.onset_threshold_scale * onset_reference)
@@ -463,13 +479,14 @@ class RealtimeMusicAnalyzer:
             sr=self.sample_rate,
             hop_length=self.plp_hop_length,
         )
-        recent_mask = (peak_times > self.last_beat_time + self.refractory_sec) & (
+        min_next_gap = self._minimum_next_beat_gap()
+        recent_mask = (peak_times > self.last_beat_time + min_next_gap) & (
             peak_times >= now - max(0.35, 2.0 * self.plp_analysis_interval_sec)
         )
         if not np.any(recent_mask):
             return
 
-        peak_idx = int(np.flatnonzero(recent_mask)[-1])
+        peak_idx = int(np.flatnonzero(recent_mask)[0])
         beat_time = float(peak_times[peak_idx])
         accepted, beat_period = self.estimator.add_beat(beat_time)
         if not accepted:
@@ -505,6 +522,15 @@ class RealtimeMusicAnalyzer:
                 is_active=True,
             )
         )
+
+    def _minimum_next_beat_gap(self) -> float:
+        gap = self.refractory_sec
+        if len(self.estimator.beat_times) >= 2:
+            intervals = np.diff(np.asarray(self.estimator.beat_times, dtype=float))
+            valid = intervals[(intervals >= self.min_beat_period) & (intervals <= self.max_beat_period)]
+            if valid.size:
+                gap = max(gap, 0.55 * float(np.median(valid)))
+        return float(min(max(gap, 0.0), self.max_beat_period))
 
     @staticmethod
     def _empty_block_features() -> dict[str, float]:
@@ -668,7 +694,10 @@ class AdaptiveMotionController:
         amp_max: float,
         accent_duration: float,
         tempo_timeout: float,
+        beat_confidence_threshold: float = 0.25,
+        beat_keypoint_interval_ratio: float = 0.85,
     ) -> None:
+        self.authored_cycle_duration = max(authored_cycle_duration, 1e-6)
         self.authored_phase_rate = 1.0 / max(authored_cycle_duration, 1e-6)
         self.default_phase_rate = self.authored_phase_rate
         self.beats_per_cycle = max(beats_per_cycle, 1)
@@ -680,6 +709,9 @@ class AdaptiveMotionController:
         self.amp_max = max(amp_max, self.amp_min)
         self.accent_duration = max(accent_duration, 1e-6)
         self.tempo_timeout = max(tempo_timeout, 0.0)
+        self.beat_confidence_threshold = float(np.clip(beat_confidence_threshold, 0.0, 1.0))
+        self.beat_keypoint_interval_ratio = max(beat_keypoint_interval_ratio, 0.0)
+        self.min_accepted_beat_interval = self._min_accepted_beat_interval()
 
         self.phase = 0.0
         self.phase_rate = self.default_phase_rate
@@ -694,6 +726,24 @@ class AdaptiveMotionController:
         self.accent_started_wall: Optional[float] = None
         self.accent_strength = 0.0
         self.music_active = False
+
+    def _min_accepted_beat_interval(self) -> float:
+        if self.keypoint_phases:
+            sorted_phases = sorted(float(phase) % 1.0 for phase in self.keypoint_phases)
+            if len(sorted_phases) == 1:
+                min_phase_gap = 1.0
+            else:
+                gaps = [
+                    (sorted_phases[(index + 1) % len(sorted_phases)] - phase) % 1.0
+                    for index, phase in enumerate(sorted_phases)
+                ]
+                positive_gaps = [gap for gap in gaps if gap > 1e-6]
+                min_phase_gap = min(positive_gaps) if positive_gaps else 1.0
+        else:
+            min_phase_gap = 1.0 / self.beats_per_cycle
+
+        fastest_authored_gap = (min_phase_gap * self.authored_cycle_duration) / self.speed_max
+        return max(0.0, fastest_authored_gap * self.beat_keypoint_interval_ratio)
 
     def reset(self) -> None:
         self.phase = 0.0
@@ -715,7 +765,6 @@ class AdaptiveMotionController:
         if not frame.is_active:
             self.target_amplitude_scale = 0.0
             self.last_brightness = 0.0
-            self.last_period = None
             self.accent_started_wall = None
             self.accent_strength = 0.0
             return
@@ -728,14 +777,22 @@ class AdaptiveMotionController:
         if not frame.is_beat:
             return
 
+        if frame.beat_confidence < self.beat_confidence_threshold:
+            return
+        if (
+            self.last_beat_wall is not None
+            and frame.timestamp - self.last_beat_wall < self.min_accepted_beat_interval
+        ):
+            return
+
         self.last_beat_wall = frame.timestamp
         expected_phase = self._expected_beat_phase()
         if self.beat_index == 0:
             self.phase = expected_phase
         else:
-            phase_error = wrap_phase_error(expected_phase - self.phase)
+            beat_alignment_error = wrap_phase_error(expected_phase - self.phase)
             correction_gain = 0.25 + 0.35 * frame.beat_confidence
-            self.phase = (self.phase + correction_gain * phase_error) % 1.0
+            self.phase = (self.phase + correction_gain * beat_alignment_error) % 1.0
         self.beat_index += 1
 
         if frame.beat_period is not None:
@@ -760,6 +817,8 @@ class AdaptiveMotionController:
             self.target_phase_rate = self.default_phase_rate
             if not self.music_active:
                 self.target_amplitude_scale = 0.0
+                self.last_period = None
+                self.last_beat_wall = None
 
         alpha = 1.0 - math.exp(-dt / self.smoothing_tau)
         self.phase_rate += alpha * (self.target_phase_rate - self.phase_rate)
@@ -999,6 +1058,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-beat-period", type=float, default=0.25)
     parser.add_argument("--max-beat-period", type=float, default=2.0)
     parser.add_argument("--mic-refractory-sec", type=float, default=0.18)
+    parser.add_argument(
+        "--beat-confidence-threshold",
+        type=float,
+        default=0.25,
+        help="Ignore PLP beats below this confidence before applying trajectory alignment.",
+    )
+    parser.add_argument(
+        "--beat-keypoint-interval-ratio",
+        type=float,
+        default=0.85,
+        help=(
+            "Reject beats closer than this fraction of the fastest allowed authored keypoint spacing. "
+            "The spacing is derived from keypoint phases and --speed-max."
+        ),
+    )
     parser.add_argument("--neutral-yaw-rad", type=float, default=None)
     parser.add_argument("--neutral-pitch-rad", type=float, default=None)
     parser.add_argument("--disable-keypoint-alignment", action="store_true")
@@ -1147,6 +1221,8 @@ def main() -> None:
         amp_max=args.amp_max,
         accent_duration=args.accent_duration,
         tempo_timeout=args.tempo_timeout,
+        beat_confidence_threshold=args.beat_confidence_threshold,
+        beat_keypoint_interval_ratio=args.beat_keypoint_interval_ratio,
     )
     sampler = TrajectorySampler(
         trajectory=trajectory,

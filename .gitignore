@@ -1,5 +1,11 @@
 .venv/
-legacy_music_pipeline/outputs/
-adaptive_clap/outputs/
+.venv-py313-backup/
+offline/outputs/*
+!offline/outputs/build_music_feature_mapping_xlsx.py
+!offline/outputs/music_feature_motion_mapping.xlsx
+realtime/robot_arm/outputs/
 __pycache__/
 *.pyc
+realtime/humanoid_robot/data/aistpp/
+realtime/humanoid_robot/data/aistpp_bvh/
+realtime/humanoid_robot/assets/body_models/

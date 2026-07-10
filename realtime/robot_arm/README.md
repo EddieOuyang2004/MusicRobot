@@ -1,6 +1,6 @@
-# Adaptive Clap Project
+# Realtime Robot Arm
 
-This folder contains the new adaptive trajectory-speed workflow:
+This folder contains the realtime PyBullet robot-arm workflow:
 
 1. Generate or provide a looping trajectory CSV
 2. Estimate beat period from recent taps or microphone clap onsets
@@ -9,7 +9,7 @@ This folder contains the new adaptive trajectory-speed workflow:
 ## 1) Generate a Simple Clap Trajectory
 
 ```powershell
-python adaptive_clap/src/generate_clap_trajectory.py --out adaptive_clap/outputs/clap_trajectory.csv
+python realtime/robot_arm/src/generate_clap_trajectory.py --out realtime/robot_arm/outputs/clap_trajectory.csv
 ```
 
 ## 2) Tap Tempo with Space Bar
@@ -17,7 +17,7 @@ python adaptive_clap/src/generate_clap_trajectory.py --out adaptive_clap/outputs
 This is the first development step. Start the player and tap the space bar in the PyBullet window.
 
 ```powershell
-python adaptive_clap/src/adaptive_play_trajectory.py --csv adaptive_clap/outputs/clap_trajectory.csv --input-source tap --realtime
+python realtime/robot_arm/src/adaptive_play_trajectory.py --csv realtime/robot_arm/outputs/clap_trajectory.csv --input-source tap --realtime
 ```
 
 Controls:
@@ -34,14 +34,14 @@ The tempo estimator uses the median of the most recent `3..5` beat intervals.
 Install dependencies from `requirements.txt`, then run:
 
 ```powershell
-python adaptive_clap/src/adaptive_play_trajectory.py --csv adaptive_clap/outputs/clap_trajectory.csv --input-source mic --realtime
+python realtime/robot_arm/src/adaptive_play_trajectory.py --csv realtime/robot_arm/outputs/clap_trajectory.csv --input-source mic --realtime
 ```
 
 Useful options:
 
 ```powershell
-python adaptive_clap/src/adaptive_play_trajectory.py `
-  --csv adaptive_clap/outputs/clap_trajectory.csv `
+python realtime/robot_arm/src/adaptive_play_trajectory.py `
+  --csv realtime/robot_arm/outputs/clap_trajectory.csv `
   --input-source mic `
   --beats-per-cycle 2 `
   --speed-min 0.5 `
@@ -60,25 +60,25 @@ python adaptive_clap/src/adaptive_play_trajectory.py `
 Use this player when the robot should clap along with continuous live music rather than only manual taps or isolated claps:
 
 ```powershell
-python adaptive_clap/src/realtime_music_adaptive_player.py --csv adaptive_clap/outputs/clap_trajectory.csv --realtime
+python realtime/robot_arm/src/realtime_music_adaptive_player.py --csv realtime/robot_arm/outputs/clap_trajectory.csv --realtime
 ```
 
 The realtime player defaults to built-in clap motion and does not require a trajectory CSV:
 
 ```powershell
-python adaptive_clap/src/realtime_music_adaptive_player.py --motion clap --realtime
+python realtime/robot_arm/src/realtime_music_adaptive_player.py --motion clap --realtime
 ```
 
 To use the older figure-eight motion instead:
 
 ```powershell
-python adaptive_clap/src/realtime_music_adaptive_player.py --motion figure-eight --realtime
+python realtime/robot_arm/src/realtime_music_adaptive_player.py --motion figure-eight --realtime
 ```
 
 To drive motion directly from a trajectory CSV, use:
 
 ```powershell
-python adaptive_clap/src/realtime_music_adaptive_player.py --motion csv --csv adaptive_clap/outputs/clap_trajectory.csv --realtime
+python realtime/robot_arm/src/realtime_music_adaptive_player.py --motion csv --csv realtime/robot_arm/outputs/clap_trajectory.csv --realtime
 ```
 
 It listens through the microphone and adapts several motion elements at once:
@@ -92,8 +92,8 @@ It listens through the microphone and adapts several motion elements at once:
 Useful options:
 
 ```powershell
-python adaptive_clap/src/realtime_music_adaptive_player.py `
-  --csv adaptive_clap/outputs/clap_trajectory.csv `
+python realtime/robot_arm/src/realtime_music_adaptive_player.py `
+  --csv realtime/robot_arm/outputs/clap_trajectory.csv `
   --beats-per-cycle 2 `
   --speed-min 0.5 `
   --speed-max 1.8 `

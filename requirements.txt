@@ -5,3 +5,8 @@ scipy>=1.10,<1.12
 soundfile>=0.12
 pybullet>=3.2.5
 sounddevice>=0.4.6,<0.6
+mujoco>=3.1,<4.0
+
+# Optional for realtime/humanoid_robot/src/aistpp_to_gmr_bvh.py:
+# torch
+# smplx[all]

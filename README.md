@@ -1,29 +1,34 @@
 # Beats2Trajectory
 
-This repository now contains two separate flows:
+This repository is organized around two project modes:
 
-- `legacy_music_pipeline/`: the offline music-to-trajectory pipeline, now generating clap-style motion from audio features
-- `adaptive_clap/`: a new adaptive tempo project that retimes a looping trajectory from manual taps or microphone clap onsets
+- `offline/`: the completed offline music-to-trajectory pipeline. This area is frozen and should only be changed for archival fixes.
+- `realtime/`: active realtime robot-control work, split by robot target.
 
 ## Project Layout
 
 ```text
 Beats2Trajectory/
-  legacy_music_pipeline/
+  offline/
     audio/
     outputs/
     src/
     README.md
-  adaptive_clap/
-    outputs/
-    src/
-    README.md
+  realtime/
+    robot_arm/
+      noise_profiles/
+      outputs/
+      src/
+      README.md
+    humanoid_robot/
+      README.md
+  requirements.txt
 ```
 
 ## Start Here
 
 All commands in the subproject READMEs are intended to be run from the repository root.
 
-For the original music-driven workflow, see [legacy_music_pipeline/README.md](legacy_music_pipeline/README.md).
-
-For the new adaptive trajectory-speed workflow, see [adaptive_clap/README.md](adaptive_clap/README.md).
+- Offline pipeline: [offline/README.md](offline/README.md)
+- Realtime PyBullet robot arm: [realtime/robot_arm/README.md](realtime/robot_arm/README.md)
+- Realtime MuJoCo humanoid robot: [realtime/humanoid_robot/README.md](realtime/humanoid_robot/README.md)
