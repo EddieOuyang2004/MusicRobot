@@ -1,0 +1,1311 @@
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+import math
+import os
+import re
+import warnings
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Iterable, Mapping, Sequence
+
+import librosa
+import numpy as np
+import soundfile as sf
+
+from aistpp_velocity_keypoints import detect_aistpp_file
+
+
+CATALOG_SCHEMA_VERSION = 1
+DEFAULT_ANALYSIS_SAMPLE_RATE = 16_000
+DEFAULT_WINDOW_SECONDS = 6.0
+DEFAULT_HOP_SECONDS = 2.0
+DEFAULT_MOTION_FPS = 60.0
+MOTION_NAME_PATTERN = re.compile(
+    r"^g(?P<genre>[A-Z]{2})_s(?P<situation>[A-Z]{2})_c(?P<camera>[^_]+)_"
+    r"d(?P<dancer>\d+)_m(?P<music>[A-Z]{2}\d+)_ch(?P<choreo>\d+)$"
+)
+
+
+def _array(values: Sequence[float] | np.ndarray) -> np.ndarray:
+    return np.asarray(values, dtype=np.float32)
+
+
+def _unit_vector(values: Sequence[float] | np.ndarray) -> np.ndarray:
+    vector = _array(values).reshape(-1)
+    norm = float(np.linalg.norm(vector))
+    return vector / norm if norm > 1e-12 else np.zeros_like(vector)
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        result = float(np.asarray(value).reshape(-1)[0])
+    except (TypeError, ValueError, IndexError):
+        return default
+    return result if math.isfinite(result) else default
+
+
+def parse_motion_name(name: str) -> dict[str, str]:
+    match = MOTION_NAME_PATTERN.match(Path(name).stem)
+    if match is None:
+        raise ValueError(f"Unexpected AIST++ motion name: {name}")
+    return match.groupdict()
+
+
+def robust_audio_normalize(audio: np.ndarray) -> np.ndarray:
+    """Remove DC and recording gain without using absolute loudness as a feature."""
+
+    samples = np.asarray(audio, dtype=np.float32).reshape(-1)
+    if samples.size == 0:
+        return samples
+    samples = samples - float(np.median(samples))
+    scale = float(np.percentile(np.abs(samples), 95.0))
+    if not math.isfinite(scale) or scale <= 1e-7:
+        return np.zeros_like(samples)
+    return np.clip(0.8 * samples / scale, -1.0, 1.0).astype(np.float32)
+
+
+def load_audio_mono(path: Path, sample_rate: int = DEFAULT_ANALYSIS_SAMPLE_RATE) -> np.ndarray:
+    audio, source_rate = sf.read(path, always_2d=True, dtype="float32")
+    mono = np.mean(audio, axis=1, dtype=np.float32)
+    if int(source_rate) != int(sample_rate):
+        mono = librosa.resample(
+            mono,
+            orig_sr=int(source_rate),
+            target_sr=int(sample_rate),
+            res_type="soxr_hq",
+        ).astype(np.float32)
+    return mono
+
+
+def iter_audio_windows(
+    audio: np.ndarray,
+    sample_rate: int,
+    window_seconds: float = DEFAULT_WINDOW_SECONDS,
+    hop_seconds: float = DEFAULT_HOP_SECONDS,
+) -> Iterable[tuple[float, float, np.ndarray]]:
+    window_samples = max(1, int(round(window_seconds * sample_rate)))
+    hop_samples = max(1, int(round(hop_seconds * sample_rate)))
+    if audio.size < window_samples:
+        padded = np.pad(audio, (0, window_samples - audio.size))
+        yield 0.0, float(audio.size / sample_rate), padded.astype(np.float32)
+        return
+    starts = list(range(0, audio.size - window_samples + 1, hop_samples))
+    final_start = audio.size - window_samples
+    if not starts or starts[-1] != final_start:
+        starts.append(final_start)
+    for start in starts:
+        end = start + window_samples
+        yield (
+            float(start / sample_rate),
+            float(end / sample_rate),
+            np.asarray(audio[start:end], dtype=np.float32),
+        )
+
+
+@dataclass(frozen=True)
+class AudioDescriptor:
+    embedding: np.ndarray
+    rhythm_timbre: np.ndarray
+    tag_probabilities: np.ndarray
+    bpm: float
+    beat_strength: float
+    onset_density: float
+    offbeat_ratio: float
+    tempo_stability: float
+    spectral_flux: float
+    percussive_ratio: float
+
+    @property
+    def activity(self) -> float:
+        onset = min(max(self.onset_density / 4.0, 0.0), 1.0)
+        return float(
+            np.clip(
+                0.30 * self.beat_strength
+                + 0.30 * onset
+                + 0.20 * self.spectral_flux
+                + 0.20 * self.percussive_ratio,
+                0.0,
+                1.0,
+            )
+        )
+
+    def scalar_metadata(self) -> dict[str, float]:
+        return {
+            "bpm": self.bpm,
+            "beat_strength": self.beat_strength,
+            "onset_density": self.onset_density,
+            "offbeat_ratio": self.offbeat_ratio,
+            "tempo_stability": self.tempo_stability,
+            "spectral_flux": self.spectral_flux,
+            "percussive_ratio": self.percussive_ratio,
+            "activity": self.activity,
+        }
+
+
+class OnnxEffnetBackend:
+    """Optional Windows-native ONNX backend for Discogs EffNet models."""
+
+    def __init__(
+        self,
+        model_path: Path,
+        preferred_dimension: int | None = None,
+        normalize_output: bool = True,
+    ) -> None:
+        try:
+            import onnxruntime as ort
+        except ImportError as exc:
+            raise RuntimeError(
+                "onnxruntime is required when an ONNX embedding/tag model is configured."
+            ) from exc
+
+        self.model_path = Path(model_path).resolve()
+        if not self.model_path.exists():
+            raise FileNotFoundError(f"ONNX model not found: {self.model_path}")
+        self.session = ort.InferenceSession(
+            str(self.model_path),
+            providers=["CPUExecutionProvider"],
+        )
+        self.input = self.session.get_inputs()[0]
+        self.preferred_dimension = preferred_dimension
+        self.normalize_output = bool(normalize_output)
+        candidates = [
+            output
+            for output in self.session.get_outputs()
+            if len(output.shape) == 2 and isinstance(output.shape[-1], int)
+        ]
+        self.output_dimensions = tuple(int(output.shape[-1]) for output in candidates)
+        preferred = [
+            output
+            for output in candidates
+            if preferred_dimension is not None
+            and output.shape[-1] == preferred_dimension
+        ]
+        selected = preferred[0] if preferred else (candidates[0] if candidates else None)
+        if selected is None:
+            raise RuntimeError(
+                f"ONNX model exposes no fixed-width two-dimensional output: {self.model_path}"
+            )
+        self.output_dimension = int(selected.shape[-1])
+        self.labels_by_dimension: dict[int, tuple[str, ...]] = {}
+        self.sidecar_metadata: dict[str, Any] = {}
+        self.sidecar_sha256: str | None = None
+        metadata_path = self.model_path.with_suffix(".json")
+        if metadata_path.exists():
+            try:
+                model_metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                self.sidecar_metadata = dict(model_metadata)
+                self.sidecar_sha256 = self._file_sha256(metadata_path)
+                labels = tuple(str(label) for label in model_metadata.get("classes", ()))
+                if labels:
+                    self.labels_by_dimension[len(labels)] = labels
+            except (OSError, ValueError, TypeError):
+                self.labels_by_dimension = {}
+                self.sidecar_metadata = {}
+                self.sidecar_sha256 = None
+        self.labels = self.labels_by_dimension.get(self.output_dimension, ())
+
+    @property
+    def sha256(self) -> str:
+        return self._file_sha256(self.model_path)
+
+    @staticmethod
+    def _file_sha256(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def identity_metadata(self) -> dict[str, Any]:
+        metadata: dict[str, Any] = {
+            "path": str(self.model_path),
+            "sha256": self.sha256,
+        }
+        for key in ("name", "version", "release_date", "framework"):
+            if key in self.sidecar_metadata:
+                metadata[key] = self.sidecar_metadata[key]
+        if self.sidecar_sha256 is not None:
+            metadata["sidecar_sha256"] = self.sidecar_sha256
+        return metadata
+
+    @staticmethod
+    def patches(audio: np.ndarray, sample_rate: int) -> np.ndarray:
+        if sample_rate != DEFAULT_ANALYSIS_SAMPLE_RATE:
+            audio = librosa.resample(
+                audio,
+                orig_sr=sample_rate,
+                target_sr=DEFAULT_ANALYSIS_SAMPLE_RATE,
+                res_type="soxr_hq",
+            )
+        # Match Essentia TensorflowInputMusiCNN: unnormalised Hann window,
+        # magnitude spectrum, Slaney/unit-area mel bands, then
+        # log10(1 + 10000 * bands).
+        frames = librosa.util.frame(
+            np.pad(np.asarray(audio, dtype=np.float32), (256, 256)),
+            frame_length=512,
+            hop_length=256,
+        ).T
+        windowed = frames * np.hanning(512).astype(np.float32)
+        magnitude = np.abs(np.fft.rfft(windowed, n=512, axis=1)).astype(np.float32)
+        mel_basis = librosa.filters.mel(
+            sr=DEFAULT_ANALYSIS_SAMPLE_RATE,
+            n_fft=512,
+            n_mels=96,
+            fmin=0.0,
+            fmax=8_000.0,
+            htk=False,
+            norm="slaney",
+        ).astype(np.float32)
+        mel = magnitude @ mel_basis.T
+        log_mel = np.log10(1.0 + 10_000.0 * np.maximum(mel, 0.0))
+        patch_size = 128
+        patch_hop = 62
+        if log_mel.shape[0] < patch_size:
+            log_mel = np.pad(log_mel, ((0, patch_size - log_mel.shape[0]), (0, 0)))
+        starts = list(range(0, log_mel.shape[0] - patch_size + 1, patch_hop))
+        if not starts:
+            starts = [0]
+        return np.stack([log_mel[start : start + patch_size] for start in starts]).astype(
+            np.float32
+        )
+
+    def encode_outputs(
+        self,
+        audio: np.ndarray,
+        sample_rate: int,
+    ) -> dict[int, np.ndarray]:
+        patches = self.patches(audio, sample_rate)
+        expected_shape = self.input.shape
+        fixed_batch = (
+            expected_shape
+            and isinstance(expected_shape[0], int)
+            and expected_shape[0] > patches.shape[0]
+        )
+        actual_count = patches.shape[0]
+        if fixed_batch:
+            patches = np.pad(
+                patches,
+                ((0, int(expected_shape[0]) - actual_count), (0, 0), (0, 0)),
+            )
+        outputs = self.session.run(None, {self.input.name: patches})
+        candidates = [
+            np.asarray(output, dtype=np.float32)
+            for output in outputs
+            if np.asarray(output).ndim == 2
+        ]
+        if not candidates:
+            raise RuntimeError(f"ONNX model produced no two-dimensional output: {self.model_path}")
+        return {
+            int(candidate.shape[-1]): np.mean(
+                candidate[:actual_count],
+                axis=0,
+            ).astype(np.float32)
+            for candidate in candidates
+        }
+
+    def encode(self, audio: np.ndarray, sample_rate: int) -> np.ndarray:
+        outputs = self.encode_outputs(audio, sample_rate)
+        if self.preferred_dimension is not None:
+            selected = outputs.get(self.preferred_dimension)
+        else:
+            selected = None
+        if selected is None:
+            selected = outputs[next(iter(outputs))]
+        averaged = np.asarray(selected, dtype=np.float32)
+        return _unit_vector(averaged) if self.normalize_output else averaged
+
+
+class AudioFeatureExtractor:
+    def __init__(
+        self,
+        sample_rate: int = DEFAULT_ANALYSIS_SAMPLE_RATE,
+        embedding_model: Path | None = None,
+        tag_model: Path | None = None,
+    ) -> None:
+        self.sample_rate = int(sample_rate)
+        resolved_embedding = Path(embedding_model).resolve() if embedding_model else None
+        resolved_tags = Path(tag_model).resolve() if tag_model else None
+        self.embedding_backend = (
+            OnnxEffnetBackend(resolved_embedding, preferred_dimension=1280)
+            if embedding_model is not None
+            else None
+        )
+        if (
+            self.embedding_backend is not None
+            and resolved_tags is not None
+            and resolved_tags == resolved_embedding
+            and 400 in self.embedding_backend.output_dimensions
+        ):
+            self.tag_backend = self.embedding_backend
+        else:
+            self.tag_backend = (
+            OnnxEffnetBackend(
+                resolved_tags,
+                preferred_dimension=400,
+                normalize_output=False,
+            )
+            if tag_model is not None
+            else None
+            )
+
+    @property
+    def backend_name(self) -> str:
+        return "discogs-effnet-onnx" if self.embedding_backend is not None else "dsp"
+
+    def model_metadata(self) -> dict[str, Any]:
+        metadata: dict[str, Any] = {"embedding_backend": self.backend_name}
+        if self.embedding_backend is not None:
+            metadata["embedding_model"] = self.embedding_backend.identity_metadata()
+        if self.tag_backend is not None:
+            metadata["tag_model"] = {
+                **self.tag_backend.identity_metadata(),
+                "labels": list(self.tag_backend.labels_by_dimension.get(400, ())),
+            }
+        return metadata
+
+    def describe(self, audio: np.ndarray, source_sample_rate: int | None = None) -> AudioDescriptor:
+        source_rate = int(source_sample_rate or self.sample_rate)
+        samples = np.asarray(audio, dtype=np.float32).reshape(-1)
+        if source_rate != self.sample_rate:
+            samples = librosa.resample(
+                samples,
+                orig_sr=source_rate,
+                target_sr=self.sample_rate,
+                res_type="soxr_hq",
+            ).astype(np.float32)
+        samples = robust_audio_normalize(samples)
+        if samples.size < 512 or not np.any(samples):
+            return self._empty_descriptor()
+
+        hop = 256
+        duration = max(samples.size / self.sample_rate, 1e-6)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            onset_env = librosa.onset.onset_strength(
+                y=samples,
+                sr=self.sample_rate,
+                hop_length=hop,
+            )
+            tempo, beat_frames = librosa.beat.beat_track(
+                onset_envelope=onset_env,
+                sr=self.sample_rate,
+                hop_length=hop,
+            )
+            onset_frames = librosa.onset.onset_detect(
+                onset_envelope=onset_env,
+                sr=self.sample_rate,
+                hop_length=hop,
+                units="frames",
+            )
+            mel = librosa.feature.melspectrogram(
+                y=samples,
+                sr=self.sample_rate,
+                n_fft=1024,
+                hop_length=hop,
+                n_mels=64,
+                fmax=self.sample_rate / 2.0,
+            )
+            log_mel = librosa.power_to_db(mel, ref=np.max)
+            mfcc = librosa.feature.mfcc(S=log_mel, n_mfcc=13)
+            chroma = librosa.feature.chroma_stft(
+                y=samples,
+                sr=self.sample_rate,
+                n_fft=1024,
+                hop_length=hop,
+            )
+            contrast = librosa.feature.spectral_contrast(
+                y=samples,
+                sr=self.sample_rate,
+                n_fft=1024,
+                hop_length=hop,
+                n_bands=5,
+            )
+            harmonic, percussive = librosa.effects.hpss(samples)
+
+        bpm = _safe_float(tempo)
+        onset_scale = max(float(np.percentile(onset_env, 95.0)), 1e-8)
+        normalized_onsets = np.clip(onset_env / onset_scale, 0.0, 1.0)
+        beat_strength = (
+            float(np.mean(normalized_onsets[np.asarray(beat_frames, dtype=int)]))
+            if len(beat_frames)
+            else 0.0
+        )
+        onset_density = float(len(onset_frames) / duration)
+        tempo_stability = self._tempo_stability(beat_frames, hop)
+        offbeat_ratio = self._offbeat_ratio(onset_frames, beat_frames)
+        spectral_flux = (
+            float(np.mean(np.maximum(np.diff(log_mel, axis=1), 0.0)))
+            if log_mel.shape[1] > 1
+            else 0.0
+        )
+        spectral_flux = float(np.clip(spectral_flux / 6.0, 0.0, 1.0))
+        harmonic_energy = float(np.mean(harmonic * harmonic))
+        percussive_energy = float(np.mean(percussive * percussive))
+        percussive_ratio = float(
+            np.clip(
+                percussive_energy / max(harmonic_energy + percussive_energy, 1e-12),
+                0.0,
+                1.0,
+            )
+        )
+
+        band_ratios = self._band_ratios(samples)
+        mfcc_stats = np.concatenate((np.mean(mfcc, axis=1), np.std(mfcc, axis=1)))
+        chroma_stats = np.concatenate((np.mean(chroma, axis=1), np.std(chroma, axis=1)))
+        contrast_stats = np.concatenate(
+            (np.mean(contrast, axis=1), np.std(contrast, axis=1))
+        )
+        rhythm = np.asarray(
+            [
+                math.log2(max(bpm, 1.0) / 120.0),
+                beat_strength,
+                onset_density / 4.0,
+                offbeat_ratio,
+                tempo_stability,
+                spectral_flux,
+                percussive_ratio,
+                *band_ratios,
+                *mfcc_stats[:8],
+                *contrast_stats[:6],
+            ],
+            dtype=np.float32,
+        )
+        dsp_embedding = np.concatenate(
+            (
+                mfcc_stats,
+                chroma_stats,
+                contrast_stats,
+                band_ratios,
+                np.asarray(
+                    [
+                        beat_strength,
+                        onset_density / 4.0,
+                        offbeat_ratio,
+                        tempo_stability,
+                        spectral_flux,
+                        percussive_ratio,
+                    ],
+                    dtype=np.float32,
+                ),
+            )
+        )
+        if (
+            self.embedding_backend is not None
+            and self.tag_backend is self.embedding_backend
+        ):
+            model_outputs = self.embedding_backend.encode_outputs(
+                samples,
+                self.sample_rate,
+            )
+            embedding = _unit_vector(
+                model_outputs[self.embedding_backend.output_dimension]
+            )
+            tags = model_outputs[400]
+        else:
+            embedding = (
+                self.embedding_backend.encode(samples, self.sample_rate)
+                if self.embedding_backend is not None
+                else _unit_vector(dsp_embedding)
+            )
+            tags = (
+                self.tag_backend.encode(samples, self.sample_rate)
+                if self.tag_backend is not None
+                else np.empty(0, dtype=np.float32)
+            )
+        return AudioDescriptor(
+            embedding=_array(embedding),
+            rhythm_timbre=_array(rhythm),
+            tag_probabilities=_array(tags),
+            bpm=bpm,
+            beat_strength=beat_strength,
+            onset_density=onset_density,
+            offbeat_ratio=offbeat_ratio,
+            tempo_stability=tempo_stability,
+            spectral_flux=spectral_flux,
+            percussive_ratio=percussive_ratio,
+        )
+
+    def _empty_descriptor(self) -> AudioDescriptor:
+        embedding_size = (
+            self.embedding_backend.output_dimension
+            if self.embedding_backend is not None
+            else 71
+        )
+        tag_size = 0
+        if self.tag_backend is not None:
+            tag_size = (
+                400
+                if self.tag_backend is self.embedding_backend
+                else self.tag_backend.output_dimension
+            )
+        return AudioDescriptor(
+            embedding=np.zeros(embedding_size, dtype=np.float32),
+            rhythm_timbre=np.zeros(24, dtype=np.float32),
+            tag_probabilities=np.zeros(tag_size, dtype=np.float32),
+            bpm=0.0,
+            beat_strength=0.0,
+            onset_density=0.0,
+            offbeat_ratio=0.0,
+            tempo_stability=0.0,
+            spectral_flux=0.0,
+            percussive_ratio=0.0,
+        )
+
+    def _band_ratios(self, samples: np.ndarray) -> np.ndarray:
+        spectrum = np.abs(np.fft.rfft(samples)) ** 2
+        frequencies = np.fft.rfftfreq(samples.size, d=1.0 / self.sample_rate)
+        total = max(float(np.sum(spectrum)), 1e-12)
+        bands = ((20.0, 250.0), (250.0, 2_000.0), (2_000.0, 8_000.0))
+        return np.asarray(
+            [
+                float(np.sum(spectrum[(frequencies >= low) & (frequencies < high)]))
+                / total
+                for low, high in bands
+            ],
+            dtype=np.float32,
+        )
+
+    def _tempo_stability(self, beat_frames: Sequence[int], hop: int) -> float:
+        if len(beat_frames) < 4:
+            return 0.0
+        times = librosa.frames_to_time(
+            np.asarray(beat_frames),
+            sr=self.sample_rate,
+            hop_length=hop,
+        )
+        intervals = np.diff(times)
+        mean = float(np.mean(intervals))
+        if mean <= 1e-8:
+            return 0.0
+        coefficient = float(np.std(intervals) / mean)
+        return float(np.clip(math.exp(-4.0 * coefficient), 0.0, 1.0))
+
+    @staticmethod
+    def _offbeat_ratio(onset_frames: Sequence[int], beat_frames: Sequence[int]) -> float:
+        if len(onset_frames) == 0 or len(beat_frames) < 2:
+            return 0.0
+        beats = np.asarray(beat_frames, dtype=float)
+        offbeat = 0
+        considered = 0
+        for onset in np.asarray(onset_frames, dtype=float):
+            right = int(np.searchsorted(beats, onset))
+            if right == 0 or right >= len(beats):
+                continue
+            left_beat, right_beat = beats[right - 1], beats[right]
+            midpoint = 0.5 * (left_beat + right_beat)
+            beat_distance = min(abs(onset - left_beat), abs(onset - right_beat))
+            if abs(onset - midpoint) < beat_distance:
+                offbeat += 1
+            considered += 1
+        return float(offbeat / considered) if considered else 0.0
+
+
+@dataclass(frozen=True)
+class MotionProfile:
+    motion_id: str
+    music_id: str
+    genre: str
+    situation: str
+    motion_path: str
+    duration_seconds: float
+    keypoint_phases: tuple[float, ...]
+    keypoint_scores: tuple[float, ...]
+    keypoint_density_hz: float
+    weighted_keypoint_density: float
+    keypoint_interval_cv: float
+    velocity_median: float
+    velocity_p90: float
+    original_bpm: float
+    preflight_passed: bool
+    preflight_reason: str
+
+    def to_dict(self) -> dict[str, Any]:
+        result = dict(self.__dict__)
+        result["keypoint_phases"] = list(self.keypoint_phases)
+        result["keypoint_scores"] = list(self.keypoint_scores)
+        return result
+
+    @classmethod
+    def from_dict(cls, values: Mapping[str, Any]) -> "MotionProfile":
+        data = dict(values)
+        data["keypoint_phases"] = tuple(float(v) for v in data["keypoint_phases"])
+        data["keypoint_scores"] = tuple(float(v) for v in data["keypoint_scores"])
+        return cls(**data)
+
+
+@dataclass(frozen=True)
+class TrackMatch:
+    music_id: str
+    genre: str
+    score: float
+    embedding_score: float
+    rhythm_timbre_score: float
+    tag_score: float | None
+
+
+@dataclass(frozen=True)
+class MotionMatch:
+    motion_id: str
+    music_id: str
+    final_score: float
+    music_score: float
+    motion_score: float
+    tempo_score: float
+    keypoint_score: float
+    activity_score: float
+    speed_ratio: float
+
+
+@dataclass(frozen=True)
+class MatchResult:
+    tracks: tuple[TrackMatch, ...]
+    motions: tuple[MotionMatch, ...]
+    query_bpm: float
+    query_tags: tuple[tuple[str, float], ...] = ()
+
+
+class MusicCatalog:
+    def __init__(
+        self,
+        catalog_path: Path,
+        metadata: Mapping[str, Any],
+        arrays: Mapping[str, np.ndarray],
+    ) -> None:
+        self.catalog_path = Path(catalog_path)
+        self.metadata = dict(metadata)
+        self.segment_metadata = list(self.metadata["segments"])
+        self.tracks = dict(self.metadata["tracks"])
+        self.motions = {
+            key: MotionProfile.from_dict(value)
+            for key, value in self.metadata["motions"].items()
+        }
+        self.embeddings = np.asarray(arrays["embeddings"], dtype=np.float32)
+        self.rhythm_timbre = np.asarray(arrays["rhythm_timbre"], dtype=np.float32)
+        self.tags = np.asarray(arrays["tags"], dtype=np.float32)
+        self.embedding_mean = np.asarray(arrays["embedding_mean"], dtype=np.float32)
+        self.embedding_std = np.asarray(arrays["embedding_std"], dtype=np.float32)
+        self.rhythm_mean = np.asarray(arrays["rhythm_mean"], dtype=np.float32)
+        self.rhythm_std = np.asarray(arrays["rhythm_std"], dtype=np.float32)
+        self.motion_velocity_median = float(self.metadata["motion_stats"]["velocity_median"])
+        self.motion_velocity_scale = max(
+            float(self.metadata["motion_stats"]["velocity_scale"]),
+            1e-6,
+        )
+
+    @classmethod
+    def load(cls, catalog_path: Path | str) -> "MusicCatalog":
+        path = Path(catalog_path)
+        metadata = json.loads(path.read_text(encoding="utf-8"))
+        if int(metadata.get("schema_version", -1)) != CATALOG_SCHEMA_VERSION:
+            raise ValueError(
+                f"Unsupported catalog schema {metadata.get('schema_version')}; "
+                f"expected {CATALOG_SCHEMA_VERSION}."
+            )
+        arrays_path = path.parent / metadata["arrays_file"]
+        with np.load(arrays_path, allow_pickle=False) as archive:
+            arrays = {key: archive[key] for key in archive.files}
+        return cls(path, metadata, arrays)
+
+
+class MusicMotionMatcher:
+    def __init__(
+        self,
+        catalog: MusicCatalog,
+        speed_min: float = 0.55,
+        speed_max: float = 1.9,
+    ) -> None:
+        self.catalog = catalog
+        self.speed_min = float(speed_min)
+        self.speed_max = float(speed_max)
+        self._catalog_embeddings = self._standardized_unit_rows(
+            catalog.embeddings,
+            catalog.embedding_mean,
+            catalog.embedding_std,
+        )
+        self._catalog_rhythm = self._standardized_unit_rows(
+            catalog.rhythm_timbre,
+            catalog.rhythm_mean,
+            catalog.rhythm_std,
+        )
+        self._catalog_tags = self._unit_rows(catalog.tags)
+
+    def match(
+        self,
+        descriptor: AudioDescriptor,
+        top_k_tracks: int = 5,
+        top_k_motions: int = 10,
+    ) -> MatchResult:
+        query_embedding = self._standardized_unit(
+            descriptor.embedding,
+            self.catalog.embedding_mean,
+            self.catalog.embedding_std,
+        )
+        query_rhythm = self._standardized_unit(
+            descriptor.rhythm_timbre,
+            self.catalog.rhythm_mean,
+            self.catalog.rhythm_std,
+        )
+        embedding_scores = self._similarities(self._catalog_embeddings, query_embedding)
+        rhythm_scores = self._similarities(self._catalog_rhythm, query_rhythm)
+
+        tags_available = (
+            descriptor.tag_probabilities.size > 0
+            and self._catalog_tags.shape[1] == descriptor.tag_probabilities.size
+        )
+        if tags_available:
+            query_tags = _unit_vector(descriptor.tag_probabilities)
+            tag_scores = self._similarities(self._catalog_tags, query_tags)
+            segment_scores = 0.70 * embedding_scores + 0.20 * rhythm_scores + 0.10 * tag_scores
+        else:
+            tag_scores = np.zeros_like(embedding_scores)
+            segment_scores = (0.70 / 0.90) * embedding_scores + (0.20 / 0.90) * rhythm_scores
+
+        by_track: dict[str, list[int]] = defaultdict(list)
+        for index, segment in enumerate(self.catalog.segment_metadata):
+            by_track[str(segment["music_id"])].append(index)
+
+        track_matches: list[TrackMatch] = []
+        for music_id, indices in by_track.items():
+            ranked = sorted(indices, key=lambda index: float(segment_scores[index]), reverse=True)
+            selected = ranked[: min(3, len(ranked))]
+            track_matches.append(
+                TrackMatch(
+                    music_id=music_id,
+                    genre=str(self.catalog.tracks[music_id]["genre"]),
+                    score=float(np.mean(segment_scores[selected])),
+                    embedding_score=float(np.mean(embedding_scores[selected])),
+                    rhythm_timbre_score=float(np.mean(rhythm_scores[selected])),
+                    tag_score=float(np.mean(tag_scores[selected])) if tags_available else None,
+                )
+            )
+        track_matches.sort(key=lambda item: item.score, reverse=True)
+        track_matches = track_matches[: max(int(top_k_tracks), 1)]
+        track_scores = {item.music_id: item.score for item in track_matches}
+
+        motion_matches: list[MotionMatch] = []
+        for profile in self.catalog.motions.values():
+            if not profile.preflight_passed or profile.music_id not in track_scores:
+                continue
+            tempo_score, speed_ratio = self._tempo_compatibility(
+                descriptor.bpm,
+                profile.original_bpm,
+            )
+            if tempo_score is None:
+                continue
+            keypoint_score = self._keypoint_compatibility(
+                descriptor,
+                profile,
+                speed_ratio,
+            )
+            activity_score = self._activity_compatibility(descriptor, profile)
+            motion_score = 0.50 * tempo_score + 0.35 * keypoint_score + 0.15 * activity_score
+            music_score = track_scores[profile.music_id]
+            final_score = 0.55 * music_score + 0.45 * motion_score
+            motion_matches.append(
+                MotionMatch(
+                    motion_id=profile.motion_id,
+                    music_id=profile.music_id,
+                    final_score=float(final_score),
+                    music_score=float(music_score),
+                    motion_score=float(motion_score),
+                    tempo_score=float(tempo_score),
+                    keypoint_score=float(keypoint_score),
+                    activity_score=float(activity_score),
+                    speed_ratio=float(speed_ratio),
+                )
+            )
+        motion_matches.sort(key=lambda item: item.final_score, reverse=True)
+        query_tags: tuple[tuple[str, float], ...] = ()
+        tag_metadata = self.catalog.metadata.get("extractor", {}).get("tag_model")
+        if tags_available and tag_metadata:
+            labels = tuple(str(label) for label in tag_metadata.get("labels", ()))
+            if len(labels) == descriptor.tag_probabilities.size:
+                top_indices = np.argsort(descriptor.tag_probabilities)[-5:][::-1]
+                query_tags = tuple(
+                    (labels[int(index)], float(descriptor.tag_probabilities[int(index)]))
+                    for index in top_indices
+                )
+        return MatchResult(
+            tracks=tuple(track_matches),
+            motions=tuple(motion_matches[: max(int(top_k_motions), 1)]),
+            query_bpm=descriptor.bpm,
+            query_tags=query_tags,
+        )
+
+    def _tempo_compatibility(
+        self,
+        query_bpm: float,
+        original_bpm: float,
+    ) -> tuple[float | None, float]:
+        if query_bpm <= 0.0 or original_bpm <= 0.0:
+            return 0.25, 1.0
+        base = query_bpm / original_bpm
+        ratios = (base, 0.5 * base, 2.0 * base)
+        valid = [ratio for ratio in ratios if self.speed_min <= ratio <= self.speed_max]
+        if not valid:
+            return None, 1.0
+        ratio = min(valid, key=lambda value: abs(math.log(max(value, 1e-8))))
+        score = math.exp(-0.5 * (math.log(max(ratio, 1e-8)) / 0.28) ** 2)
+        return float(score), float(ratio)
+
+    @staticmethod
+    def _keypoint_compatibility(
+        descriptor: AudioDescriptor,
+        profile: MotionProfile,
+        speed_ratio: float,
+    ) -> float:
+        query_rate = 0.70 * max(descriptor.bpm / 60.0, 0.0) + 0.30 * descriptor.onset_density
+        motion_rate = profile.weighted_keypoint_density * speed_ratio
+        if query_rate <= 1e-6 or motion_rate <= 1e-6:
+            return 0.25
+        log_distance = abs(math.log(motion_rate / query_rate))
+        density_score = math.exp(-0.5 * (log_distance / 0.65) ** 2)
+        regularity_score = math.exp(-min(profile.keypoint_interval_cv, 2.0))
+        return float(np.clip(0.80 * density_score + 0.20 * regularity_score, 0.0, 1.0))
+
+    def _activity_compatibility(
+        self,
+        descriptor: AudioDescriptor,
+        profile: MotionProfile,
+    ) -> float:
+        z_score = (
+            profile.velocity_p90 - self.catalog.motion_velocity_median
+        ) / self.catalog.motion_velocity_scale
+        motion_activity = 1.0 / (1.0 + math.exp(-z_score))
+        return float(np.clip(1.0 - abs(descriptor.activity - motion_activity), 0.0, 1.0))
+
+    @staticmethod
+    def _similarities(matrix: np.ndarray, vector: np.ndarray) -> np.ndarray:
+        if matrix.shape[1] == 0 or vector.size == 0:
+            return np.zeros(matrix.shape[0], dtype=np.float32)
+        cosine = np.clip(matrix @ vector, -1.0, 1.0)
+        return (0.5 + 0.5 * cosine).astype(np.float32)
+
+    @staticmethod
+    def _unit_rows(matrix: np.ndarray) -> np.ndarray:
+        if matrix.shape[1] == 0:
+            return matrix
+        norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+        return matrix / np.maximum(norms, 1e-12)
+
+    @classmethod
+    def _standardized_unit_rows(
+        cls,
+        matrix: np.ndarray,
+        mean: np.ndarray,
+        std: np.ndarray,
+    ) -> np.ndarray:
+        return cls._unit_rows((matrix - mean) / np.maximum(std, 1e-6))
+
+    @staticmethod
+    def _standardized_unit(
+        vector: np.ndarray,
+        mean: np.ndarray,
+        std: np.ndarray,
+    ) -> np.ndarray:
+        if vector.size != mean.size:
+            raise ValueError(
+                f"Query feature dimension {vector.size} does not match catalog dimension {mean.size}."
+            )
+        return _unit_vector((vector - mean) / np.maximum(std, 1e-6))
+
+
+class CandidateStabilizer:
+    def __init__(self, required_wins: int = 3, margin: float = 0.08) -> None:
+        self.required_wins = max(int(required_wins), 1)
+        self.margin = max(float(margin), 0.0)
+        self.candidate: str | None = None
+        self.wins = 0
+
+    def reset(self) -> None:
+        self.candidate = None
+        self.wins = 0
+
+    def observe(self, result: MatchResult, current_motion_id: str | None) -> str | None:
+        if not result.motions:
+            self.reset()
+            return None
+        best = result.motions[0]
+        if best.motion_id == current_motion_id:
+            self.reset()
+            return None
+        current_score = next(
+            (
+                motion.final_score
+                for motion in result.motions
+                if motion.motion_id == current_motion_id
+            ),
+            0.0,
+        )
+        runner_up_score = (
+            result.motions[1].final_score if len(result.motions) > 1 else 0.0
+        )
+        comparison_score = max(current_score, runner_up_score)
+        if best.final_score < comparison_score + self.margin:
+            self.reset()
+            return None
+        if best.motion_id != self.candidate:
+            self.candidate = best.motion_id
+            self.wins = 1
+        else:
+            self.wins += 1
+        if self.wins < self.required_wins:
+            return None
+        pending = self.candidate
+        self.reset()
+        return pending
+
+
+class MotionPreflightValidator:
+    """Validate retargeted controls and finite MuJoCo state before indexing."""
+
+    def __init__(self, model_path: Path, simulation_stride: int = 4) -> None:
+        from realtime_music_humanoid_dancer import MujocoHumanoidPlayer
+        from unitree_g1_dance_adapter import UnitreeG1DanceAdapter
+
+        self.player = MujocoHumanoidPlayer(model_path, realtime=False, headless=True)
+        self.adapter = UnitreeG1DanceAdapter(self.player.actuator_names)
+        self.simulation_stride = max(int(simulation_stride), 1)
+
+    def validate(self, motion_path: Path, fps: float = DEFAULT_MOTION_FPS) -> tuple[bool, str]:
+        import mujoco
+
+        from realtime_music_humanoid_dancer import AistppMotionSampler, FeatureState
+
+        try:
+            sampler = AistppMotionSampler(
+                motion_path=motion_path,
+                fps=fps,
+                pose_gain=1.0,
+                accent_gain=0.0,
+            )
+            features = FeatureState(is_active=True)
+            mujoco.mj_resetData(self.player.model, self.player.data)
+            for frame_index in range(len(sampler.frames)):
+                phase = frame_index / len(sampler.frames)
+                pose = sampler.sample(phase, 1.0, 0.0, features)
+                controls = self.adapter.adapt_pose(pose, features)
+                for name, value in controls.items():
+                    if not math.isfinite(value):
+                        return False, f"non-finite control: {name}"
+                    actuator_id = self.player.actuator_ids.get(name)
+                    if actuator_id is None:
+                        continue
+                    low, high = self.player.model.actuator_ctrlrange[actuator_id]
+                    if value < float(low) - 1e-6 or value > float(high) + 1e-6:
+                        return False, f"control outside range: {name}={value:.5f}"
+                if frame_index % self.simulation_stride == 0:
+                    self.player.set_pose(controls)
+                    self.player.step()
+                    if not (
+                        np.all(np.isfinite(self.player.data.qpos))
+                        and np.all(np.isfinite(self.player.data.qvel))
+                        and np.all(np.isfinite(self.player.data.ctrl))
+                    ):
+                        return False, "MuJoCo state became non-finite"
+        except Exception as exc:
+            return False, f"{type(exc).__name__}: {exc}"
+        return True, "ok"
+
+
+def _audio_prefix_sha256(path: Path, seconds: float = DEFAULT_WINDOW_SECONDS) -> str:
+    audio, sample_rate = sf.read(path, always_2d=True, dtype="int16")
+    frame_count = min(len(audio), int(round(seconds * sample_rate)))
+    return hashlib.sha256(np.asarray(audio[:frame_count]).tobytes()).hexdigest()
+
+
+def _representative_audio_variants(
+    rows: Sequence[Mapping[str, str]],
+    audio_dir: Path,
+) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        parsed = parse_motion_name(row["motion_name"])
+        audio_path = audio_dir / row["audio_path"]
+        signature = _audio_prefix_sha256(audio_path)
+        grouped[(parsed["music"], parsed["situation"], signature)].append(
+            {
+                "row": dict(row),
+                "parsed": parsed,
+                "audio_path": audio_path,
+            }
+        )
+
+    representatives: list[dict[str, Any]] = []
+    for (music_id, situation, signature), items in sorted(grouped.items()):
+        representative = max(
+            items,
+            key=lambda item: float(item["row"]["duration_seconds"]),
+        )
+        representative.update(
+            {
+                "music_id": music_id,
+                "situation": situation,
+                "signature": signature,
+                "duplicate_count": len(items),
+            }
+        )
+        representatives.append(representative)
+    return representatives
+
+
+def _keypoint_interval_cv(phases: Sequence[float]) -> float:
+    if len(phases) < 2:
+        return 1.0
+    ordered = np.sort(np.mod(np.asarray(phases, dtype=float), 1.0))
+    wrapped = np.concatenate((ordered, [ordered[0] + 1.0]))
+    intervals = np.diff(wrapped)
+    mean = float(np.mean(intervals))
+    return float(np.std(intervals) / mean) if mean > 1e-8 else 1.0
+
+
+def build_music_catalog(
+    aistpp_root: Path,
+    output_dir: Path,
+    *,
+    embedding_model: Path | None = None,
+    tag_model: Path | None = None,
+    mujoco_model: Path | None = None,
+    run_preflight: bool = True,
+    limit_motions: int | None = None,
+    window_seconds: float = DEFAULT_WINDOW_SECONDS,
+    hop_seconds: float = DEFAULT_HOP_SECONDS,
+) -> Path:
+    root = Path(aistpp_root).resolve()
+    output = Path(output_dir).resolve()
+    manifest_path = root / "audio" / "manifest.csv"
+    audio_dir = root / "audio"
+    motions_dir = root / "motions"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"AIST++ audio manifest not found: {manifest_path}")
+    if not motions_dir.is_dir():
+        raise FileNotFoundError(f"AIST++ motions directory not found: {motions_dir}")
+
+    with manifest_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if limit_motions is not None:
+        rows = rows[: max(int(limit_motions), 0)]
+    if not rows:
+        raise ValueError("AIST++ manifest contains no selected rows.")
+
+    failures: list[dict[str, str]] = []
+    valid_rows: list[dict[str, str]] = []
+    for row in rows:
+        audio_path = audio_dir / row["audio_path"]
+        motion_path = motions_dir / f"{row['motion_name']}.pkl"
+        if not audio_path.exists() or not motion_path.exists():
+            failures.append(
+                {
+                    "motion_id": row["motion_name"],
+                    "reason": "missing audio or motion file",
+                }
+            )
+            continue
+        valid_rows.append(row)
+    if not valid_rows:
+        raise RuntimeError("No manifest rows have both an audio file and a motion file.")
+
+    extractor = AudioFeatureExtractor(
+        embedding_model=embedding_model,
+        tag_model=tag_model,
+    )
+    variants = _representative_audio_variants(valid_rows, audio_dir)
+    descriptors: list[AudioDescriptor] = []
+    segment_metadata: list[dict[str, Any]] = []
+    tracks: dict[str, dict[str, Any]] = {}
+
+    for variant_index, variant in enumerate(variants):
+        music_id = variant["music_id"]
+        parsed = variant["parsed"]
+        audio_path = Path(variant["audio_path"])
+        audio = load_audio_mono(audio_path, extractor.sample_rate)
+        variant_id = f"{music_id}:{variant['situation']}:{variant['signature'][:12]}"
+        track = tracks.setdefault(
+            music_id,
+            {
+                "music_id": music_id,
+                "genre": parsed["genre"],
+                "variants": [],
+                "motion_ids": [],
+            },
+        )
+        track["variants"].append(
+            {
+                "variant_id": variant_id,
+                "situation": variant["situation"],
+                "source_audio": str(audio_path.relative_to(root)),
+                "duplicate_count": int(variant["duplicate_count"]),
+            }
+        )
+        for start, end, window in iter_audio_windows(
+            audio,
+            extractor.sample_rate,
+            window_seconds=window_seconds,
+            hop_seconds=hop_seconds,
+        ):
+            descriptor = extractor.describe(window)
+            descriptors.append(descriptor)
+            segment_metadata.append(
+                {
+                    "music_id": music_id,
+                    "genre": parsed["genre"],
+                    "variant_id": variant_id,
+                    "variant_index": variant_index,
+                    "source_audio": str(audio_path.relative_to(root)),
+                    "start_seconds": start,
+                    "end_seconds": end,
+                    **descriptor.scalar_metadata(),
+                }
+            )
+
+    bpm_by_music: dict[str, float] = {}
+    for music_id in tracks:
+        bpms = [
+            float(segment["bpm"])
+            for segment in segment_metadata
+            if segment["music_id"] == music_id and float(segment["bpm"]) > 0.0
+        ]
+        bpm_by_music[music_id] = float(np.median(bpms)) if bpms else 0.0
+
+    validator = None
+    if run_preflight:
+        if mujoco_model is None:
+            raise ValueError("mujoco_model is required when run_preflight=True.")
+        validator = MotionPreflightValidator(Path(mujoco_model))
+
+    motions: dict[str, MotionProfile] = {}
+    for index, row in enumerate(valid_rows, start=1):
+        motion_id = row["motion_name"]
+        parsed = parse_motion_name(motion_id)
+        motion_path = motions_dir / f"{motion_id}.pkl"
+        try:
+            keypoints = detect_aistpp_file(motion_path, fps=DEFAULT_MOTION_FPS)
+            preflight_passed, preflight_reason = (
+                validator.validate(motion_path, fps=DEFAULT_MOTION_FPS)
+                if validator is not None
+                else (True, "skipped")
+            )
+            duration = float(row["duration_seconds"])
+            smoothed = np.asarray(keypoints.smoothed_velocity, dtype=float)
+            profile = MotionProfile(
+                motion_id=motion_id,
+                music_id=parsed["music"],
+                genre=parsed["genre"],
+                situation=parsed["situation"],
+                motion_path=str(motion_path.relative_to(root)),
+                duration_seconds=duration,
+                keypoint_phases=tuple(float(v) for v in keypoints.phases),
+                keypoint_scores=tuple(float(v) for v in keypoints.scores),
+                keypoint_density_hz=float(len(keypoints.phases) / max(duration, 1e-6)),
+                weighted_keypoint_density=float(
+                    sum(keypoints.scores) / max(duration, 1e-6)
+                ),
+                keypoint_interval_cv=_keypoint_interval_cv(keypoints.phases),
+                velocity_median=float(np.median(smoothed)),
+                velocity_p90=float(np.percentile(smoothed, 90.0)),
+                original_bpm=bpm_by_music.get(parsed["music"], 0.0),
+                preflight_passed=preflight_passed,
+                preflight_reason=preflight_reason,
+            )
+            if not preflight_passed:
+                failures.append({"motion_id": motion_id, "reason": preflight_reason})
+                continue
+            motions[motion_id] = profile
+            tracks[parsed["music"]]["motion_ids"].append(motion_id)
+        except Exception as exc:
+            failures.append(
+                {
+                    "motion_id": motion_id,
+                    "reason": f"{type(exc).__name__}: {exc}",
+                }
+            )
+        if index == 1 or index % 25 == 0 or index == len(valid_rows):
+            print(f"Motion profiles: {index}/{len(valid_rows)}", flush=True)
+
+    if not motions:
+        raise RuntimeError("No motion passed profiling and preflight.")
+
+    embeddings = np.stack([descriptor.embedding for descriptor in descriptors])
+    rhythm = np.stack([descriptor.rhythm_timbre for descriptor in descriptors])
+    tag_dimension = max((descriptor.tag_probabilities.size for descriptor in descriptors), default=0)
+    tags = (
+        np.stack([descriptor.tag_probabilities for descriptor in descriptors])
+        if tag_dimension
+        else np.empty((len(descriptors), 0), dtype=np.float32)
+    )
+    velocity_values = np.asarray(
+        [profile.velocity_p90 for profile in motions.values()],
+        dtype=float,
+    )
+    velocity_median = float(np.median(velocity_values))
+    velocity_scale = float(
+        max(
+            np.percentile(velocity_values, 75.0)
+            - np.percentile(velocity_values, 25.0),
+            np.std(velocity_values),
+            1e-6,
+        )
+    )
+
+    output.mkdir(parents=True, exist_ok=True)
+    arrays_path = output / "catalog_features.npz"
+    np.savez_compressed(
+        arrays_path,
+        embeddings=embeddings.astype(np.float32),
+        rhythm_timbre=rhythm.astype(np.float32),
+        tags=tags.astype(np.float32),
+        embedding_mean=np.mean(embeddings, axis=0).astype(np.float32),
+        embedding_std=np.std(embeddings, axis=0).astype(np.float32),
+        rhythm_mean=np.mean(rhythm, axis=0).astype(np.float32),
+        rhythm_std=np.std(rhythm, axis=0).astype(np.float32),
+    )
+    catalog_path = output / "catalog.json"
+    model_metadata = extractor.model_metadata()
+    for key in ("embedding_model", "tag_model"):
+        model = model_metadata.get(key)
+        if isinstance(model, dict) and model.get("path"):
+            model["path"] = os.path.relpath(Path(model["path"]), output).replace("\\", "/")
+
+    metadata = {
+        "schema_version": CATALOG_SCHEMA_VERSION,
+        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "aistpp_root": os.path.relpath(root, output).replace("\\", "/"),
+        "manifest": str(manifest_path.relative_to(root)),
+        "arrays_file": arrays_path.name,
+        "extractor": {
+            "sample_rate": extractor.sample_rate,
+            "window_seconds": float(window_seconds),
+            "hop_seconds": float(hop_seconds),
+            **model_metadata,
+        },
+        "counts": {
+            "manifest_rows": len(valid_rows),
+            "music_ids": len(tracks),
+            "audio_variants": len(variants),
+            "segments": len(segment_metadata),
+            "motions_included": len(motions),
+            "motions_excluded": len(failures),
+        },
+        "motion_stats": {
+            "velocity_median": velocity_median,
+            "velocity_scale": velocity_scale,
+        },
+        "tracks": tracks,
+        "motions": {key: value.to_dict() for key, value in motions.items()},
+        "segments": segment_metadata,
+    }
+    catalog_path.write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    excluded_path = output / "excluded_motions.csv"
+    with excluded_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=("motion_id", "reason"))
+        writer.writeheader()
+        writer.writerows(failures)
+    return catalog_path

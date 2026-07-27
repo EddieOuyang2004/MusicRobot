@@ -13,7 +13,7 @@ SRC = ROOT / "realtime" / "humanoid_robot" / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from motion_keypoints import DEFAULT_FALLBACK_PHASES, detect_motion_keypoints
+from motion_keypoints import DEFAULT_FALLBACK_PHASES, default_keypoint_count, detect_motion_keypoints
 
 
 def phase_distance(a: float, b: float) -> float:
@@ -28,6 +28,11 @@ def make_motion(frame_count: int, build_pose) -> tuple[np.ndarray, list[dict[str
 
 
 class MotionKeypointTests(unittest.TestCase):
+    def test_default_keypoint_count_follows_rounded_motion_duration(self) -> None:
+        self.assertEqual(1, default_keypoint_count(0.2))
+        self.assertEqual(3, default_keypoint_count(2.6))
+        self.assertEqual(10, default_keypoint_count(10.0))
+
     def test_sine_arm_swing_detects_extrema(self) -> None:
         phases, poses = make_motion(
             240,

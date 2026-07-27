@@ -12,6 +12,11 @@ HIGH_PRIORITY_TERMS = ("shoulder", "elbow", "wrist", "waist", "ankle", "knee")
 MEDIUM_PRIORITY_TERMS = ("hand", "arm", "torso", "hip", "neck", "head")
 
 
+def default_keypoint_count(duration: float) -> int:
+    """Return one keypoint per rounded second of authored motion."""
+    return max(1, int(max(duration, 0.0) + 0.5))
+
+
 @dataclass(frozen=True)
 class KeypointDetectionResult:
     phases: tuple[float, ...]

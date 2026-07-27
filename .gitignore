@@ -9,3 +9,4 @@ __pycache__/
 realtime/humanoid_robot/data/aistpp/
 realtime/humanoid_robot/data/aistpp_bvh/
 realtime/humanoid_robot/assets/body_models/
+realtime/humanoid_robot/models/

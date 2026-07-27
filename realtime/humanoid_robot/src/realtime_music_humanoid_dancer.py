@@ -24,9 +24,11 @@ if str(ROBOT_ARM_SRC) not in sys.path:
     sys.path.insert(0, str(ROBOT_ARM_SRC))
 
 from realtime_music_adaptive_player import AdaptiveMotionController, MusicFrame, RealtimeMusicAnalyzer
+from aistpp_velocity_keypoints import detect_aistpp_velocity_keypoints
 from music_pose_modulator import MusicPoseModulator
 from motion_keypoints import (
     DEFAULT_FALLBACK_PHASES,
+    default_keypoint_count,
     detect_motion_keypoints,
     parse_keypoint_phases,
     sample_pose_sequence,
@@ -167,6 +169,14 @@ class AistppMotionSampler:
         if len(poses) < 2:
             raise ValueError("AIST++ motion must contain at least two frames.")
         self.frames = poses.reshape((-1, 24, 3))
+        translations = motion.get("smpl_trans")
+        self.translations = None if translations is None else np.asarray(translations, dtype=np.float64)
+        if self.translations is not None and self.translations.shape != (len(self.frames), 3):
+            raise ValueError(
+                f"Expected smpl_trans with shape {(len(self.frames), 3)}, got {self.translations.shape}."
+            )
+        scaling = motion.get("smpl_scaling")
+        self.scaling = None if scaling is None else float(np.asarray(scaling, dtype=np.float64).reshape(-1)[0])
         self.duration = len(self.frames) / self.fps
 
     def sample(self, phase: float, amplitude: float, accent: float, features: FeatureState) -> dict[str, float]:
@@ -671,9 +681,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--beats-per-cycle", type=int, default=2)
     parser.add_argument(
         "--keypoint-mode",
-        choices=("auto", "fixed", "off"),
+        choices=("auto", "aist-velocity", "fixed", "off"),
         default="auto",
-        help="How music beats choose dance phases: auto-detected motion keypoints, fixed phases, or uniform beats.",
+        help=(
+            "How music beats choose dance phases. auto uses AIST++ velocity valleys for AIST++ motions "
+            "and pose salience otherwise; aist-velocity requires an AIST++ source."
+        ),
     )
     parser.add_argument(
         "--keypoint-phases",
@@ -691,13 +704,25 @@ def parse_args() -> argparse.Namespace:
         "--keypoint-prominence",
         type=float,
         default=0.18,
-        help="Minimum normalized salience for auto-detected keypoints.",
+        help="Minimum normalized prominence for auto-detected keypoints.",
+    )
+    parser.add_argument(
+        "--keypoint-smoothing-sec",
+        type=float,
+        default=0.08,
+        help="Gaussian smoothing width for AIST++ velocity-valley detection.",
+    )
+    parser.add_argument(
+        "--keypoint-boundary-sec",
+        type=float,
+        default=0.10,
+        help="Ignore velocity valleys this close to an AIST++ clip boundary.",
     )
     parser.add_argument(
         "--keypoint-max-count",
         type=int,
-        default=32,
-        help="Maximum number of auto-detected keypoints per dance cycle.",
+        default=None,
+        help="Maximum number of auto-detected keypoints per dance cycle. Defaults to the rounded motion duration in seconds.",
     )
     parser.add_argument("--speed-min", type=float, default=0.55)
     parser.add_argument("--speed-max", type=float, default=1.9)
@@ -908,6 +933,44 @@ def resolve_controller_keypoints(
         )
         return keypoint_phases, max(len(keypoint_phases), 1), True
 
+    keypoint_max_count = (
+        args.keypoint_max_count
+        if args.keypoint_max_count is not None
+        else default_keypoint_count(motion_cycle_duration)
+    )
+    use_aist_velocity = isinstance(sampler, AistppMotionSampler) and args.keypoint_mode in (
+        "auto",
+        "aist-velocity",
+    )
+    if args.keypoint_mode == "aist-velocity" and not isinstance(sampler, AistppMotionSampler):
+        raise ValueError("--keypoint-mode aist-velocity requires --motion-source aistpp.")
+
+    if use_aist_velocity:
+        result = detect_aistpp_velocity_keypoints(
+            smpl_poses=sampler.frames,
+            smpl_trans=sampler.translations,
+            smpl_scaling=sampler.scaling,
+            fps=sampler.fps,
+            smoothing_sec=args.keypoint_smoothing_sec,
+            min_spacing_sec=args.keypoint_min_spacing_sec,
+            prominence=args.keypoint_prominence,
+            max_count=keypoint_max_count,
+            boundary_sec=args.keypoint_boundary_sec,
+        )
+        if len(result.phases) < 2:
+            print(
+                "Warning: AIST++ velocity-valley detection found fewer than two keypoints; "
+                f"falling back to phases {_format_phases(DEFAULT_FALLBACK_PHASES)} ({result.reason})."
+            )
+            return DEFAULT_FALLBACK_PHASES, len(DEFAULT_FALLBACK_PHASES), True
+
+        frame_text = ", ".join(str(frame) for frame in result.frame_indices)
+        print(
+            f"AIST++ velocity-valley keypoints ({len(result.phases)} beats/cycle): "
+            f"{_format_phases(result.phases)}; frames: {frame_text}"
+        )
+        return result.phases, len(result.phases), True
+
     neutral_features = FeatureState(is_active=True)
     phases, poses = sample_pose_sequence(
         sampler=sampler,
@@ -920,7 +983,7 @@ def resolve_controller_keypoints(
         duration=motion_cycle_duration,
         min_spacing_sec=args.keypoint_min_spacing_sec,
         prominence=args.keypoint_prominence,
-        max_count=args.keypoint_max_count,
+        max_count=keypoint_max_count,
         fallback_phases=DEFAULT_FALLBACK_PHASES,
     )
     if result.fallback_used:

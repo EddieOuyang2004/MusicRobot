@@ -46,6 +46,39 @@ To choose a different AIST++ pickle:
 python realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py --motion-source aistpp --aistpp-motion path/to/motion.pkl --preview-trajectory --realtime
 ```
 
+## AIST++ Velocity-Valley Keypoints
+
+The standalone detector finds dance key poses at prominent local minima of the
+whole-body velocity curve:
+
+```powershell
+python realtime/humanoid_robot/src/aistpp_velocity_keypoints.py realtime/humanoid_robot/data/aistpp/motions/gWA_sBM_cAll_d26_mWA0_ch07.pkl --max-count 12
+```
+
+Use `--json` for machine-readable stdout, or save the frame, timestamp, phase,
+score, prominence, and velocity of every keypoint:
+
+```powershell
+python realtime/humanoid_robot/src/aistpp_velocity_keypoints.py path/to/motion.pkl --output-json outputs/keypoints.json
+```
+
+If a pickle contains 3D joint positions under `keypoints3d`, `joints3d`,
+`smpl_joints`, or `joint_positions`, the detector uses their whole-body kinetic
+velocity directly. Standard AIST++ SMPL pickles in this repository do not
+contain those positions, so it uses geodesic angular velocity from all 24 SMPL
+joints plus scale-corrected root translation.
+
+The realtime dancer's `--keypoint-mode auto` selects this detector for AIST++
+motions. It can also be requested explicitly:
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py --keypoint-mode aist-velocity --realtime
+```
+
+The main tuning controls are `--keypoint-prominence`,
+`--keypoint-min-spacing-sec`, `--keypoint-smoothing-sec`, and
+`--keypoint-max-count`.
+
 For higher quality Unitree G1 retargeting, convert AIST++ SMPL pickles to a
 GMR-readable LaFAN-style BVH first, then let GMR do the robot retargeting. The
 converter needs optional dependencies and licensed SMPL model files that are not
@@ -119,11 +152,72 @@ If you are using the checked-in virtual environment:
 .\.venv\Scripts\python.exe realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py --realtime
 ```
 
+## Music Retrieval and Automatic Motion Switching
+
+`realtime_music_humanoid_matcher.py` is a separate entrypoint that keeps
+`realtime_music_humanoid_dancer.py` unchanged. It analyzes a six-second rolling
+music window, retrieves matching AIST++ music, ranks only motions that passed
+catalog preflight, and changes motion on a stable four-beat boundary.
+
+Build the catalog after downloading the synchronized AIST++ audio:
+
+```powershell
+python realtime/humanoid_robot/src/build_aistpp_music_catalog.py
+```
+
+The default catalog uses a local, gain-invariant DSP embedding. To build with
+Windows CPU ONNX Runtime, place the official dynamic-batch Discogs EffNet model
+and its same-named JSON metadata under `realtime/humanoid_robot/models/`. Passing
+the same model for both flags runs it once per window and reads both its
+1280-dimensional embedding and 400 explainable style activations:
+
+```powershell
+python realtime/humanoid_robot/src/build_aistpp_music_catalog.py `
+  --embedding-model realtime/humanoid_robot/models/discogs-effnet-bsdynamic-1.onnx `
+  --tag-model realtime/humanoid_robot/models/discogs-effnet-bsdynamic-1.onnx
+```
+
+Use the microphone:
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py --realtime
+```
+
+Use `--matcher-help` for retrieval/switching options and `--help` for the
+inherited dancer/controller options. A hardware-free silent smoke test keeps the
+current motion without attempting retrieval:
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
+  --headless --no-mic --max-seconds 1
+```
+
+Evaluate segment retrieval, leave-one-music genre retrieval, and gain
+invariance:
+
+```powershell
+python realtime/humanoid_robot/src/evaluate_music_catalog.py
+```
+
+Use a synchronized WAV for a deterministic test:
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
+  --audio-input realtime/humanoid_robot/data/aistpp/audio/gBR_sBM_cAll_d04_mBR0_ch01.wav `
+  --headless --realtime --max-seconds 10
+```
+
+Absolute microphone RMS and LUFS are not retrieval features. RMS is retained
+only for the noise gate, silence handling, and live pose amplitude. Catalog and
+query audio are DC-removed and robustly gain-normalized before extracting
+embedding, rhythm, timbre, and optional tag probabilities.
+
 ## Current Feature Mapping
 
 The mapping follows `offline/outputs/music_feature_motion_mapping.xlsx`:
 
-- Beat period and PLP beat events retime the dance cycle and align key poses at phases `0.0` and `0.5`.
+- Beat period and PLP beat events retime the dance cycle and align AIST++ motions
+  to detected velocity-valley key poses (or configured fixed phases).
 - RMS loudness controls full-body amplitude and fades motion toward silence.
 - Onsets and beat confidence produce short pose accents.
 - Brightness raises arm height and sharpens beat accents.
