@@ -20,7 +20,6 @@ from music_motion_catalog import (
     MotionProfile,
     MusicCatalog,
     MusicMotionMatcher,
-    load_audio_mono,
 )
 from music_pose_modulator import MusicPoseModulator
 
@@ -36,12 +35,6 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
-    parser.add_argument(
-        "--audio-input",
-        type=Path,
-        default=None,
-        help="Use a WAV/audio file as a deterministic realtime source instead of the microphone.",
-    )
     parser.add_argument("--embedding-model", type=Path, default=None)
     parser.add_argument("--tag-model", type=Path, default=None)
     parser.add_argument("--match-window-seconds", type=float, default=6.0)
@@ -141,8 +134,8 @@ class SilentSource:
         return None
 
 
-class WavSource:
-    """Feed the existing realtime analyzer from a file using simulated audio time."""
+class MatcherFileMicrophoneSource(base.FileMicrophoneSource):
+    """Virtual file microphone with matcher-specific beat and window handling."""
 
     def __init__(
         self,
@@ -150,102 +143,55 @@ class WavSource:
         args: argparse.Namespace,
         window_seconds: float,
     ) -> None:
-        self.path = path
-        self.sample_rate = int(args.mic_sample_rate)
-        self.block_size = int(args.mic_block_size)
         self.window_seconds = float(window_seconds)
-        self.audio = load_audio_mono(path, self.sample_rate)
-        self.cursor = 0
-        self.target_cursor = 0.0
-        self.analyzer = base.RealtimeMusicAnalyzer(
-            sample_rate=self.sample_rate,
-            block_size=self.block_size,
-            onset_threshold_scale=args.onset_threshold_scale,
-            min_beat_period=args.min_beat_period,
-            max_beat_period=args.max_beat_period,
-            refractory_sec=args.mic_refractory_sec,
-            noise_gate_rms=0.0,
-            noise_gate_ratio=1.0,
-            startup_calibration_sec=0.0,
-            plp_history_sec=max(args.plp_history_sec, window_seconds),
-            plp_analysis_interval_sec=args.plp_analysis_interval_sec,
-            plp_hop_length=args.plp_hop_length,
-            plp_peak_prominence=args.plp_peak_prominence,
+        analyzer = base.make_analyzer(args)
+        analyzer.plp_history_sec = max(analyzer.plp_history_sec, self.window_seconds)
+        super().__init__(
+            path,
+            analyzer,
+            startup_delay_sec=args.audio_input_delay_sec,
+            throttle=not args.realtime,
         )
-        self.analyzer.start_wall = time.perf_counter() - 1.0
-        self.analyzer.calibrated_noise_rms = 1e-7
         self._pending_beats: list[float] = []
+        self._pending_beat_contrasts: list[float] = []
         self._next_beat = 0
         self._beat_period: float | None = None
         self._analyze_beats()
 
-    @property
-    def playback_seconds(self) -> float:
-        return float(self.cursor / self.sample_rate)
-
-    @property
-    def done(self) -> bool:
-        return self.cursor >= self.audio.size
-
     def _analyze_beats(self) -> None:
+        hop_length = self.analyzer.plp_hop_length
         onset = librosa.onset.onset_strength(
             y=self.audio,
             sr=self.sample_rate,
-            hop_length=256,
+            hop_length=hop_length,
         )
         _tempo, beat_frames = librosa.beat.beat_track(
             onset_envelope=onset,
             sr=self.sample_rate,
-            hop_length=256,
+            hop_length=hop_length,
         )
         self._pending_beats = [
             float(value)
             for value in librosa.frames_to_time(
                 beat_frames,
                 sr=self.sample_rate,
-                hop_length=256,
+                hop_length=hop_length,
             )
         ]
+        self._pending_beat_contrasts = base.compute_beat_contrasts(
+            self.audio,
+            onset,
+            np.asarray(beat_frames, dtype=int),
+            self.sample_rate,
+            hop_length,
+        ).tolist()
         if len(self._pending_beats) >= 2:
             self._beat_period = float(np.median(np.diff(self._pending_beats)))
 
-    def start(self) -> None:
-        return
-
-    def stop(self) -> None:
-        return
-
-    def advance(self, dt: float) -> None:
-        self.target_cursor = min(
-            self.target_cursor + max(float(dt), 0.0) * self.sample_rate,
-            float(self.audio.size),
-        )
-        target = int(self.target_cursor)
-        while target - self.cursor >= self.block_size:
-            end = min(self.cursor + self.block_size, self.audio.size)
-            block = self.audio[self.cursor:end]
-            self.analyzer._callback(
-                np.asarray(block[:, None], dtype=np.float32),
-                block.size,
-                {},
-                None,
-            )
-            self.cursor = end
-        if target >= self.audio.size and self.cursor < self.audio.size:
-            end = self.audio.size
-            block = self.audio[self.cursor:end]
-            padded = np.pad(block, (0, self.block_size - block.size))
-            self.analyzer._callback(
-                np.asarray(padded[:, None], dtype=np.float32),
-                block.size,
-                {},
-                None,
-            )
-            self.cursor = end
-
     def drain(self) -> list[base.MusicFrame]:
-        frames = [frame for frame in self.analyzer.drain() if not frame.is_beat]
+        frames = [frame for frame in super().drain() if not frame.is_beat]
         playback = self.playback_seconds
+        now = time.perf_counter()
         template = frames[-1] if frames else self.analyzer.latest_status_frame
         while (
             template is not None
@@ -255,9 +201,10 @@ class WavSource:
             frames.append(
                 replace(
                     template,
-                    timestamp=time.perf_counter(),
+                    timestamp=now - max(playback - self._pending_beats[self._next_beat], 0.0),
                     beat_period=self._beat_period,
                     beat_confidence=1.0,
+                    beat_contrast=self._pending_beat_contrasts[self._next_beat],
                     is_beat=True,
                     is_active=True,
                 )
@@ -267,10 +214,7 @@ class WavSource:
         return frames
 
     def recent_audio(self) -> np.ndarray | None:
-        required = int(round(self.window_seconds * self.sample_rate))
-        if self.cursor < required:
-            return None
-        return np.asarray(self.audio[self.cursor - required : self.cursor], dtype=np.float32)
+        return super().recent_audio(self.window_seconds)
 
 
 class RetrievalWorker:
@@ -416,6 +360,8 @@ def make_controller(
         tempo_timeout=args.tempo_timeout,
         beat_confidence_threshold=args.beat_confidence_threshold,
         beat_keypoint_interval_ratio=args.beat_keypoint_interval_ratio,
+        beat_selection_mode=args.beat_selection_mode,
+        beat_contrast_weight=args.beat_contrast_weight,
     )
     if previous is not None:
         strongest = (
@@ -424,25 +370,26 @@ def make_controller(
             else 0
         )
         controller.phase = float(keypoints[strongest % len(keypoints)])
+        controller.beat_index = strongest + 1
         controller.amplitude_scale = previous.amplitude_scale
         controller.target_amplitude_scale = previous.target_amplitude_scale
         controller.last_period = previous.last_period
+        controller.last_beat_wall = previous.last_beat_wall
+        controller.last_candidate_beat_wall = previous.last_candidate_beat_wall
+        controller.last_accepted_interval = previous.last_accepted_interval
+        controller.candidate_scores.extend(previous.candidate_scores)
         controller.last_brightness = previous.last_brightness
         controller.music_active = previous.music_active
         controller.last_update_wall = previous.last_update_wall
-        if previous.last_period is not None:
-            unclamped = 1.0 / max(
-                previous.last_period * controller.beats_per_cycle,
-                1e-6,
+        inherited_rate = controller.authored_phase_rate * previous.speed_multiplier
+        controller.target_phase_rate = float(
+            np.clip(
+                inherited_rate,
+                controller.authored_phase_rate * controller.speed_min,
+                controller.authored_phase_rate * controller.speed_max,
             )
-            controller.target_phase_rate = float(
-                np.clip(
-                    unclamped,
-                    controller.authored_phase_rate * controller.speed_min,
-                    controller.authored_phase_rate * controller.speed_max,
-                )
-            )
-            controller.phase_rate = controller.target_phase_rate
+        )
+        controller.phase_rate = controller.target_phase_rate
     return controller
 
 
@@ -550,12 +497,15 @@ def main() -> int:
 
     if args.audio_input is not None:
         audio_path = args.audio_input if args.audio_input.is_absolute() else ROOT / args.audio_input
-        source: MicrophoneSource | SilentSource | WavSource = WavSource(
+        source: MicrophoneSource | SilentSource | MatcherFileMicrophoneSource = MatcherFileMicrophoneSource(
             audio_path,
             args,
             args.match_window_seconds,
         )
-        print(f"Using deterministic audio input: {audio_path}")
+        print(
+            f"Using realtime virtual microphone: {audio_path} "
+            f"(audio starts after {source.startup_delay_sec:.2f}s denoiser reset time)."
+        )
     else:
         if args.no_mic:
             source = SilentSource()
@@ -592,7 +542,8 @@ def main() -> int:
     last_feature_update = time.perf_counter()
     last_status = time.perf_counter()
     last_frame: base.MusicFrame | None = None
-    recent_beat_frame: base.MusicFrame | None = None
+    recent_detected_beat_frame: base.MusicFrame | None = None
+    recent_accepted_beat_frame: base.MusicFrame | None = None
 
     player.start()
     source.start()
@@ -604,7 +555,7 @@ def main() -> int:
             source.advance(player.dt)
             elapsed = (
                 source.playback_seconds
-                if isinstance(source, WavSource)
+                if isinstance(source, MatcherFileMicrophoneSource)
                 else now - wall_start
             )
             if args.max_seconds is not None and elapsed >= args.max_seconds:
@@ -613,7 +564,7 @@ def main() -> int:
             switch_boundary = False
             for frame in source.drain():
                 last_frame = frame
-                current_controller.observe(frame)
+                accepted = current_controller.observe(frame)
                 if transition_controller is not None:
                     transition_controller.observe(frame)
                 dt = max(now - last_feature_update, player.dt)
@@ -622,11 +573,10 @@ def main() -> int:
                 )
                 features.update(frame, alpha)
                 last_feature_update = now
-                if (
-                    frame.is_beat
-                    and frame.beat_confidence >= args.beat_confidence_threshold
-                ):
-                    recent_beat_frame = frame
+                if frame.is_beat:
+                    recent_detected_beat_frame = frame
+                if accepted:
+                    recent_accepted_beat_frame = frame
                     accepted_beat_count += 1
                     switch_boundary = (
                         accepted_beat_count % max(args.switch_beats_per_bar, 1) == 0
@@ -721,9 +671,11 @@ def main() -> int:
                     current_controller,
                     features,
                     last_frame,
-                    recent_beat_frame,
+                    recent_detected_beat_frame,
+                    recent_accepted_beat_frame,
                 )
-                recent_beat_frame = None
+                recent_detected_beat_frame = None
+                recent_accepted_beat_frame = None
                 last_status = now
     finally:
         source.stop()

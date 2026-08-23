@@ -1,0 +1,33 @@
+{
+  "output": "aistpp_stitched_test.wav",
+  "sample_rate_hz": 44100,
+  "channels": 2,
+  "crossfade_seconds": 0.25,
+  "segments": [
+    {
+      "source": "../aistpp/audio/gBR_sFM_cAll_d04_mBR0_ch01.wav",
+      "start_seconds": 14.0,
+      "duration_seconds": 8.0
+    },
+    {
+      "source": "../aistpp/audio/gJS_sFM_cAll_d01_mJS3_ch04.wav",
+      "start_seconds": 11.0,
+      "duration_seconds": 8.0
+    },
+    {
+      "source": "../aistpp/audio/gKR_sFM_cAll_d28_mKR2_ch03.wav",
+      "start_seconds": 30.0,
+      "duration_seconds": 8.0
+    },
+    {
+      "source": "../aistpp/audio/gPO_sFM_cAll_d10_mPO1_ch02.wav",
+      "start_seconds": 5.0,
+      "duration_seconds": 8.0
+    },
+    {
+      "source": "../aistpp/audio/gWA_sFM_cAll_d25_mWA0_ch01.wav",
+      "start_seconds": 0.0,
+      "duration_seconds": 8.0
+    }
+  ]
+}

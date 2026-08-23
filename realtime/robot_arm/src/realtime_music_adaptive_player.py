@@ -75,6 +75,87 @@ def find_pulse_peaks(pulse: np.ndarray, distance: int, prominence: float) -> tup
     )
 
 
+def _beat_measurement(
+    audio: np.ndarray,
+    onset_envelope: np.ndarray,
+    beat_frame: int,
+    sample_rate: int,
+    hop_length: int,
+    window_sec: float = 0.10,
+) -> tuple[float, float]:
+    """Measure local loudness and onset impact around one beat frame."""
+    center_sample = int(librosa.frames_to_samples(int(beat_frame), hop_length=hop_length))
+    radius_samples = max(1, int(round(0.5 * window_sec * sample_rate)))
+    start_sample = max(0, center_sample - radius_samples)
+    end_sample = min(audio.size, center_sample + radius_samples)
+    segment = np.asarray(audio[start_sample:end_sample], dtype=float)
+    loudness = float(np.sqrt(np.mean(segment * segment))) if segment.size else 0.0
+
+    radius_frames = max(1, int(round(0.5 * window_sec * sample_rate / hop_length)))
+    start_frame = max(0, int(beat_frame) - radius_frames)
+    end_frame = min(onset_envelope.size, int(beat_frame) + radius_frames + 1)
+    onset_region = np.asarray(onset_envelope[start_frame:end_frame], dtype=float)
+    onset_impact = float(np.max(onset_region)) if onset_region.size else 0.0
+    return loudness, onset_impact
+
+
+def _midrank_percentile(value: float, history: deque[float]) -> float:
+    values = np.asarray([*history, float(value)], dtype=float)
+    if values.size < 4:
+        return 0.5
+    scale = max(float(np.max(np.abs(values))), 1.0)
+    if float(np.ptp(values)) <= 1e-8 * scale:
+        return 0.5
+    tolerance = 1e-8 * scale
+    below = int(np.count_nonzero(values < value - tolerance))
+    equal = int(np.count_nonzero(np.abs(values - value) <= tolerance))
+    return float(np.clip((below + 0.5 * equal) / values.size, 0.0, 1.0))
+
+
+def _relative_beat_contrast(
+    loudness: float,
+    onset_impact: float,
+    loudness_history: deque[float],
+    onset_history: deque[float],
+) -> float:
+    loudness_rank = _midrank_percentile(loudness, loudness_history)
+    onset_rank = _midrank_percentile(onset_impact, onset_history)
+    loudness_history.append(float(loudness))
+    onset_history.append(float(onset_impact))
+    return float(np.clip(0.5 * loudness_rank + 0.5 * onset_rank, 0.0, 1.0))
+
+
+def compute_beat_contrasts(
+    audio: np.ndarray,
+    onset_envelope: np.ndarray,
+    beat_frames: np.ndarray,
+    sample_rate: int,
+    hop_length: int,
+    history_size: int = 16,
+) -> np.ndarray:
+    """Return causal loudness/onset contrast scores for beat-aligned frames."""
+    loudness_history: deque[float] = deque(maxlen=max(int(history_size), 1))
+    onset_history: deque[float] = deque(maxlen=max(int(history_size), 1))
+    contrasts: list[float] = []
+    for beat_frame in np.asarray(beat_frames, dtype=int):
+        loudness, onset_impact = _beat_measurement(
+            np.asarray(audio, dtype=float),
+            np.asarray(onset_envelope, dtype=float),
+            int(beat_frame),
+            int(sample_rate),
+            int(hop_length),
+        )
+        contrasts.append(
+            _relative_beat_contrast(
+                loudness,
+                onset_impact,
+                loudness_history,
+                onset_history,
+            )
+        )
+    return np.asarray(contrasts, dtype=float)
+
+
 @dataclass
 class Trajectory:
     t: np.ndarray
@@ -119,6 +200,7 @@ class MusicFrame:
     offbeat_ratio: float
     beat_period: Optional[float]
     beat_confidence: float
+    beat_contrast: float
     is_beat: bool
     is_active: bool
 
@@ -214,6 +296,8 @@ class RealtimeMusicAnalyzer:
         self.start_wall: Optional[float] = None
         self.calibration_rms_values: deque[float] = deque(maxlen=256)
         self.calibration_onset_values: deque[float] = deque(maxlen=256)
+        self.beat_loudness_history: deque[float] = deque(maxlen=16)
+        self.beat_onset_history: deque[float] = deque(maxlen=16)
         self.calibrated_noise_rms = 0.0
         self.calibrated_noise_onset_delta = 0.0
         self.stream = None
@@ -267,14 +351,18 @@ class RealtimeMusicAnalyzer:
             self.audio_chunks.clear()
         self.calibration_rms_values.clear()
         self.calibration_onset_values.clear()
+        self.beat_loudness_history.clear()
+        self.beat_onset_history.clear()
         self.calibrated_noise_rms = 0.0
         self.calibrated_noise_onset_delta = 0.0
 
     def _callback(self, indata: np.ndarray, frames: int, time_info: dict, status: object) -> None:
-        del frames, time_info, status
+        del frames, status
 
         mono = np.asarray(indata[:, 0], dtype=np.float64)
         now = time.perf_counter()
+        if isinstance(time_info, dict) and "callback_time" in time_info:
+            now = float(time_info["callback_time"])
         if self.start_wall is None:
             self.start_wall = now
         chunk_start = now - (mono.size / self.sample_rate)
@@ -325,6 +413,8 @@ class RealtimeMusicAnalyzer:
             rms_norm = 0.0
             self.estimator.reset()
             self.last_beat_time = 0.0
+            self.beat_loudness_history.clear()
+            self.beat_onset_history.clear()
 
         onset_reference = max(self.onset_floor, self.calibrated_noise_onset_delta)
         threshold = max(1e-5, self.onset_threshold_scale * onset_reference)
@@ -363,6 +453,7 @@ class RealtimeMusicAnalyzer:
                 offbeat_ratio=self.cached_offbeat_ratio if is_active else 0.0,
                 beat_period=beat_period,
                 beat_confidence=beat_confidence,
+                beat_contrast=0.0,
                 is_beat=is_beat,
                 is_active=is_active,
             )
@@ -389,6 +480,7 @@ class RealtimeMusicAnalyzer:
             offbeat_ratio=self.cached_offbeat_ratio if is_active else 0.0,
             beat_period=None,
             beat_confidence=0.0,
+            beat_contrast=0.0,
             is_beat=False,
             is_active=is_active,
         )
@@ -495,6 +587,19 @@ class RealtimeMusicAnalyzer:
         self.last_beat_time = beat_time
         prominence = float(prominences[peak_idx]) if len(prominences) > peak_idx else 0.0
         confidence = float(np.clip(0.5 * pulse_norm[peaks[peak_idx]] + 0.5 * prominence, 0.0, 1.0))
+        loudness, onset_impact = _beat_measurement(
+            audio,
+            onset_env,
+            int(peaks[peak_idx]),
+            self.sample_rate,
+            self.plp_hop_length,
+        )
+        contrast = _relative_beat_contrast(
+            loudness,
+            onset_impact,
+            self.beat_loudness_history,
+            self.beat_onset_history,
+        )
         self.frames.put(
             MusicFrame(
                 timestamp=beat_time,
@@ -518,6 +623,7 @@ class RealtimeMusicAnalyzer:
                 offbeat_ratio=self.cached_offbeat_ratio,
                 beat_period=beat_period,
                 beat_confidence=confidence,
+                beat_contrast=contrast,
                 is_beat=True,
                 is_active=True,
             )
@@ -696,6 +802,8 @@ class AdaptiveMotionController:
         tempo_timeout: float,
         beat_confidence_threshold: float = 0.25,
         beat_keypoint_interval_ratio: float = 0.85,
+        beat_selection_mode: str = "every",
+        beat_contrast_weight: float = 0.5,
     ) -> None:
         self.authored_cycle_duration = max(authored_cycle_duration, 1e-6)
         self.authored_phase_rate = 1.0 / max(authored_cycle_duration, 1e-6)
@@ -711,6 +819,11 @@ class AdaptiveMotionController:
         self.tempo_timeout = max(tempo_timeout, 0.0)
         self.beat_confidence_threshold = float(np.clip(beat_confidence_threshold, 0.0, 1.0))
         self.beat_keypoint_interval_ratio = max(beat_keypoint_interval_ratio, 0.0)
+        if beat_selection_mode not in {"every", "adaptive"}:
+            raise ValueError("beat_selection_mode must be 'every' or 'adaptive'")
+        self.beat_selection_mode = beat_selection_mode
+        self.beat_contrast_weight = float(np.clip(beat_contrast_weight, 0.0, 1.0))
+        self.keypoint_intervals = self._keypoint_intervals()
         self.min_accepted_beat_interval = self._min_accepted_beat_interval()
 
         self.phase = 0.0
@@ -720,29 +833,35 @@ class AdaptiveMotionController:
         self.target_amplitude_scale = 0.0
         self.last_update_wall: Optional[float] = None
         self.last_beat_wall: Optional[float] = None
+        self.last_candidate_beat_wall: Optional[float] = None
         self.beat_index = 0
         self.last_period: Optional[float] = None
+        self.last_accepted_interval: Optional[float] = None
         self.last_brightness = 0.0
         self.accent_started_wall: Optional[float] = None
         self.accent_strength = 0.0
         self.music_active = False
+        self.candidate_scores: deque[float] = deque(maxlen=16)
+        self.last_selection_score = 0.0
+        self.last_beat_accepted = False
+        self.last_beat_rejection_reason = "none"
+
+    def _keypoint_intervals(self) -> tuple[float, ...]:
+        if self.keypoint_phases:
+            phases = tuple(float(phase) % 1.0 for phase in self.keypoint_phases)
+            if len(phases) == 1:
+                return (self.authored_cycle_duration,)
+            intervals = []
+            for index, phase in enumerate(phases):
+                previous = phases[index - 1]
+                phase_gap = (phase - previous) % 1.0
+                intervals.append(max(phase_gap * self.authored_cycle_duration, 1e-6))
+            return tuple(intervals)
+        uniform = self.authored_cycle_duration / self.beats_per_cycle
+        return tuple(uniform for _ in range(self.beats_per_cycle))
 
     def _min_accepted_beat_interval(self) -> float:
-        if self.keypoint_phases:
-            sorted_phases = sorted(float(phase) % 1.0 for phase in self.keypoint_phases)
-            if len(sorted_phases) == 1:
-                min_phase_gap = 1.0
-            else:
-                gaps = [
-                    (sorted_phases[(index + 1) % len(sorted_phases)] - phase) % 1.0
-                    for index, phase in enumerate(sorted_phases)
-                ]
-                positive_gaps = [gap for gap in gaps if gap > 1e-6]
-                min_phase_gap = min(positive_gaps) if positive_gaps else 1.0
-        else:
-            min_phase_gap = 1.0 / self.beats_per_cycle
-
-        fastest_authored_gap = (min_phase_gap * self.authored_cycle_duration) / self.speed_max
+        fastest_authored_gap = min(self.keypoint_intervals) / self.speed_max
         return max(0.0, fastest_authored_gap * self.beat_keypoint_interval_ratio)
 
     def reset(self) -> None:
@@ -753,21 +872,28 @@ class AdaptiveMotionController:
         self.target_amplitude_scale = 0.0
         self.last_update_wall = None
         self.last_beat_wall = None
+        self.last_candidate_beat_wall = None
         self.beat_index = 0
         self.last_period = None
+        self.last_accepted_interval = None
         self.last_brightness = 0.0
         self.accent_started_wall = None
         self.accent_strength = 0.0
         self.music_active = False
+        self.candidate_scores.clear()
+        self.last_selection_score = 0.0
+        self.last_beat_accepted = False
+        self.last_beat_rejection_reason = "none"
 
-    def observe(self, frame: MusicFrame) -> None:
+    def observe(self, frame: MusicFrame) -> bool:
+        self.last_beat_accepted = False
         self.music_active = frame.is_active
         if not frame.is_active:
             self.target_amplitude_scale = 0.0
             self.last_brightness = 0.0
             self.accent_started_wall = None
             self.accent_strength = 0.0
-            return
+            return False
 
         self.target_amplitude_scale = float(
             np.clip(self.amp_min + frame.rms_norm * (self.amp_max - self.amp_min), self.amp_min, self.amp_max)
@@ -775,15 +901,48 @@ class AdaptiveMotionController:
         self.last_brightness = frame.brightness
 
         if not frame.is_beat:
-            return
+            return False
+
+        candidate_period = frame.beat_period
+        if candidate_period is None and self.last_candidate_beat_wall is not None:
+            measured = frame.timestamp - self.last_candidate_beat_wall
+            if measured > 0.0:
+                candidate_period = measured
+        self.last_candidate_beat_wall = frame.timestamp
+        if frame.beat_period is not None:
+            self.last_period = frame.beat_period
+
+        confidence = float(np.clip(frame.beat_confidence, 0.0, 1.0))
+        contrast = float(np.clip(frame.beat_contrast, 0.0, 1.0))
+        selection_score = float(
+            (1.0 - self.beat_contrast_weight) * confidence
+            + self.beat_contrast_weight * contrast
+        )
+        self.last_selection_score = selection_score
 
         if frame.beat_confidence < self.beat_confidence_threshold:
-            return
-        if (
-            self.last_beat_wall is not None
-            and frame.timestamp - self.last_beat_wall < self.min_accepted_beat_interval
-        ):
-            return
+            self.last_beat_rejection_reason = "low-confidence"
+            return False
+
+        previous_beat_wall = self.last_beat_wall
+        target_interval = self._target_keypoint_interval()
+        if self.beat_selection_mode == "adaptive":
+            accepted, reason = self._accept_adaptive_beat(
+                frame.timestamp,
+                candidate_period,
+                target_interval,
+                selection_score,
+            )
+        else:
+            accepted = not (
+                previous_beat_wall is not None
+                and frame.timestamp - previous_beat_wall < self.min_accepted_beat_interval
+            )
+            reason = "accepted" if accepted else "too-early"
+        self.candidate_scores.append(selection_score)
+        if not accepted:
+            self.last_beat_rejection_reason = reason
+            return False
 
         self.last_beat_wall = frame.timestamp
         expected_phase = self._expected_beat_phase()
@@ -791,19 +950,70 @@ class AdaptiveMotionController:
             self.phase = expected_phase
         else:
             beat_alignment_error = wrap_phase_error(expected_phase - self.phase)
-            correction_gain = 0.25 + 0.35 * frame.beat_confidence
+            correction_source = selection_score if self.beat_selection_mode == "adaptive" else confidence
+            correction_gain = 0.25 + 0.35 * correction_source
             self.phase = (self.phase + correction_gain * beat_alignment_error) % 1.0
         self.beat_index += 1
 
-        if frame.beat_period is not None:
-            self.last_period = frame.beat_period
+        if self.beat_selection_mode == "adaptive" and previous_beat_wall is not None:
+            accepted_interval = frame.timestamp - previous_beat_wall
+            self.last_accepted_interval = accepted_interval
+            phase_gap = target_interval / self.authored_cycle_duration
+            unclamped_rate = phase_gap / max(accepted_interval, 1e-6)
+            min_rate = self.authored_phase_rate * self.speed_min
+            max_rate = self.authored_phase_rate * self.speed_max
+            self.target_phase_rate = float(np.clip(unclamped_rate, min_rate, max_rate))
+        elif frame.beat_period is not None:
             unclamped_rate = 1.0 / max(frame.beat_period * self.beats_per_cycle, 1e-6)
             min_rate = self.authored_phase_rate * self.speed_min
             max_rate = self.authored_phase_rate * self.speed_max
             self.target_phase_rate = float(np.clip(unclamped_rate, min_rate, max_rate))
 
         self.accent_started_wall = frame.timestamp
-        self.accent_strength = float(np.clip(0.45 + frame.beat_confidence + 0.25 * frame.onset_strength, 0.0, 1.5))
+        accent_score = selection_score if self.beat_selection_mode == "adaptive" else confidence
+        self.accent_strength = float(np.clip(0.45 + accent_score + 0.25 * frame.onset_strength, 0.0, 1.5))
+        self.last_beat_accepted = True
+        self.last_beat_rejection_reason = "accepted"
+        return True
+
+    def _target_keypoint_interval(self) -> float:
+        return self.keypoint_intervals[self.beat_index % len(self.keypoint_intervals)]
+
+    def _accept_adaptive_beat(
+        self,
+        timestamp: float,
+        candidate_period: Optional[float],
+        target_interval: float,
+        selection_score: float,
+    ) -> tuple[bool, str]:
+        if self.last_beat_wall is None:
+            return True, "accepted"
+
+        elapsed = timestamp - self.last_beat_wall
+        latest = target_interval / self.speed_min
+        earliest = min(
+            (target_interval / self.speed_max) * self.beat_keypoint_interval_ratio,
+            latest,
+        )
+        if elapsed < earliest:
+            return False, "too-early"
+
+        if candidate_period is None or candidate_period >= earliest:
+            return True, "accepted"
+
+        if elapsed >= latest:
+            return True, "deadline"
+        if len(self.candidate_scores) < 4:
+            return True, "startup"
+
+        overload_quantile = float(np.clip(1.0 - candidate_period / max(earliest, 1e-6), 0.0, 0.90))
+        base_threshold = float(np.quantile(np.asarray(self.candidate_scores, dtype=float), overload_quantile))
+        available_window = max(latest - earliest, 1e-6)
+        deadline_progress = float(np.clip((elapsed - earliest) / available_window, 0.0, 1.0))
+        threshold = (1.0 - deadline_progress) * base_threshold
+        if selection_score < threshold:
+            return False, "weak-overload-beat"
+        return True, "accepted"
 
     def update(self, now_wall: float) -> tuple[float, float, float, float]:
         if self.last_update_wall is None:
@@ -813,12 +1023,20 @@ class AdaptiveMotionController:
         dt = max(now_wall - self.last_update_wall, 0.0)
         self.last_update_wall = now_wall
 
-        if self.last_beat_wall is not None and (now_wall - self.last_beat_wall) > self.tempo_timeout:
+        tempo_reference = (
+            self.last_candidate_beat_wall
+            if self.beat_selection_mode == "adaptive"
+            else self.last_beat_wall
+        )
+        if tempo_reference is not None and (now_wall - tempo_reference) > self.tempo_timeout:
             self.target_phase_rate = self.default_phase_rate
             if not self.music_active:
                 self.target_amplitude_scale = 0.0
                 self.last_period = None
                 self.last_beat_wall = None
+                self.last_candidate_beat_wall = None
+                self.last_accepted_interval = None
+                self.candidate_scores.clear()
 
         alpha = 1.0 - math.exp(-dt / self.smoothing_tau)
         self.phase_rate += alpha * (self.target_phase_rate - self.phase_rate)

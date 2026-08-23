@@ -16,6 +16,18 @@ From the repository root:
 python realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py --realtime
 ```
 
+Use an MP3 or WAV under `data/test_audio` as a realtime virtual microphone:
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py `
+  --audio-input "realtime/humanoid_robot/data/test_audio/Metronome 120 BPM - QuickSounds.com.mp3" `
+  --realtime
+```
+
+The virtual microphone resets the analyzer when it opens and sends one second
+of silence before the file starts, allowing startup denoising/calibration to
+settle. Change this with `--audio-input-delay-sec` if needed.
+
 For a non-GUI smoke test:
 
 ```powershell
@@ -78,6 +90,18 @@ python realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py --keypoint-
 The main tuning controls are `--keypoint-prominence`,
 `--keypoint-min-spacing-sec`, `--keypoint-smoothing-sec`, and
 `--keypoint-max-count`.
+
+By default, the humanoid entrypoints use adaptive strong-beat alignment. Each
+detected beat receives a causal contrast score from its local RMS loudness and
+onset impact relative to the most recent beats. When the raw beat rate is fast
+enough to exceed `--speed-max` for the next authored keypoint interval, weak
+beats are skipped and stronger beats are preferred; at normal tempos, every
+confidence-qualified beat remains eligible. The controller derives motion speed
+from accepted alignment beats rather than from skipped subdivisions.
+
+Use `--beat-selection-mode every` to restore confidence-only beat alignment, or
+adjust the confidence/contrast balance with `--beat-contrast-weight` (default
+`0.5`). `--beat-confidence-threshold` remains a hard noise-rejection gate.
 
 For higher quality Unitree G1 retargeting, convert AIST++ SMPL pickles to a
 GMR-readable LaFAN-style BVH first, then let GMR do the robot retargeting. The
@@ -199,11 +223,11 @@ invariance:
 python realtime/humanoid_robot/src/evaluate_music_catalog.py
 ```
 
-Use a synchronized WAV for a deterministic test:
+Use an MP3 or WAV as a realtime virtual microphone for the matcher:
 
 ```powershell
 python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
-  --audio-input realtime/humanoid_robot/data/aistpp/audio/gBR_sBM_cAll_d04_mBR0_ch01.wav `
+  --audio-input "realtime/humanoid_robot/data/test_audio/Metronome 120 BPM - QuickSounds.com.mp3" `
   --headless --realtime --max-seconds 10
 ```
 

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import librosa
 import mujoco
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -23,7 +24,12 @@ ROBOT_ARM_SRC = ROOT / "realtime" / "robot_arm" / "src"
 if str(ROBOT_ARM_SRC) not in sys.path:
     sys.path.insert(0, str(ROBOT_ARM_SRC))
 
-from realtime_music_adaptive_player import AdaptiveMotionController, MusicFrame, RealtimeMusicAnalyzer
+from realtime_music_adaptive_player import (
+    AdaptiveMotionController,
+    MusicFrame,
+    RealtimeMusicAnalyzer,
+    compute_beat_contrasts,
+)
 from aistpp_velocity_keypoints import detect_aistpp_velocity_keypoints
 from music_pose_modulator import MusicPoseModulator
 from motion_keypoints import (
@@ -604,6 +610,108 @@ class MujocoHumanoidPlayer:
             self.viewer = None
 
 
+class FileMicrophoneSource:
+    """Feed an audio file to the microphone analyzer at realtime speed."""
+
+    def __init__(
+        self,
+        path: Path,
+        analyzer: RealtimeMusicAnalyzer,
+        startup_delay_sec: float = 1.0,
+        throttle: bool = True,
+    ) -> None:
+        if not path.exists():
+            raise FileNotFoundError(f"Audio input file not found: {path}")
+        self.path = path
+        self.analyzer = analyzer
+        self.sample_rate = int(analyzer.sample_rate)
+        self.block_size = int(analyzer.block_size)
+        self.startup_delay_sec = max(float(startup_delay_sec), 0.0)
+        self.startup_samples = int(round(self.startup_delay_sec * self.sample_rate))
+        self.throttle = bool(throttle)
+        audio, _ = librosa.load(path, sr=self.sample_rate, mono=True)
+        self.audio = np.asarray(audio, dtype=np.float32).reshape(-1)
+        if self.audio.size == 0:
+            raise ValueError(f"Audio input file contains no samples: {path}")
+        self.cursor = 0
+        self.target_cursor = 0.0
+        self.stream_start_wall: float | None = None
+        self.last_advance_wall: float | None = None
+
+    @property
+    def playback_seconds(self) -> float:
+        audio_samples = max(self.cursor - self.startup_samples, 0)
+        return float(min(audio_samples, self.audio.size) / self.sample_rate)
+
+    @property
+    def done(self) -> bool:
+        return self.cursor >= self.startup_samples + self.audio.size
+
+    def start(self) -> None:
+        # This is the virtual equivalent of opening a microphone. Resetting here
+        # makes the following silent delay available to startup noise calibration.
+        self.analyzer.reset()
+        self.stream_start_wall = time.perf_counter()
+        self.last_advance_wall = self.stream_start_wall
+
+    def stop(self) -> None:
+        return
+
+    def advance(self, dt: float) -> None:
+        dt = max(float(dt), 0.0)
+        if self.throttle and dt > 0.0:
+            time.sleep(dt)
+        now = time.perf_counter()
+        elapsed = dt
+        if self.last_advance_wall is not None:
+            elapsed = max(dt, now - self.last_advance_wall)
+        self.last_advance_wall = now
+        total_samples = self.startup_samples + self.audio.size
+        self.target_cursor = min(
+            self.target_cursor + elapsed * self.sample_rate,
+            float(total_samples),
+        )
+        target = int(self.target_cursor)
+        while target - self.cursor >= self.block_size:
+            self._feed_block(self.block_size)
+        if target >= total_samples and self.cursor < total_samples:
+            self._feed_block(total_samples - self.cursor)
+
+    def drain(self) -> list[MusicFrame]:
+        return self.analyzer.drain()
+
+    def recent_audio(self, window_seconds: float) -> np.ndarray | None:
+        required = int(round(max(float(window_seconds), 0.0) * self.sample_rate))
+        audio_cursor = int(np.clip(self.cursor - self.startup_samples, 0, self.audio.size))
+        if required <= 0 or audio_cursor < required:
+            return None
+        return np.asarray(self.audio[audio_cursor - required : audio_cursor], dtype=np.float32)
+
+    def _feed_block(self, size: int) -> None:
+        end = self.cursor + max(int(size), 0)
+        positions = np.arange(self.cursor, end)
+        block = np.zeros(positions.size, dtype=np.float32)
+        audio_mask = positions >= self.startup_samples
+        audio_indices = positions[audio_mask] - self.startup_samples
+        valid = audio_indices < self.audio.size
+        if np.any(valid):
+            block_indices = np.flatnonzero(audio_mask)[valid]
+            block[block_indices] = self.audio[audio_indices[valid]]
+        callback_block = block
+        if block.size < self.block_size:
+            callback_block = np.pad(block, (0, self.block_size - block.size))
+        callback_time = time.perf_counter()
+        if self.stream_start_wall is not None:
+            callback_time = self.stream_start_wall + end / self.sample_rate
+        self.analyzer._callback(
+            np.asarray(callback_block[:, None], dtype=np.float32),
+            block.size,
+            {"callback_time": callback_time},
+            None,
+        )
+        self.cursor = end
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Realtime music-adaptive MuJoCo humanoid dancer.")
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
@@ -674,6 +782,18 @@ def parse_args() -> argparse.Namespace:
         help="Play the authored dance trajectory at normal speed without microphone or adaptive music mapping.",
     )
     parser.add_argument("--no-mic", action="store_true", help="Use the fallback idle/demo feature state instead of microphone input.")
+    parser.add_argument(
+        "--audio-input",
+        type=Path,
+        default=None,
+        help="Use an audio file (including data/test_audio MP3/WAV files) as a realtime virtual microphone.",
+    )
+    parser.add_argument(
+        "--audio-input-delay-sec",
+        type=float,
+        default=1.0,
+        help="Silent virtual-microphone time before file playback, reserved for denoiser reset/calibration.",
+    )
     parser.add_argument("--max-seconds", type=float, default=None, help="Optional duration limit for smoke tests.")
     parser.add_argument("--realtime", action="store_true", help="Sleep at the MuJoCo timestep.")
     parser.add_argument("--motion-cycle-duration", type=float, default=None)
@@ -763,11 +883,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--beat-keypoint-interval-ratio",
         type=float,
-        default=0.85,
+        default=1.0,
         help=(
-            "Reject beats closer than this fraction of the fastest allowed authored keypoint spacing. "
-            "The spacing is derived from the current trajectory keypoints and --speed-max."
+            "Reject beats closer than this fraction of the next authored keypoint interval at --speed-max."
         ),
+    )
+    parser.add_argument(
+        "--beat-selection-mode",
+        choices=("adaptive", "every"),
+        default="adaptive",
+        help="Prefer strong beats only when raw beat timing would exceed the motion speed limit.",
+    )
+    parser.add_argument(
+        "--beat-contrast-weight",
+        type=float,
+        default=0.5,
+        help="Weight of local beat loudness/onset contrast versus PLP confidence during adaptive selection.",
     )
     return parser.parse_args()
 
@@ -1007,18 +1138,31 @@ def print_status(
     controller: AdaptiveMotionController,
     features: FeatureState,
     last_frame: MusicFrame | None,
-    recent_beat_frame: MusicFrame | None = None,
+    recent_detected_beat_frame: MusicFrame | None = None,
+    recent_accepted_beat_frame: MusicFrame | None = None,
 ) -> None:
     bpm = controller.estimated_bpm
     bpm_text = f"{bpm:.1f}" if bpm is not None else "--"
     state = "music" if features.is_active else "demo"
     rms_text = f"{last_frame.rms:.4f}/{last_frame.gate_rms:.4f}" if last_frame is not None else "--"
-    beat_text = "1" if recent_beat_frame is not None else "0"
-    confidence_text = f"{recent_beat_frame.beat_confidence:.2f}" if recent_beat_frame is not None else "0.00"
+    detected_text = "1" if recent_detected_beat_frame is not None else "0"
+    accepted_text = "1" if recent_accepted_beat_frame is not None else "0"
+    confidence_text = (
+        f"{recent_detected_beat_frame.beat_confidence:.2f}"
+        if recent_detected_beat_frame is not None
+        else "0.00"
+    )
+    contrast_text = (
+        f"{recent_detected_beat_frame.beat_contrast:.2f}"
+        if recent_detected_beat_frame is not None
+        else "0.00"
+    )
     print(
         f"{state} | bpm={bpm_text} | speed={controller.speed_multiplier:.2f}x | "
         f"amp={controller.amplitude_scale:.2f} | rms/gate={rms_text} | "
-        f"beat={beat_text} conf={confidence_text} | bright={features.brightness:.2f} | "
+        f"beat={detected_text} accepted={accepted_text} conf={confidence_text} "
+        f"contrast={contrast_text} result={controller.last_beat_rejection_reason} | "
+        f"bright={features.brightness:.2f} | "
         f"bands={features.low_energy:.2f}/{features.mid_energy:.2f}/{features.high_energy:.2f} | "
         f"rhythm={features.rhythm_density:.2f} | offbeat={features.offbeat_ratio:.2f}"
     )
@@ -1104,12 +1248,30 @@ def main() -> None:
         tempo_timeout=args.tempo_timeout,
         beat_confidence_threshold=args.beat_confidence_threshold,
         beat_keypoint_interval_ratio=args.beat_keypoint_interval_ratio,
+        beat_selection_mode=args.beat_selection_mode,
+        beat_contrast_weight=args.beat_contrast_weight,
     )
-    analyzer = None if args.no_mic else make_analyzer(args)
+    file_source: FileMicrophoneSource | None = None
+    analyzer = None if args.no_mic and args.audio_input is None else make_analyzer(args)
+    if args.audio_input is not None:
+        audio_path = args.audio_input if args.audio_input.is_absolute() else ROOT / args.audio_input
+        assert analyzer is not None
+        file_source = FileMicrophoneSource(
+            audio_path,
+            analyzer,
+            startup_delay_sec=args.audio_input_delay_sec,
+            throttle=not args.realtime,
+        )
     features = FeatureState(rms_norm=0.45, brightness=0.35, low_energy=0.55, mid_energy=0.45, high_energy=0.25)
 
     player.start()
-    if analyzer is not None:
+    if file_source is not None:
+        file_source.start()
+        print(
+            f"Using realtime virtual microphone: {file_source.path} "
+            f"(audio starts after {file_source.startup_delay_sec:.2f}s denoiser reset time)."
+        )
+    elif analyzer is not None:
         print(f"Calibrating microphone noise from the first {args.startup_calibration_sec:.2f}s of live input.")
         analyzer.start()
     else:
@@ -1120,19 +1282,27 @@ def main() -> None:
     last_status = start
     last_feature_update = start
     last_frame: MusicFrame | None = None
-    recent_beat_frame: MusicFrame | None = None
+    recent_detected_beat_frame: MusicFrame | None = None
+    recent_accepted_beat_frame: MusicFrame | None = None
     try:
         while player.is_running():
             now = time.perf_counter()
-            if args.max_seconds is not None and (now - start) >= args.max_seconds:
+            if file_source is not None:
+                file_source.advance(player.dt)
+                elapsed = file_source.playback_seconds
+            else:
+                elapsed = now - start
+            if args.max_seconds is not None and elapsed >= args.max_seconds:
                 break
 
             if analyzer is not None:
-                for frame in analyzer.drain():
+                frames = file_source.drain() if file_source is not None else analyzer.drain()
+                for frame in frames:
                     last_frame = frame
                     if frame.is_beat:
-                        recent_beat_frame = frame
-                    controller.observe(frame)
+                        recent_detected_beat_frame = frame
+                    if controller.observe(frame):
+                        recent_accepted_beat_frame = frame
                     dt = max(now - last_feature_update, player.dt)
                     alpha = 1.0 - math.exp(-dt / max(args.feature_smoothing_tau, 1e-6))
                     features.update(frame, alpha)
@@ -1150,11 +1320,22 @@ def main() -> None:
             player.step()
 
             if now - last_status >= args.status_interval:
-                print_status(controller, features, last_frame, recent_beat_frame)
-                recent_beat_frame = None
+                print_status(
+                    controller,
+                    features,
+                    last_frame,
+                    recent_detected_beat_frame,
+                    recent_accepted_beat_frame,
+                )
+                recent_detected_beat_frame = None
+                recent_accepted_beat_frame = None
                 last_status = now
+            if file_source is not None and file_source.done:
+                break
     finally:
-        if analyzer is not None:
+        if file_source is not None:
+            file_source.stop()
+        elif analyzer is not None:
             analyzer.stop()
         player.stop()
 

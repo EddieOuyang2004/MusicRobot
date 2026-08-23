@@ -382,6 +382,7 @@ class AudioFeatureExtractor:
         if samples.size < 512 or not np.any(samples):
             return self._empty_descriptor()
 
+        use_dsp_embedding = self.embedding_backend is None
         hop = 256
         duration = max(samples.size / self.sample_rate, 1e-6)
         with warnings.catch_warnings():
@@ -412,11 +413,15 @@ class AudioFeatureExtractor:
             )
             log_mel = librosa.power_to_db(mel, ref=np.max)
             mfcc = librosa.feature.mfcc(S=log_mel, n_mfcc=13)
-            chroma = librosa.feature.chroma_stft(
-                y=samples,
-                sr=self.sample_rate,
-                n_fft=1024,
-                hop_length=hop,
+            chroma = (
+                librosa.feature.chroma_stft(
+                    y=samples,
+                    sr=self.sample_rate,
+                    n_fft=1024,
+                    hop_length=hop,
+                )
+                if use_dsp_embedding
+                else None
             )
             contrast = librosa.feature.spectral_contrast(
                 y=samples,
@@ -425,7 +430,6 @@ class AudioFeatureExtractor:
                 hop_length=hop,
                 n_bands=5,
             )
-            harmonic, percussive = librosa.effects.hpss(samples)
 
         bpm = _safe_float(tempo)
         onset_scale = max(float(np.percentile(onset_env, 95.0)), 1e-8)
@@ -444,22 +448,11 @@ class AudioFeatureExtractor:
             else 0.0
         )
         spectral_flux = float(np.clip(spectral_flux / 6.0, 0.0, 1.0))
-        harmonic_energy = float(np.mean(harmonic * harmonic))
-        percussive_energy = float(np.mean(percussive * percussive))
-        percussive_ratio = float(
-            np.clip(
-                percussive_energy / max(harmonic_energy + percussive_energy, 1e-12),
-                0.0,
-                1.0,
-            )
-        )
+        percussive_ratio = 0.0
 
         band_ratios = self._band_ratios(samples)
-        mfcc_stats = np.concatenate((np.mean(mfcc, axis=1), np.std(mfcc, axis=1)))
-        chroma_stats = np.concatenate((np.mean(chroma, axis=1), np.std(chroma, axis=1)))
-        contrast_stats = np.concatenate(
-            (np.mean(contrast, axis=1), np.std(contrast, axis=1))
-        )
+        mfcc_mean = np.mean(mfcc, axis=1)
+        contrast_mean = np.mean(contrast, axis=1)
         rhythm = np.asarray(
             [
                 math.log2(max(bpm, 1.0) / 120.0),
@@ -470,29 +463,10 @@ class AudioFeatureExtractor:
                 spectral_flux,
                 percussive_ratio,
                 *band_ratios,
-                *mfcc_stats[:8],
-                *contrast_stats[:6],
+                *mfcc_mean[:8],
+                *contrast_mean[:6],
             ],
             dtype=np.float32,
-        )
-        dsp_embedding = np.concatenate(
-            (
-                mfcc_stats,
-                chroma_stats,
-                contrast_stats,
-                band_ratios,
-                np.asarray(
-                    [
-                        beat_strength,
-                        onset_density / 4.0,
-                        offbeat_ratio,
-                        tempo_stability,
-                        spectral_flux,
-                        percussive_ratio,
-                    ],
-                    dtype=np.float32,
-                ),
-            )
         )
         if (
             self.embedding_backend is not None
@@ -507,11 +481,33 @@ class AudioFeatureExtractor:
             )
             tags = model_outputs[400]
         else:
-            embedding = (
-                self.embedding_backend.encode(samples, self.sample_rate)
-                if self.embedding_backend is not None
-                else _unit_vector(dsp_embedding)
-            )
+            if self.embedding_backend is not None:
+                embedding = self.embedding_backend.encode(samples, self.sample_rate)
+            else:
+                assert chroma is not None
+                dsp_embedding = np.concatenate(
+                    (
+                        mfcc_mean,
+                        np.std(mfcc, axis=1),
+                        np.mean(chroma, axis=1),
+                        np.std(chroma, axis=1),
+                        contrast_mean,
+                        np.std(contrast, axis=1),
+                        band_ratios,
+                        np.asarray(
+                            [
+                                beat_strength,
+                                onset_density / 4.0,
+                                offbeat_ratio,
+                                tempo_stability,
+                                spectral_flux,
+                                percussive_ratio,
+                            ],
+                            dtype=np.float32,
+                        ),
+                    )
+                )
+                embedding = _unit_vector(dsp_embedding)
             tags = (
                 self.tag_backend.encode(samples, self.sample_rate)
                 if self.tag_backend is not None

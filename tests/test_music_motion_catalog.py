@@ -4,7 +4,10 @@ import csv
 import sys
 import tempfile
 import unittest
+from argparse import Namespace
+from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import soundfile as sf
@@ -18,6 +21,7 @@ if str(SRC) not in sys.path:
 import music_motion_catalog as catalog_module
 from music_motion_catalog import (
     AudioDescriptor,
+    AudioFeatureExtractor,
     CandidateStabilizer,
     MatchResult,
     MotionMatch,
@@ -28,7 +32,7 @@ from music_motion_catalog import (
     _representative_audio_variants,
     robust_audio_normalize,
 )
-from realtime_music_humanoid_matcher import blend_poses
+from realtime_music_humanoid_matcher import blend_poses, make_controller
 
 
 def descriptor(embedding: tuple[float, ...], rhythm: tuple[float, ...]) -> AudioDescriptor:
@@ -68,6 +72,91 @@ def motion_profile(motion_id: str, passed: bool) -> MotionProfile:
 
 
 class MusicMotionCatalogTests(unittest.TestCase):
+    def test_effnet_extraction_skips_dsp_and_hpss_feature_work(self) -> None:
+        class FakeEffnetBackend:
+            output_dimension = 3
+
+            @staticmethod
+            def encode(_samples: np.ndarray, _sample_rate: int) -> np.ndarray:
+                return np.asarray([0.6, 0.8, 0.0], dtype=np.float32)
+
+        extractor = AudioFeatureExtractor.__new__(AudioFeatureExtractor)
+        extractor.sample_rate = 16_000
+        extractor.embedding_backend = FakeEffnetBackend()
+        extractor.tag_backend = None
+        samples = np.linspace(-0.5, 0.5, 1_024, dtype=np.float32)
+        mfcc = np.arange(26, dtype=np.float32).reshape(13, 2)
+        contrast = np.arange(12, dtype=np.float32).reshape(6, 2)
+
+        with (
+            patch.object(
+                catalog_module,
+                "robust_audio_normalize",
+                return_value=samples,
+            ),
+            patch.object(catalog_module.np, "percentile", return_value=1.0),
+            patch.object(
+                catalog_module.librosa.onset,
+                "onset_strength",
+                return_value=np.asarray([0.5, 1.0], dtype=np.float32),
+            ),
+            patch.object(
+                catalog_module.librosa.beat,
+                "beat_track",
+                return_value=(120.0, np.empty(0, dtype=int)),
+            ),
+            patch.object(
+                catalog_module.librosa.onset,
+                "onset_detect",
+                return_value=np.empty(0, dtype=int),
+            ),
+            patch.object(
+                catalog_module.librosa.feature,
+                "melspectrogram",
+                return_value=np.ones((64, 2), dtype=np.float32),
+            ),
+            patch.object(
+                catalog_module.librosa,
+                "power_to_db",
+                return_value=np.zeros((64, 2), dtype=np.float32),
+            ),
+            patch.object(catalog_module.librosa.feature, "mfcc", return_value=mfcc),
+            patch.object(
+                catalog_module.librosa.feature,
+                "spectral_contrast",
+                return_value=contrast,
+            ),
+            patch.object(
+                catalog_module.librosa.feature,
+                "chroma_stft",
+                side_effect=AssertionError("EffNet must not calculate chroma"),
+            ) as chroma_mock,
+            patch.object(
+                catalog_module.librosa.effects,
+                "hpss",
+                side_effect=AssertionError("Matcher must not calculate HPSS"),
+            ) as hpss_mock,
+            patch.object(
+                catalog_module.np,
+                "std",
+                side_effect=AssertionError("EffNet must not calculate DSP statistics"),
+            ) as std_mock,
+            patch.object(
+                catalog_module.np,
+                "concatenate",
+                side_effect=AssertionError("EffNet must not build a DSP embedding"),
+            ) as concatenate_mock,
+        ):
+            result = extractor.describe(samples)
+
+        np.testing.assert_allclose(result.embedding, [0.6, 0.8, 0.0])
+        self.assertEqual((24,), result.rhythm_timbre.shape)
+        self.assertEqual(0.0, result.percussive_ratio)
+        chroma_mock.assert_not_called()
+        hpss_mock.assert_not_called()
+        std_mock.assert_not_called()
+        concatenate_mock.assert_not_called()
+
     def test_robust_normalization_is_gain_invariant(self) -> None:
         time = np.linspace(0.0, 2.0, 32_000, endpoint=False)
         audio = 0.2 * np.sin(2.0 * np.pi * 220.0 * time)
@@ -184,6 +273,38 @@ class MusicMotionCatalogTests(unittest.TestCase):
         self.assertEqual(first, blend_poses(first, second, 0.0))
         self.assertEqual(second, blend_poses(first, second, 1.0))
         self.assertAlmostEqual(0.0, blend_poses(first, second, 0.5)["hip"])
+
+    def test_motion_switch_continues_after_strongest_keypoint(self) -> None:
+        args = Namespace(
+            smoothing_tau=0.1,
+            speed_min=0.5,
+            speed_max=2.0,
+            amp_min=0.3,
+            amp_max=1.0,
+            accent_duration=0.1,
+            tempo_timeout=1.0,
+            beat_confidence_threshold=0.4,
+            beat_keypoint_interval_ratio=1.0,
+            beat_selection_mode="adaptive",
+            beat_contrast_weight=0.5,
+        )
+        source_profile = motion_profile("source", True)
+        target_profile = replace(
+            motion_profile("target", True),
+            keypoint_phases=(0.1, 0.4, 0.8),
+            keypoint_scores=(0.2, 0.9, 0.3),
+        )
+        previous = make_controller(args, source_profile)
+        previous.last_beat_wall = 12.0
+        previous.last_candidate_beat_wall = 12.2
+        previous.candidate_scores.extend((0.4, 0.6, 0.8))
+
+        controller = make_controller(args, target_profile, previous=previous)
+
+        self.assertAlmostEqual(0.4, controller.phase)
+        self.assertEqual(2, controller.beat_index)
+        self.assertEqual(12.0, controller.last_beat_wall)
+        self.assertEqual([0.4, 0.6, 0.8], list(controller.candidate_scores))
 
     def test_catalog_reuses_aistpp_keypoint_detector(self) -> None:
         self.assertEqual(
