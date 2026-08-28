@@ -7,7 +7,7 @@ import math
 import os
 import re
 import warnings
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -938,11 +938,7 @@ class CandidateStabilizer:
             ),
             0.0,
         )
-        runner_up_score = (
-            result.motions[1].final_score if len(result.motions) > 1 else 0.0
-        )
-        comparison_score = max(current_score, runner_up_score)
-        if best.final_score < comparison_score + self.margin:
+        if best.final_score < current_score + self.margin:
             self.reset()
             return None
         if best.motion_id != self.candidate:
@@ -957,53 +953,305 @@ class CandidateStabilizer:
         return pending
 
 
-class MotionPreflightValidator:
-    """Validate retargeted controls and finite MuJoCo state before indexing."""
+@dataclass(frozen=True)
+class MotionSelection:
+    motion_id: str
+    reason: str
+    final_score: float
+    music_score: float
 
-    def __init__(self, model_path: Path, simulation_stride: int = 4) -> None:
+
+class DiversityCandidateSelector:
+    """Track stable, musically acceptable alternatives and rotate them by recency."""
+
+    def __init__(
+        self,
+        required_wins: int = 3,
+        top_k: int = 5,
+        score_drop: float = 0.05,
+        music_score_drop: float = 0.08,
+        recent_history: int = 3,
+    ) -> None:
+        self.required_wins = max(int(required_wins), 1)
+        self.top_k = max(int(top_k), 1)
+        self.score_drop = max(float(score_drop), 0.0)
+        self.music_score_drop = max(float(music_score_drop), 0.0)
+        self.recent_history = max(int(recent_history), 0)
+        self._streaks: dict[str, int] = {}
+        self._scores: dict[str, deque[tuple[float, float]]] = {}
+        self._latest_order: tuple[str, ...] = ()
+        self._last_played: dict[str, int] = {}
+        self._play_counter = 0
+        self._recent: deque[str] = deque(maxlen=self.recent_history)
+
+    def observe(self, result: MatchResult) -> None:
+        if not result.motions:
+            self._streaks.clear()
+            self._scores.clear()
+            self._latest_order = ()
+            return
+
+        best = result.motions[0]
+        candidates = result.motions[: self.top_k]
+        eligible = {
+            motion.motion_id: motion
+            for motion in candidates
+            if motion.final_score >= best.final_score - self.score_drop
+            and motion.music_score >= best.music_score - self.music_score_drop
+        }
+
+        for motion_id in tuple(self._streaks):
+            if motion_id not in eligible:
+                del self._streaks[motion_id]
+                self._scores.pop(motion_id, None)
+
+        for motion_id, motion in eligible.items():
+            self._streaks[motion_id] = self._streaks.get(motion_id, 0) + 1
+            history = self._scores.setdefault(
+                motion_id,
+                deque(maxlen=self.required_wins),
+            )
+            history.append((motion.final_score, motion.music_score))
+        self._latest_order = tuple(
+            motion.motion_id
+            for motion in candidates
+            if motion.motion_id in eligible
+        )
+
+    def record_played(self, motion_id: str) -> None:
+        self._play_counter += 1
+        self._last_played[motion_id] = self._play_counter
+        self._recent.append(motion_id)
+
+    def stable_candidates(
+        self,
+        current_motion_id: str | None,
+    ) -> tuple[MotionSelection, ...]:
+        selections = []
+        for motion_id in self._latest_order:
+            if motion_id == current_motion_id:
+                continue
+            history = self._scores.get(motion_id)
+            if (
+                self._streaks.get(motion_id, 0) < self.required_wins
+                or history is None
+                or len(history) < self.required_wins
+            ):
+                continue
+            selections.append(
+                MotionSelection(
+                    motion_id=motion_id,
+                    reason="diversity",
+                    final_score=float(np.mean([score[0] for score in history])),
+                    music_score=float(np.mean([score[1] for score in history])),
+                )
+            )
+        return tuple(selections)
+
+    def select(self, current_motion_id: str | None) -> MotionSelection | None:
+        candidates = list(self.stable_candidates(current_motion_id))
+        if not candidates:
+            return None
+
+        recent = set(self._recent)
+        fresh = [item for item in candidates if item.motion_id not in recent]
+        available = fresh if fresh else candidates
+        return min(
+            available,
+            key=lambda item: (
+                self._last_played.get(item.motion_id, -1),
+                -item.final_score,
+                item.motion_id,
+            ),
+        )
+
+
+class MotionSelectionPolicy:
+    """Combine relevance-driven switches with bounded-hold diversity rotation."""
+
+    def __init__(
+        self,
+        current_motion_id: str,
+        required_wins: int = 3,
+        score_margin: float = 0.08,
+        max_hold_bars: int = 4,
+        diversity_top_k: int = 5,
+        diversity_score_drop: float = 0.05,
+        diversity_music_score_drop: float = 0.08,
+        recent_history: int = 3,
+    ) -> None:
+        self.current_motion_id = current_motion_id
+        self.max_hold_bars = max(int(max_hold_bars), 0)
+        self.bars_held = 0
+        self.pending: MotionSelection | None = None
+        self.relevance = CandidateStabilizer(required_wins, score_margin)
+        self.diversity = DiversityCandidateSelector(
+            required_wins=required_wins,
+            top_k=diversity_top_k,
+            score_drop=diversity_score_drop,
+            music_score_drop=diversity_music_score_drop,
+            recent_history=recent_history,
+        )
+        self.diversity.record_played(current_motion_id)
+
+    def observe(self, result: MatchResult) -> MotionSelection | None:
+        self.diversity.observe(result)
+        if self.pending is not None:
+            return self.pending
+
+        relevant_motion_id = self.relevance.observe(
+            result,
+            self.current_motion_id,
+        )
+        if relevant_motion_id is not None:
+            match = next(
+                motion
+                for motion in result.motions
+                if motion.motion_id == relevant_motion_id
+            )
+            self.pending = MotionSelection(
+                motion_id=relevant_motion_id,
+                reason="relevance",
+                final_score=match.final_score,
+                music_score=match.music_score,
+            )
+            return self.pending
+
+        diversity_armed = (
+            self.max_hold_bars > 0
+            and self.bars_held >= self.max_hold_bars - 1
+        )
+        if diversity_armed:
+            self.pending = self.diversity.select(self.current_motion_id)
+        return self.pending
+
+    def on_bar_boundary(self) -> MotionSelection | None:
+        self.bars_held += 1
+        return self.ready_selection()
+
+    def ready_selection(self) -> MotionSelection | None:
+        if self.pending is None:
+            return None
+        if self.pending.reason == "relevance":
+            return self.pending
+        if self.max_hold_bars > 0 and self.bars_held >= self.max_hold_bars:
+            return self.pending
+        return None
+
+    def complete_switch(self, motion_id: str) -> None:
+        self.current_motion_id = motion_id
+        self.bars_held = 0
+        self.pending = None
+        self.relevance.reset()
+        self.diversity.record_played(motion_id)
+
+    def preload_motion_ids(self, result: MatchResult) -> tuple[str, ...]:
+        motion_ids = []
+        if self.pending is not None:
+            motion_ids.append(self.pending.motion_id)
+        motion_ids.extend(motion.motion_id for motion in result.motions)
+        return tuple(dict.fromkeys(motion_ids))
+
+    def diversity_pool(self) -> tuple[MotionSelection, ...]:
+        return self.diversity.stable_candidates(self.current_motion_id)
+
+
+class MotionPreflightValidator:
+    """Validate the final canonical GMR-G1 trajectory in headless MuJoCo."""
+
+    def __init__(self, model_path: Path, gmr_motion_root: Path, simulation_stride: int = 4) -> None:
         from realtime_music_humanoid_dancer import MujocoHumanoidPlayer
-        from unitree_g1_dance_adapter import UnitreeG1DanceAdapter
+        from unitree_g1_dance_adapter import UnitreeG1JointPoseAdapter
 
         self.player = MujocoHumanoidPlayer(model_path, realtime=False, headless=True)
-        self.adapter = UnitreeG1DanceAdapter(self.player.actuator_names)
+        self.adapter = UnitreeG1JointPoseAdapter(self.player.actuator_names)
+        self.gmr_motion_root = Path(gmr_motion_root)
         self.simulation_stride = max(int(simulation_stride), 1)
+        if self.adapter.resolved_count != 29:
+            raise ValueError(
+                f"MuJoCo model resolves {self.adapter.resolved_count}/29 Unitree G1 joints."
+            )
 
     def validate(self, motion_path: Path, fps: float = DEFAULT_MOTION_FPS) -> tuple[bool, str]:
         import mujoco
+        from scipy.spatial.transform import Rotation
 
-        from realtime_music_humanoid_dancer import AistppMotionSampler, FeatureState
+        from realtime_music_humanoid_dancer import FeatureState, GmrUnitreeG1MotionSampler
 
+        artifact_path = self.gmr_motion_root / f"{motion_path.stem}.pkl"
         try:
-            sampler = AistppMotionSampler(
-                motion_path=motion_path,
-                fps=fps,
-                pose_gain=1.0,
-                accent_gain=0.0,
-            )
+            sampler = GmrUnitreeG1MotionSampler(artifact_path, None, 1.0, 0.0, False)
+            if (
+                sampler.format_version != 1
+                or sampler.pipeline_version != 4
+                or sampler.source_format != "aistpp_smpl_direct"
+            ):
+                return False, "GMR artifact is not canonical SMPL-direct pipeline version 4"
+            if sampler.retargeter != "GMR":
+                return False, f"unexpected retargeter: {sampler.retargeter!r}"
+            if sampler.collision_avoidance.get("enabled") is not True:
+                return False, "GMR artifact was generated without collision avoidance"
+            if sampler.source_motion_id != motion_path.stem:
+                return False, (
+                    f"GMR source id mismatch: expected {motion_path.stem}, "
+                    f"got {sampler.source_motion_id!r}"
+                )
+            source_digest = hashlib.sha256()
+            with motion_path.open("rb") as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                    source_digest.update(chunk)
+            if sampler.source_sha256 != source_digest.hexdigest():
+                return False, "GMR source hash does not match the AIST++ motion"
+            if not isinstance(sampler.retargeter_version, str) or len(sampler.retargeter_version) != 40:
+                return False, "GMR artifact does not record a full retargeter commit"
+            if not math.isclose(sampler.fps, fps, rel_tol=0.0, abs_tol=1e-6):
+                return False, f"GMR fps mismatch: expected {fps:g}, got {sampler.fps:g}"
             features = FeatureState(is_active=True)
+
+            joint_velocity = np.abs(np.diff(sampler.frames.astype(np.float64), axis=0)) * sampler.fps
+            if joint_velocity.size and float(np.max(joint_velocity)) > 20.0:
+                index = np.unravel_index(int(np.argmax(joint_velocity)), joint_velocity.shape)
+                return False, (
+                    f"G1 joint velocity spike at frame {index[0] + 1}, "
+                    f"{sampler.dof_names[index[1]]}={joint_velocity[index]:.3f} rad/s"
+                )
+            root_velocity = np.linalg.norm(np.diff(sampler.root_positions, axis=0), axis=1) * sampler.fps
+            if root_velocity.size and float(np.max(root_velocity)) > 10.0:
+                return False, f"G1 root velocity spike: {float(np.max(root_velocity)):.3f} m/s"
+            rotations = Rotation.from_quat(sampler.root_quaternions[:, [1, 2, 3, 0]])
+            angular_velocity = (rotations[:-1].inv() * rotations[1:]).magnitude() * sampler.fps
+            if angular_velocity.size and float(np.max(angular_velocity)) > 20.0:
+                return False, f"G1 root angular velocity spike: {float(np.max(angular_velocity)):.3f} rad/s"
+
             mujoco.mj_resetData(self.player.model, self.player.data)
+            self.player.ground_sampler(sampler, self.adapter)
+            minimum_foot_height = math.inf
             for frame_index in range(len(sampler.frames)):
                 phase = frame_index / len(sampler.frames)
-                pose = sampler.sample(phase, 1.0, 0.0, features)
-                controls = self.adapter.adapt_pose(pose, features)
-                for name, value in controls.items():
+                frame = sampler.sample_frame(phase, 1.0, 0.0, features)
+                joints = self.adapter.adapt_pose(frame.joint_positions, features)
+                for name, value in joints.items():
+                    joint_range = self.player.actuator_joint_ranges.get(name)
                     if not math.isfinite(value):
-                        return False, f"non-finite control: {name}"
-                    actuator_id = self.player.actuator_ids.get(name)
-                    if actuator_id is None:
-                        continue
-                    low, high = self.player.model.actuator_ctrlrange[actuator_id]
-                    if value < float(low) - 1e-6 or value > float(high) + 1e-6:
-                        return False, f"control outside range: {name}={value:.5f}"
+                        return False, f"non-finite joint: {name}"
+                    if joint_range is not None and not (
+                        joint_range[0] - 1e-6 <= value <= joint_range[1] + 1e-6
+                    ):
+                        return False, f"joint outside qpos range: {name}={value:.5f}"
                 if frame_index % self.simulation_stride == 0:
-                    self.player.set_pose(controls)
+                    self.player.set_frame(frame.with_joint_positions(joints))
                     self.player.step()
+                    minimum_foot_height = min(minimum_foot_height, self.player.support_height())
                     if not (
                         np.all(np.isfinite(self.player.data.qpos))
                         and np.all(np.isfinite(self.player.data.qvel))
                         and np.all(np.isfinite(self.player.data.ctrl))
                     ):
                         return False, "MuJoCo state became non-finite"
+                    if np.any(self.player.data.ctrl != 0.0):
+                        return False, "kinematic preview unexpectedly wrote actuator controls"
+            if not math.isfinite(minimum_foot_height) or minimum_foot_height < -1e-5:
+                return False, f"foot penetrates floor by {-minimum_foot_height:.6f} m"
         except Exception as exc:
             return False, f"{type(exc).__name__}: {exc}"
         return True, "ok"
@@ -1067,6 +1315,7 @@ def build_music_catalog(
     embedding_model: Path | None = None,
     tag_model: Path | None = None,
     mujoco_model: Path | None = None,
+    gmr_motion_root: Path | None = None,
     run_preflight: bool = True,
     limit_motions: int | None = None,
     window_seconds: float = DEFAULT_WINDOW_SECONDS,
@@ -1172,7 +1421,9 @@ def build_music_catalog(
     if run_preflight:
         if mujoco_model is None:
             raise ValueError("mujoco_model is required when run_preflight=True.")
-        validator = MotionPreflightValidator(Path(mujoco_model))
+        if gmr_motion_root is None:
+            gmr_motion_root = root.parent / "aistpp_gmr"
+        validator = MotionPreflightValidator(Path(mujoco_model), Path(gmr_motion_root))
 
     motions: dict[str, MotionProfile] = {}
     for index, row in enumerate(valid_rows, start=1):

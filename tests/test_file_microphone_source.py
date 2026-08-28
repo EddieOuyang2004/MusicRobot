@@ -39,6 +39,27 @@ class RecordingAnalyzer:
         return []
 
 
+class RecordingOutputStream:
+    def __init__(self, **kwargs: object) -> None:
+        self.kwargs = kwargs
+        self.started = False
+        self.stopped = False
+        self.closed = False
+        self.blocks: list[np.ndarray] = []
+
+    def start(self) -> None:
+        self.started = True
+
+    def write(self, block: np.ndarray) -> None:
+        self.blocks.append(np.asarray(block, dtype=np.float32).copy())
+
+    def stop(self) -> None:
+        self.stopped = True
+
+    def close(self) -> None:
+        self.closed = True
+
+
 class FileMicrophoneSourceTests(unittest.TestCase):
     def test_resets_then_feeds_one_second_of_silence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -80,6 +101,39 @@ class FileMicrophoneSourceTests(unittest.TestCase):
             recent = source.recent_audio(0.2)
             self.assertIsNotNone(recent)
             self.assertTrue(np.allclose(recent, audio, atol=1e-6))
+
+    def test_play_audio_outputs_the_same_startup_silence_and_audio_blocks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            audio_path = Path(directory) / "input.wav"
+            audio = np.full(20, 0.5, dtype=np.float32)
+            sf.write(audio_path, audio, 100, subtype="FLOAT")
+            analyzer = RecordingAnalyzer()
+            output = RecordingOutputStream()
+            with patch("sounddevice.OutputStream", return_value=output) as output_stream:
+                source = FileMicrophoneSource(
+                    audio_path,
+                    analyzer,
+                    startup_delay_sec=0.1,
+                    throttle=False,
+                    play_audio=True,
+                )
+                source.start()
+                source.advance(0.1)
+                source.advance(0.1)
+                source.stop()
+
+            output_stream.assert_called_once_with(
+                samplerate=100,
+                blocksize=10,
+                channels=1,
+                dtype="float32",
+            )
+            self.assertTrue(output.started)
+            self.assertTrue(output.stopped)
+            self.assertTrue(output.closed)
+            rendered = np.concatenate([block[:, 0] for block in output.blocks])
+            self.assertTrue(np.allclose(rendered[:10], 0.0))
+            self.assertTrue(np.allclose(rendered[10:20], 0.5))
 
     def test_matcher_file_beats_include_relative_contrast(self) -> None:
         sample_rate = 1000

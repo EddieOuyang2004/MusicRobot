@@ -23,9 +23,11 @@ from music_motion_catalog import (
     AudioDescriptor,
     AudioFeatureExtractor,
     CandidateStabilizer,
+    DiversityCandidateSelector,
     MatchResult,
     MotionMatch,
     MotionProfile,
+    MotionSelectionPolicy,
     MusicCatalog,
     MusicMotionMatcher,
     TrackMatch,
@@ -68,6 +70,32 @@ def motion_profile(motion_id: str, passed: bool) -> MotionProfile:
         original_bpm=120.0,
         preflight_passed=passed,
         preflight_reason="ok" if passed else "failed",
+    )
+
+
+def motion_match(
+    motion_id: str,
+    final_score: float,
+    music_score: float = 0.9,
+) -> MotionMatch:
+    return MotionMatch(
+        motion_id,
+        "BR0",
+        final_score,
+        music_score,
+        0.7,
+        1.0,
+        0.7,
+        0.7,
+        1.0,
+    )
+
+
+def match_result(*motions: MotionMatch) -> MatchResult:
+    return MatchResult(
+        tracks=(TrackMatch("BR0", "BR", 0.9, 0.9, 0.9, None),),
+        motions=motions,
+        query_bpm=120.0,
     )
 
 
@@ -253,7 +281,7 @@ class MusicMotionCatalogTests(unittest.TestCase):
         self.assertIsNone(stabilizer.observe(result, "current"))
         self.assertEqual("new", stabilizer.observe(result, "current"))
 
-    def test_candidate_rejects_ambiguous_runner_up(self) -> None:
+    def test_candidate_compares_best_with_current_not_runner_up(self) -> None:
         stabilizer = CandidateStabilizer(required_wins=1, margin=0.08)
         result = MatchResult(
             tracks=(TrackMatch("BR0", "BR", 0.9, 0.9, 0.9, None),),
@@ -264,7 +292,147 @@ class MusicMotionCatalogTests(unittest.TestCase):
             query_bpm=120.0,
         )
 
-        self.assertIsNone(stabilizer.observe(result, None))
+        self.assertEqual("best", stabilizer.observe(result, None))
+
+    def test_diversity_selector_requires_consecutive_eligible_results(self) -> None:
+        selector = DiversityCandidateSelector(required_wins=3)
+        result = match_result(
+            motion_match("current", 0.90),
+            motion_match("alternative", 0.87),
+        )
+
+        selector.observe(result)
+        selector.observe(result)
+        self.assertIsNone(selector.select("current"))
+
+        selector.observe(match_result(motion_match("current", 0.90)))
+        selector.observe(result)
+        self.assertIsNone(selector.select("current"))
+        selector.observe(result)
+        selector.observe(result)
+        self.assertEqual("alternative", selector.select("current").motion_id)
+
+    def test_diversity_selector_applies_score_and_music_quality_gates(self) -> None:
+        selector = DiversityCandidateSelector(
+            required_wins=1,
+            top_k=5,
+            score_drop=0.05,
+            music_score_drop=0.08,
+        )
+        selector.observe(
+            match_result(
+                motion_match("current", 0.90, 0.90),
+                motion_match("good", 0.86, 0.84),
+                motion_match("low-final", 0.84, 0.90),
+                motion_match("low-music", 0.87, 0.81),
+            )
+        )
+
+        self.assertEqual(
+            ["good"],
+            [item.motion_id for item in selector.stable_candidates("current")],
+        )
+
+    def test_diversity_selector_rotates_deterministically_by_recency(self) -> None:
+        selector = DiversityCandidateSelector(required_wins=1, recent_history=3)
+        result = match_result(
+            motion_match("first", 0.90),
+            motion_match("second", 0.89),
+            motion_match("third", 0.88),
+            motion_match("fourth", 0.87),
+        )
+        selector.record_played("first")
+        selector.observe(result)
+
+        self.assertEqual("second", selector.select("first").motion_id)
+        selector.record_played("second")
+        self.assertEqual("third", selector.select("second").motion_id)
+        selector.record_played("third")
+        self.assertEqual("fourth", selector.select("third").motion_id)
+        selector.record_played("fourth")
+        self.assertEqual("first", selector.select("fourth").motion_id)
+
+    def test_diversity_selector_holds_when_only_current_is_eligible(self) -> None:
+        selector = DiversityCandidateSelector(required_wins=1)
+        selector.observe(match_result(motion_match("current", 0.90)))
+
+        self.assertIsNone(selector.select("current"))
+
+    def test_selection_policy_latches_diversity_until_fourth_bar(self) -> None:
+        policy = MotionSelectionPolicy(
+            current_motion_id="current",
+            required_wins=1,
+            max_hold_bars=4,
+        )
+        result = match_result(
+            motion_match("current", 0.90),
+            motion_match("alternative", 0.87),
+        )
+        policy.observe(result)
+        self.assertIsNone(policy.pending)
+        for _ in range(3):
+            self.assertIsNone(policy.on_bar_boundary())
+
+        pending = policy.observe(result)
+        self.assertIsNotNone(pending)
+        self.assertEqual("diversity", pending.reason)
+        changed_result = match_result(
+            motion_match("current", 0.90),
+            motion_match("different", 0.89),
+        )
+        self.assertEqual(pending, policy.observe(changed_result))
+        self.assertEqual(pending, policy.on_bar_boundary())
+
+    def test_selection_policy_relevance_switch_preempts_hold_limit(self) -> None:
+        policy = MotionSelectionPolicy(
+            current_motion_id="current",
+            required_wins=3,
+            score_margin=0.08,
+            max_hold_bars=4,
+        )
+        result = match_result(
+            motion_match("new", 0.85),
+            motion_match("runner-up", 0.84),
+        )
+
+        self.assertIsNone(policy.observe(result))
+        self.assertIsNone(policy.observe(result))
+        pending = policy.observe(result)
+        self.assertEqual("new", pending.motion_id)
+        self.assertEqual("relevance", pending.reason)
+        self.assertEqual(pending, policy.on_bar_boundary())
+
+    def test_diversity_can_become_ready_on_the_hold_limit_boundary(self) -> None:
+        policy = MotionSelectionPolicy(
+            current_motion_id="current",
+            required_wins=3,
+            max_hold_bars=4,
+        )
+        result = match_result(
+            motion_match("current", 0.90),
+            motion_match("alternative", 0.87),
+        )
+        policy.observe(result)
+        policy.observe(result)
+        for _ in range(4):
+            policy.on_bar_boundary()
+
+        pending = policy.observe(result)
+        self.assertEqual("diversity", pending.reason)
+        self.assertEqual(pending, policy.ready_selection())
+
+    def test_pending_motion_is_first_in_preload_order(self) -> None:
+        policy = MotionSelectionPolicy(
+            current_motion_id="current",
+            required_wins=1,
+        )
+        result = match_result(
+            motion_match("new", 0.90),
+            motion_match("other", 0.80),
+        )
+        policy.observe(result)
+
+        self.assertEqual(("new", "other"), policy.preload_motion_ids(result))
 
     def test_motion_switch_blend_is_continuous_at_endpoints(self) -> None:
         first = {"hip": -1.0, "knee": 0.5}

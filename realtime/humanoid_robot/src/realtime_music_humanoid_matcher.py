@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import math
 import sys
 import time
@@ -15,13 +16,20 @@ import numpy as np
 import realtime_music_humanoid_dancer as base
 from music_motion_catalog import (
     AudioFeatureExtractor,
-    CandidateStabilizer,
     MatchResult,
+    MotionSelection,
+    MotionSelectionPolicy,
     MotionProfile,
     MusicCatalog,
     MusicMotionMatcher,
 )
 from music_pose_modulator import MusicPoseModulator
+from robot_motion import (
+    RobotMotionFrame,
+    RootMotionContinuity,
+    align_motion_frame_root,
+    blend_motion_frames,
+)
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -44,6 +52,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--switch-required-wins", type=int, default=3)
     parser.add_argument("--switch-score-margin", type=float, default=0.08)
     parser.add_argument("--switch-beats-per-bar", type=int, default=4)
+    parser.add_argument("--switch-max-hold-bars", type=int, default=4)
+    parser.add_argument("--switch-diversity-top-k", type=int, default=5)
+    parser.add_argument("--switch-diversity-score-drop", type=float, default=0.05)
+    parser.add_argument(
+        "--switch-diversity-music-score-drop",
+        type=float,
+        default=0.08,
+    )
+    parser.add_argument("--switch-recent-history", type=int, default=3)
+    parser.add_argument(
+        "--trace-csv",
+        type=Path,
+        default=None,
+        help="Optional CSV timeline containing matcher rankings, motion switches, and phase progress.",
+    )
+    parser.add_argument(
+        "--trace-interval-seconds",
+        type=float,
+        default=0.05,
+        help="Audio-time interval between --trace-csv samples (default: 0.05).",
+    )
     parser.add_argument(
         "--matcher-help",
         action="store_true",
@@ -151,6 +180,7 @@ class MatcherFileMicrophoneSource(base.FileMicrophoneSource):
             analyzer,
             startup_delay_sec=args.audio_input_delay_sec,
             throttle=not args.realtime,
+            play_audio=getattr(args, "play_audio", False),
         )
         self._pending_beats: list[float] = []
         self._pending_beat_contrasts: list[float] = []
@@ -258,14 +288,17 @@ class RetrievalWorker:
         self.executor.shutdown(wait=False, cancel_futures=True)
 
 
+MotionSampler = base.AistppMotionSampler | base.GmrUnitreeG1MotionSampler
+
+
 class MotionLoader:
     def __init__(self, catalog: MusicCatalog, args: argparse.Namespace) -> None:
         self.catalog = catalog
         self.args = args
         self.max_cached = max(int(args.match_top_motions), 1)
         self.executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="motion-load")
-        self.futures: dict[str, Future[base.AistppMotionSampler]] = {}
-        self.cache: dict[str, base.AistppMotionSampler] = {}
+        self.futures: dict[str, Future[MotionSampler]] = {}
+        self.cache: dict[str, MotionSampler] = {}
 
     def submit(self, motion_id: str) -> None:
         self.preload((motion_id,))
@@ -283,16 +316,14 @@ class MotionLoader:
             if motion_id in self.cache or motion_id in self.futures:
                 continue
             profile = self.catalog.motions[motion_id]
-            path = motion_path(self.catalog, profile)
             self.futures[motion_id] = self.executor.submit(
-                base.AistppMotionSampler,
-                path,
-                self.args.aistpp_fps,
-                self.args.pose_gain,
-                self.args.accent_gain,
+                load_motion_sampler,
+                self.args,
+                self.catalog,
+                profile,
             )
 
-    def take_ready(self, motion_id: str) -> base.AistppMotionSampler | None:
+    def take_ready(self, motion_id: str) -> MotionSampler | None:
         if motion_id in self.cache:
             return self.cache[motion_id]
         future = self.futures.get(motion_id)
@@ -310,6 +341,39 @@ class MotionLoader:
 def motion_path(catalog: MusicCatalog, profile: MotionProfile) -> Path:
     root = Path(catalog.metadata["aistpp_root"])
     return root / Path(profile.motion_path)
+
+
+def gmr_motion_path(args: argparse.Namespace, profile: MotionProfile) -> Path:
+    root = args.gmr_motion_root if args.gmr_motion_root.is_absolute() else ROOT / args.gmr_motion_root
+    return root / f"{profile.motion_id}.pkl"
+
+
+def load_motion_sampler(
+    args: argparse.Namespace,
+    catalog: MusicCatalog,
+    profile: MotionProfile,
+) -> MotionSampler:
+    gmr_path = gmr_motion_path(args, profile)
+    if args.retarget_policy != "direct" and gmr_path.exists():
+        return base.GmrUnitreeG1MotionSampler(
+            gmr_path,
+            args.gmr_fps,
+            args.pose_gain,
+            args.accent_gain,
+            False,
+        )
+    if args.retarget_policy == "require-gmr":
+        source_path = motion_path(catalog, profile)
+        raise FileNotFoundError(
+            f"Required GMR artifact not found: {gmr_path}\n"
+            f"Generate it with:\n{base.gmr_generation_hint(source_path)}"
+        )
+    return base.AistppMotionSampler(
+        motion_path(catalog, profile),
+        args.aistpp_fps,
+        args.pose_gain,
+        args.accent_gain,
+    )
 
 
 def make_extractor(args: argparse.Namespace, catalog: MusicCatalog) -> AudioFeatureExtractor:
@@ -394,26 +458,24 @@ def make_controller(
 
 
 def sample_actuator_pose(
-    sampler: base.AistppMotionSampler,
+    sampler: MotionSampler,
     controller: base.AdaptiveMotionController,
     now: float,
     features: base.FeatureState,
     modulator: MusicPoseModulator | None,
     adapter: Any,
-) -> dict[str, float]:
+) -> tuple[RobotMotionFrame, float]:
     phase, amplitude, accent, _brightness = controller.update(now)
-    pose = sampler.sample(phase, amplitude, accent, features)
-    if modulator is not None:
-        pose = modulator.modulate(
-            pose,
-            features,
-            phase=phase,
-            amplitude=amplitude,
-            accent=accent,
-        )
-    if adapter is not None:
-        pose = adapter.adapt_pose(pose, features)
-    return pose
+    frame = base.sample_robot_motion_frame(
+        sampler,
+        phase=phase,
+        amplitude=amplitude,
+        accent=accent,
+        features=features,
+        pose_adapter=adapter,
+        modulator=modulator,
+    )
+    return frame, phase
 
 
 def blend_poses(
@@ -433,17 +495,12 @@ def blend_poses(
 def initial_motion(
     args: argparse.Namespace,
     catalog: MusicCatalog,
-) -> tuple[str, MotionProfile, base.AistppMotionSampler]:
+) -> tuple[str, MotionProfile, MotionSampler]:
     requested = Path(args.aistpp_motion).stem if args.aistpp_motion is not None else ""
     if requested not in catalog.motions:
         requested = next(iter(catalog.motions))
     profile = catalog.motions[requested]
-    sampler = base.AistppMotionSampler(
-        motion_path(catalog, profile),
-        args.aistpp_fps,
-        args.pose_gain,
-        args.accent_gain,
-    )
+    sampler = load_motion_sampler(args, catalog, profile)
     return requested, profile, sampler
 
 
@@ -479,6 +536,10 @@ def main() -> int:
     )
     current_id, current_profile, current_sampler = initial_motion(args, catalog)
     current_controller = make_controller(args, current_profile)
+    print(
+        f"Initial retarget source: "
+        f"{'GMR artifact' if isinstance(current_sampler, base.GmrUnitreeG1MotionSampler) else 'direct AIST++ fallback'}"
+    )
 
     player = base.MujocoHumanoidPlayer(
         args.model,
@@ -486,10 +547,12 @@ def main() -> int:
         headless=args.headless,
     )
     adapter = base.make_pose_adapter(args, player, current_sampler)
+    player.ground_sampler(current_sampler, adapter)
+    modulation_off = args.disable_music_modulation or args.pose_modulation_mode == "off"
     modulator = (
         None
-        if args.disable_music_modulation
-        else MusicPoseModulator(args.music_modulation_strength)
+        if modulation_off
+        else MusicPoseModulator(args.music_modulation_strength, mode=args.pose_modulation_mode)
     )
     if args.preview_trajectory:
         base.run_trajectory_preview(args, current_sampler, player, adapter, modulator)
@@ -504,7 +567,8 @@ def main() -> int:
         )
         print(
             f"Using realtime virtual microphone: {audio_path} "
-            f"(audio starts after {source.startup_delay_sec:.2f}s denoiser reset time)."
+            f"(audio starts after {source.startup_delay_sec:.2f}s denoiser reset time; "
+            f"speaker output={'on' if source.play_audio else 'off'})."
         )
     else:
         if args.no_mic:
@@ -527,16 +591,24 @@ def main() -> int:
         args.match_top_motions,
     )
     loader = MotionLoader(catalog, args)
-    stabilizer = CandidateStabilizer(
-        args.switch_required_wins,
-        args.switch_score_margin,
+    selection_policy = MotionSelectionPolicy(
+        current_motion_id=current_id,
+        required_wins=args.switch_required_wins,
+        score_margin=args.switch_score_margin,
+        max_hold_bars=args.switch_max_hold_bars,
+        diversity_top_k=args.switch_diversity_top_k,
+        diversity_score_drop=args.switch_diversity_score_drop,
+        diversity_music_score_drop=args.switch_diversity_music_score_drop,
+        recent_history=args.switch_recent_history,
     )
     features = base.FeatureState()
-    pending_motion_id: str | None = None
-    transition_sampler: base.AistppMotionSampler | None = None
+    transition_sampler: MotionSampler | None = None
     transition_controller: base.AdaptiveMotionController | None = None
+    transition_selection: MotionSelection | None = None
     transition_start: float | None = None
     transition_duration = 0.5
+    transition_root_source_reference: RobotMotionFrame | None = None
+    transition_root_target_reference: RobotMotionFrame | None = None
     accepted_beat_count = 0
     last_match_clock = -math.inf
     last_feature_update = time.perf_counter()
@@ -544,13 +616,53 @@ def main() -> int:
     last_frame: base.MusicFrame | None = None
     recent_detected_beat_frame: base.MusicFrame | None = None
     recent_accepted_beat_frame: base.MusicFrame | None = None
+    last_match_result: MatchResult | None = None
+    trace_handle = None
+    trace_writer: csv.DictWriter | None = None
+    trace_next_audio_time = 0.0
+    trace_interval = max(float(args.trace_interval_seconds), 0.001)
+    if args.trace_csv is not None:
+        trace_path = args.trace_csv if args.trace_csv.is_absolute() else ROOT / args.trace_csv
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        trace_handle = trace_path.open("w", encoding="utf-8", newline="")
+        trace_writer = csv.DictWriter(
+            trace_handle,
+            fieldnames=(
+                "audio_time_seconds",
+                "event",
+                "current_motion_id",
+                "pending_motion_id",
+                "transition_motion_id",
+                "current_phase",
+                "transition_phase",
+                "transition_blend",
+                "speed_multiplier",
+                "top_track_id",
+                "top_track_score",
+                "top_motion_id",
+                "top_motion_score",
+                "query_bpm",
+            ),
+        )
+        trace_writer.writeheader()
 
     player.start()
+    initial_root = player.root_frame()
+    root_motion = RootMotionContinuity(
+        initial_root.root_position if initial_root.root_position is not None else np.zeros(3),
+        initial_root.root_quaternion_wxyz
+        if initial_root.root_quaternion_wxyz is not None
+        else np.asarray([1.0, 0.0, 0.0, 0.0]),
+        mode=args.root_motion,
+        grounded_z=True,
+    )
     source.start()
     wall_start = time.perf_counter()
     print(f"Initial motion: {current_id}")
     try:
         while player.is_running() and not source.done:
+            trace_event = ""
+            trace_transition_blend = 0.0
             now = time.perf_counter()
             source.advance(player.dt)
             elapsed = (
@@ -562,6 +674,7 @@ def main() -> int:
                 break
 
             switch_boundary = False
+            ready_selection: MotionSelection | None = None
             for frame in source.drain():
                 last_frame = frame
                 accepted = current_controller.observe(frame)
@@ -578,9 +691,12 @@ def main() -> int:
                 if accepted:
                     recent_accepted_beat_frame = frame
                     accepted_beat_count += 1
-                    switch_boundary = (
+                    is_switch_boundary = (
                         accepted_beat_count % max(args.switch_beats_per_bar, 1) == 0
                     )
+                    if is_switch_boundary:
+                        switch_boundary = True
+                        ready_selection = selection_policy.on_bar_boundary()
 
             match_clock = source.playback_seconds
             if match_clock - last_match_clock >= args.match_interval_seconds:
@@ -594,22 +710,37 @@ def main() -> int:
                 print(f"Warning: realtime retrieval failed: {type(exc).__name__}: {exc}")
                 result = None
             if result is not None:
+                last_match_result = result
+                trace_event = "match"
                 print_match_status(result)
-                loader.preload([motion.motion_id for motion in result.motions])
-                stable = stabilizer.observe(result, current_id)
-                if stable is not None and stable in catalog.motions:
-                    pending_motion_id = stable
-                    print(f"Pending motion after stable retrieval: {stable}")
+                previous_pending = selection_policy.pending
+                pending = selection_policy.observe(result)
+                loader.preload(selection_policy.preload_motion_ids(result))
+                if previous_pending is None and pending is not None:
+                    pool = ", ".join(
+                        f"{item.motion_id}:{item.final_score:.3f}/{item.music_score:.3f}"
+                        for item in selection_policy.diversity_pool()
+                    )
+                    print(
+                        f"Pending motion ({pending.reason}): {pending.motion_id} "
+                        f"score={pending.final_score:.3f} "
+                        f"music={pending.music_score:.3f} "
+                        f"held={selection_policy.bars_held} bar(s) "
+                        f"pool=[{pool}]"
+                    )
+                if switch_boundary and ready_selection is None:
+                    ready_selection = selection_policy.ready_selection()
 
             if (
-                pending_motion_id is not None
+                ready_selection is not None
                 and transition_sampler is None
-                and switch_boundary
             ):
-                ready = loader.take_ready(pending_motion_id)
+                ready = loader.take_ready(ready_selection.motion_id)
                 if ready is not None:
+                    player.ground_sampler(ready, adapter)
                     transition_sampler = ready
-                    transition_profile = catalog.motions[pending_motion_id]
+                    transition_selection = ready_selection
+                    transition_profile = catalog.motions[ready_selection.motion_id]
                     transition_controller = make_controller(
                         args,
                         transition_profile,
@@ -622,11 +753,16 @@ def main() -> int:
                         else 0.5
                     )
                     print(
-                        f"Switching on bar boundary: {current_id} -> {pending_motion_id} "
-                        f"({transition_duration:.3f}s blend)"
+                        f"Switching on bar boundary ({ready_selection.reason}, "
+                        f"held={selection_policy.bars_held} bars): "
+                        f"{current_id} -> {ready_selection.motion_id} "
+                        f"({transition_duration:.3f}s blend, "
+                        f"score={ready_selection.final_score:.3f}, "
+                        f"music={ready_selection.music_score:.3f})"
                     )
+                    trace_event = "switch_start"
 
-            current_pose = sample_actuator_pose(
+            current_frame, current_phase = sample_actuator_pose(
                 current_sampler,
                 current_controller,
                 now,
@@ -639,7 +775,7 @@ def main() -> int:
                 and transition_controller is not None
                 and transition_start is not None
             ):
-                next_pose = sample_actuator_pose(
+                next_frame, transition_phase = sample_actuator_pose(
                     transition_sampler,
                     transition_controller,
                     now,
@@ -647,24 +783,106 @@ def main() -> int:
                     modulator,
                     adapter,
                 )
+                if transition_root_source_reference is None:
+                    transition_root_source_reference = next_frame
+                    transition_root_target_reference = current_frame
+                assert transition_root_target_reference is not None
+                next_frame = align_motion_frame_root(
+                    next_frame,
+                    source_reference=transition_root_source_reference,
+                    target_reference=transition_root_target_reference,
+                )
                 blend = (now - transition_start) / max(transition_duration, 1e-6)
-                pose = blend_poses(current_pose, next_pose, blend)
+                trace_transition_blend = float(np.clip(blend, 0.0, 1.0))
+                motion_frame = blend_motion_frames(current_frame, next_frame, blend)
+                root_source_id = f"{current_id}->{transition_selection.motion_id if transition_selection else 'pending'}"
                 if blend >= 1.0:
-                    current_id = pending_motion_id or current_id
+                    if transition_selection is None:
+                        raise RuntimeError("Motion transition lost its selection state.")
+                    current_id = transition_selection.motion_id
                     current_profile = catalog.motions[current_id]
                     current_sampler = transition_sampler
                     current_controller = transition_controller
-                    pending_motion_id = None
+                    selection_policy.complete_switch(current_id)
                     transition_sampler = None
                     transition_controller = None
+                    transition_selection = None
                     transition_start = None
-                    stabilizer.reset()
-                    print(f"Motion switch complete: {current_id}")
+                    transition_root_source_reference = None
+                    transition_root_target_reference = None
+                    print(
+                        f"Motion switch complete: {current_id} "
+                        f"({'GMR artifact' if isinstance(current_sampler, base.GmrUnitreeG1MotionSampler) else 'direct AIST++ fallback'})"
+                    )
+                    trace_event = "switch_complete"
             else:
-                pose = current_pose
+                motion_frame = current_frame
+                transition_phase = None
+                root_source_id = current_id
 
-            player.set_pose(pose)
+            motion_frame = root_motion.apply(
+                motion_frame,
+                phase=current_phase if transition_phase is None else transition_phase,
+                source_id=root_source_id,
+            )
+            motion_frame = player.project_self_collision_safe(motion_frame)
+            player.set_frame(motion_frame)
             player.step()
+
+            if trace_writer is not None and (
+                trace_event or elapsed + 1e-9 >= trace_next_audio_time
+            ):
+                top_track = (
+                    last_match_result.tracks[0]
+                    if last_match_result is not None and last_match_result.tracks
+                    else None
+                )
+                top_motion = (
+                    last_match_result.motions[0]
+                    if last_match_result is not None and last_match_result.motions
+                    else None
+                )
+                pending_selection = selection_policy.pending
+                trace_writer.writerow(
+                    {
+                        "audio_time_seconds": f"{elapsed:.6f}",
+                        "event": trace_event,
+                        "current_motion_id": current_id,
+                        "pending_motion_id": (
+                            pending_selection.motion_id if pending_selection is not None else ""
+                        ),
+                        "transition_motion_id": (
+                            transition_selection.motion_id
+                            if transition_selection is not None
+                            else ""
+                        ),
+                        "current_phase": f"{current_controller.phase:.9f}",
+                        "transition_phase": (
+                            f"{transition_controller.phase:.9f}"
+                            if transition_controller is not None
+                            else ""
+                        ),
+                        "transition_blend": f"{trace_transition_blend:.6f}",
+                        "speed_multiplier": f"{current_controller.speed_multiplier:.6f}",
+                        "top_track_id": top_track.music_id if top_track is not None else "",
+                        "top_track_score": (
+                            f"{top_track.score:.6f}" if top_track is not None else ""
+                        ),
+                        "top_motion_id": top_motion.motion_id if top_motion is not None else "",
+                        "top_motion_score": (
+                            f"{top_motion.final_score:.6f}" if top_motion is not None else ""
+                        ),
+                        "query_bpm": (
+                            f"{last_match_result.query_bpm:.6f}"
+                            if last_match_result is not None
+                            else ""
+                        ),
+                    }
+                )
+                if elapsed + 1e-9 >= trace_next_audio_time:
+                    trace_next_audio_time = (
+                        math.floor(elapsed / trace_interval + 1.0) * trace_interval
+                    )
 
             if now - last_status >= args.status_interval:
                 base.print_status(
@@ -682,6 +900,8 @@ def main() -> int:
         retrieval.close()
         loader.close()
         player.stop()
+        if trace_handle is not None:
+            trace_handle.close()
     return 0
 
 

@@ -7,8 +7,11 @@ from collections.abc import Mapping
 class MusicPoseModulator:
     """Apply one music-to-motion mapping to dancer and Unitree G1 pose streams."""
 
-    def __init__(self, strength: float = 1.0) -> None:
+    def __init__(self, strength: float = 1.0, mode: str = "subtle") -> None:
+        if mode not in {"subtle", "expressive"}:
+            raise ValueError(f"Unknown pose modulation mode: {mode}")
         self.strength = max(strength, 0.0)
+        self.mode = mode
 
     def modulate(
         self,
@@ -33,6 +36,19 @@ class MusicPoseModulator:
         bright = self._feature(features, "brightness")
         rhythm = self._feature(features, "rhythm_density")
         offbeat = self._feature(features, "offbeat_ratio")
+
+        if self.mode == "subtle":
+            return self._subtle(
+                pose,
+                beat=beat,
+                half=half,
+                low=low,
+                mid=mid,
+                high=high,
+                rhythm=rhythm,
+                offbeat=offbeat,
+                accent=max(accent, 0.0),
+            )
 
         amp = max(amplitude, 0.0)
         hit = self.strength * max(accent, 0.0)
@@ -72,6 +88,47 @@ class MusicPoseModulator:
 
         return modulated
 
+    def _subtle(
+        self,
+        pose: Mapping[str, float],
+        *,
+        beat: float,
+        half: float,
+        low: float,
+        mid: float,
+        high: float,
+        rhythm: float,
+        offbeat: float,
+        accent: float,
+    ) -> dict[str, float]:
+        """Bounded, zero-centred detail that never scales the authored pose."""
+
+        modulated = {name: float(value) for name, value in pose.items()}
+        strength = min(self.strength, 1.0)
+        slow = math.sin(beat)
+        fast = math.sin(half)
+        hit_wave = math.sin(half + 0.5 * math.pi) * min(accent, 1.0)
+
+        waist_delta = strength * 0.03 * mid * slow
+        shoulder_delta = strength * 0.03 * max(high, offbeat) * fast
+        wrist_delta = strength * 0.04 * max(high, rhythm) * fast
+        knee_wave = max(-1.0, min(1.0, math.cos(half) - 0.5 * hit_wave))
+        knee_delta = strength * 0.02 * low * knee_wave
+
+        self._add_existing_any(modulated, ("waist_yaw", "torso_yaw"), waist_delta)
+        self._add_existing_any(modulated, ("waist_roll", "torso_roll"), -0.6 * waist_delta)
+        self._add_existing(modulated, "left_shoulder_yaw", shoulder_delta)
+        self._add_existing(modulated, "right_shoulder_yaw", -shoulder_delta)
+        self._add_existing(modulated, "left_shoulder_pitch", 0.6 * shoulder_delta)
+        self._add_existing(modulated, "right_shoulder_pitch", -0.6 * shoulder_delta)
+        self._add_existing(modulated, "left_wrist_roll", wrist_delta)
+        self._add_existing(modulated, "right_wrist_roll", -wrist_delta)
+        self._add_existing(modulated, "left_wrist_yaw", 0.7 * wrist_delta)
+        self._add_existing(modulated, "right_wrist_yaw", -0.7 * wrist_delta)
+        self._add_existing(modulated, "left_knee", knee_delta)
+        self._add_existing(modulated, "right_knee", knee_delta)
+        return modulated
+
     @staticmethod
     def _feature(features: object, name: str) -> float:
         return float(max(0.0, min(1.0, getattr(features, name, 0.0))))
@@ -79,6 +136,18 @@ class MusicPoseModulator:
     @staticmethod
     def _add(pose: dict[str, float], name: str, delta: float) -> None:
         pose[name] = float(pose.get(name, 0.0) + delta)
+
+    @classmethod
+    def _add_existing(cls, pose: dict[str, float], name: str, delta: float) -> None:
+        if name in pose:
+            cls._add(pose, name, delta)
+
+    @classmethod
+    def _add_existing_any(cls, pose: dict[str, float], names: tuple[str, ...], delta: float) -> None:
+        for name in names:
+            if name in pose:
+                cls._add(pose, name, delta)
+                return
 
     @classmethod
     def _add_any(cls, pose: dict[str, float], names: tuple[str, ...], delta: float) -> None:

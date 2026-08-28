@@ -113,6 +113,23 @@ def make_adaptive_controller(
 
 class AdaptiveMotionControllerBeatFilterTests(unittest.TestCase):
     @unittest.skipIf(AdaptiveMotionController is None, _IMPORT_SKIP_REASON)
+    def test_beat_alignment_is_slewed_without_phase_snap_and_stays_speed_bounded(self) -> None:
+        controller = make_adaptive_controller(
+            duration=4.0,
+            phases=(0.25, 0.5, 0.75, 0.0),
+            speed_min=0.5,
+            speed_max=2.0,
+        )
+        self.assertTrue(controller.observe(make_frame(1.0, 0.9)))
+        self.assertEqual(0.0, controller.phase)
+        controller.update(1.0)
+        phase, *_ = controller.update(1.1)
+        self.assertGreater(phase, 0.0)
+        maximum_delta = controller.authored_phase_rate * controller.speed_max * 0.1
+        self.assertLessEqual(phase, maximum_delta + 1e-12)
+        self.assertGreater(controller.phase_correction_remaining, 0.0)
+
+    @unittest.skipIf(AdaptiveMotionController is None, _IMPORT_SKIP_REASON)
     def test_rejects_low_confidence_beats(self) -> None:
         controller = make_controller()
 

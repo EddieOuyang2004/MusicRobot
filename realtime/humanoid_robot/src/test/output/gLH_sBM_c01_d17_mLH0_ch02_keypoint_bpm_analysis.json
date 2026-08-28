@@ -1,0 +1,66 @@
+{
+  "requested_clip_id": "gLH_sBM_c01_d17_mLH0_ch02",
+  "canonical_clip_id": "gLH_sBM_cAll_d17_mLH0_ch02",
+  "camera_mapping": "camera-specific cNN -> camera-independent cAll",
+  "motion_path": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\aistpp\\motions\\gLH_sBM_cAll_d17_mLH0_ch02.pkl",
+  "audio_path": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\aistpp\\audio\\gLH_sBM_cAll_d17_mLH0_ch02.wav",
+  "duration_sec": 12.0,
+  "method": {
+    "motion": "prominent valleys of whole-body SMPL angular + root translation velocity",
+    "music": "librosa onset strength, beat tracking, and local tempogram tempo",
+    "comparison": "instantaneous keypoint interval frequency sampled against local BPM",
+    "fps": 60.0,
+    "tempo_window_sec": 8.0
+  },
+  "music": {
+    "global_bpm": 159.01442307692307,
+    "local_bpm_mean": 159.77891549556213,
+    "local_bpm_std": 1.146738627958585,
+    "local_bpm_cv": 0.007177033492822998,
+    "beat_count": 31
+  },
+  "motion": {
+    "keypoint_count": 14,
+    "keypoint_times_sec": [
+      1.1333333333333333,
+      1.95,
+      2.683333333333333,
+      3.3666666666666667,
+      4.066666666666666,
+      4.933333333333334,
+      5.75,
+      6.4,
+      6.983333333333333,
+      7.833333333333333,
+      8.7,
+      9.383333333333333,
+      9.933333333333334,
+      10.866666666666667
+    ],
+    "frequency_median_per_min": 81.81818181818184,
+    "frequency_mean_per_min": 82.12863318748825,
+    "frequency_std_per_min": 13.219644082888808,
+    "signal_source": "smpl-angular+root-translation"
+  },
+  "relationship": {
+    "tempo_change_identifiable": false,
+    "follows_realtime_bpm_change": null,
+    "correlation": {
+      "sample_count": 13,
+      "x_cv": 0.007177033492822998,
+      "y_cv": 0.1609626700192392,
+      "status": "insufficient_variation",
+      "pearson_r": null,
+      "pearson_p": null,
+      "spearman_rho": null,
+      "spearman_p": null
+    },
+    "median_frequency_to_bpm_ratio": 0.5145330859616576,
+    "nearest_simple_ratio": 0.5,
+    "simple_ratio_relative_error": 0.029066171923315176,
+    "median_keypoint_interval_in_beats": 1.9585755813953472,
+    "median_nearest_beat_offset_ms": 45.873015873015845,
+    "p90_nearest_beat_offset_ms": 132.68027210884335
+  },
+  "conclusion_zh": "音乐局部 BPM 变化不足，无法从该片段识别动作是否会随实时 BPM 改变。 不过动作 keypoint 频率约为音乐 BPM 的 0.5 倍，表现出节拍比例同步。"
+}

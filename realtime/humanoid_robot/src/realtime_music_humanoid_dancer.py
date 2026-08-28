@@ -7,7 +7,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import librosa
 import mujoco
@@ -32,6 +32,20 @@ from realtime_music_adaptive_player import (
 )
 from aistpp_velocity_keypoints import detect_aistpp_velocity_keypoints
 from music_pose_modulator import MusicPoseModulator
+from gmr_retarget_smpl_headless import (
+    COLLISION_CLEARANCE_BUFFER_M,
+    DEFAULT_COLLISION_MIN_DISTANCE_M,
+    activate_required_collision_geoms,
+    collision_geom_pairs,
+)
+from robot_motion import (
+    RobotMotionFrame,
+    RootMotionContinuity,
+    normalize_wxyz,
+    rotation_to_wxyz,
+    slerp_wxyz,
+    wxyz_to_rotation,
+)
 from motion_keypoints import (
     DEFAULT_FALLBACK_PHASES,
     default_keypoint_count,
@@ -45,8 +59,29 @@ from unitree_g1_dance_adapter import UnitreeG1DanceAdapter, UnitreeG1JointPoseAd
 DEFAULT_MODEL = Path(__file__).resolve().parents[1] / "assets" / "open_humanoid_dancer.xml"
 DEFAULT_AISTPP_ROOT = Path(__file__).resolve().parents[1] / "data" / "aistpp"
 DEFAULT_AISTPP_MOTION = DEFAULT_AISTPP_ROOT / "motions" / "gWA_sBM_cAll_d26_mWA0_ch07.pkl"
+DEFAULT_GMR_MOTION_ROOT = Path(__file__).resolve().parents[1] / "data" / "aistpp_gmr"
+DEFAULT_GMR_ROOT = Path(__file__).resolve().parents[1] / ".deps" / "GMR"
+DEFAULT_GMR_PYTHON = Path(__file__).resolve().parents[1] / ".venv-gmr" / "Scripts" / "python.exe"
 DEFAULT_BVH_MOTION = Path(__file__).resolve().parents[1] / "data" / "lafan1_dance" / "dance1_subject1.bvh"
 SMPL_FPS = 60.0
+AIST_TO_MUJOCO = np.asarray(
+    (
+        (1.0, 0.0, 0.0),
+        (0.0, 0.0, -1.0),
+        (0.0, 1.0, 0.0),
+    ),
+    dtype=np.float64,
+)
+AIST_TO_MUJOCO_ROTATION = Rotation.from_matrix(AIST_TO_MUJOCO)
+
+
+def gmr_generation_hint(motion_path: Path) -> str:
+    builder = Path(__file__).with_name("build_aistpp_gmr_dataset.py")
+    return (
+        f'"{DEFAULT_GMR_PYTHON}" "{builder}" '
+        f'--gmr-root "{DEFAULT_GMR_ROOT}" --gmr-python "{DEFAULT_GMR_PYTHON}" '
+        f'--motion "{motion_path}"'
+    )
 
 
 @dataclass
@@ -155,11 +190,55 @@ class HumanoidDanceSampler:
         }
         return {name: float(value) for name, value in pose.items()}
 
+    def sample_frame(
+        self,
+        phase: float,
+        amplitude: float,
+        accent: float,
+        features: FeatureState,
+    ) -> RobotMotionFrame:
+        return RobotMotionFrame(self.sample(phase, amplitude, accent, features))
+
 
 class AistppMotionSampler:
-    """Samples the first AIST++ train motion and retargets it to this MJCF."""
+    """Direct, dependency-free AIST++ fallback mapped into canonical G1 joints."""
 
-    pose_space = "dancer"
+    pose_space = "unitree-g1"
+    SMPL_PARENTS = (
+        -1, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8,
+        9, 9, 9, 12, 13, 14, 16, 17, 18, 19, 20, 21,
+    )
+    DIRECT_LIMITS: dict[str, tuple[float, float]] = {
+        "left_hip_pitch": (-2.5307, 2.8798),
+        "left_hip_roll": (-0.5236, 2.9671),
+        "left_hip_yaw": (-2.7576, 2.7576),
+        "left_knee": (-0.087267, 2.8798),
+        "left_ankle_pitch": (-0.87267, 0.5236),
+        "left_ankle_roll": (-0.2618, 0.2618),
+        "right_hip_pitch": (-2.5307, 2.8798),
+        "right_hip_roll": (-2.9671, 0.5236),
+        "right_hip_yaw": (-2.7576, 2.7576),
+        "right_knee": (-0.087267, 2.8798),
+        "right_ankle_pitch": (-0.87267, 0.5236),
+        "right_ankle_roll": (-0.2618, 0.2618),
+        "waist_yaw": (-2.618, 2.618),
+        "waist_roll": (-0.52, 0.52),
+        "waist_pitch": (-0.52, 0.52),
+        "left_shoulder_pitch": (-3.0892, 2.6704),
+        "left_shoulder_roll": (-1.5882, 2.2515),
+        "left_shoulder_yaw": (-2.618, 2.618),
+        "left_elbow": (-1.0472, 2.0944),
+        "left_wrist_roll": (-1.97222, 1.97222),
+        "left_wrist_pitch": (-1.61443, 1.61443),
+        "left_wrist_yaw": (-1.61443, 1.61443),
+        "right_shoulder_pitch": (-3.0892, 2.6704),
+        "right_shoulder_roll": (-2.2515, 1.5882),
+        "right_shoulder_yaw": (-2.618, 2.618),
+        "right_elbow": (-1.0472, 2.0944),
+        "right_wrist_roll": (-1.97222, 1.97222),
+        "right_wrist_pitch": (-1.61443, 1.61443),
+        "right_wrist_yaw": (-1.61443, 1.61443),
+    }
 
     def __init__(self, motion_path: Path, fps: float, pose_gain: float, accent_gain: float) -> None:
         self.motion_path = motion_path
@@ -170,11 +249,17 @@ class AistppMotionSampler:
         with motion_path.open("rb") as motion_file:
             motion = pickle.load(motion_file)
         poses = np.asarray(motion["smpl_poses"], dtype=np.float32)
-        if poses.ndim != 2 or poses.shape[1] != 72:
-            raise ValueError(f"Expected smpl_poses with shape (N, 72), got {poses.shape}.")
+        if poses.ndim == 2 and poses.shape[1] == 72:
+            frames = poses.reshape((-1, 24, 3))
+        elif poses.ndim == 3 and poses.shape[1:] == (24, 3):
+            frames = poses
+        else:
+            raise ValueError(f"Expected smpl_poses with shape (N, 72) or (N, 24, 3), got {poses.shape}.")
         if len(poses) < 2:
             raise ValueError("AIST++ motion must contain at least two frames.")
-        self.frames = poses.reshape((-1, 24, 3))
+        self.frames = frames
+        xyzw = Rotation.from_rotvec(self.frames.reshape(-1, 3)).as_quat().reshape(-1, 24, 4)
+        self.local_quaternions_wxyz = xyzw[..., [3, 0, 1, 2]]
         translations = motion.get("smpl_trans")
         self.translations = None if translations is None else np.asarray(translations, dtype=np.float64)
         if self.translations is not None and self.translations.shape != (len(self.frames), 3):
@@ -183,73 +268,220 @@ class AistppMotionSampler:
             )
         scaling = motion.get("smpl_scaling")
         self.scaling = None if scaling is None else float(np.asarray(scaling, dtype=np.float64).reshape(-1)[0])
+        if self.scaling is not None and (not math.isfinite(self.scaling) or abs(self.scaling) <= 1e-8):
+            raise ValueError("AIST++ smpl_scaling must be finite and nonzero.")
+        self.root_positions, self.root_quaternions = self._build_root_trajectory()
+        self.ground_offset_z = 0.0
+        self.is_grounded = False
         self.duration = len(self.frames) / self.fps
 
     def sample(self, phase: float, amplitude: float, accent: float, features: FeatureState) -> dict[str, float]:
+        return self.sample_frame(phase, amplitude, accent, features).joint_positions
+
+    def sample_frame(
+        self,
+        phase: float,
+        amplitude: float,
+        accent: float,
+        features: FeatureState,
+    ) -> RobotMotionFrame:
         del amplitude, accent, features
         phase = phase % 1.0
         frame_pos = phase * len(self.frames)
         frame_a = int(math.floor(frame_pos)) % len(self.frames)
         frame_b = (frame_a + 1) % len(self.frames)
         blend = frame_pos - math.floor(frame_pos)
-        frame = (1.0 - blend) * self.frames[frame_a] + blend * self.frames[frame_b]
+        frame = self._interpolate_smpl_frame(frame_a, frame_b, blend)
         pose = self._retarget(frame)
 
-        return {name: float(self.pose_gain * value) for name, value in pose.items()}
+        if frame_b == 0:
+            root_position = self.root_positions[frame_a].copy()
+            root_quaternion = self.root_quaternions[frame_a].copy()
+        else:
+            root_position = (1.0 - blend) * self.root_positions[frame_a] + blend * self.root_positions[frame_b]
+            root_quaternion = slerp_wxyz(
+                self.root_quaternions[frame_a],
+                self.root_quaternions[frame_b],
+                blend,
+            )
+
+        return RobotMotionFrame(
+            joint_positions={name: float(self.pose_gain * value) for name, value in pose.items()},
+            root_position=root_position + np.asarray([0.0, 0.0, self.ground_offset_z]),
+            root_quaternion_wxyz=root_quaternion,
+        )
+
+    def _build_root_trajectory(self) -> tuple[np.ndarray, np.ndarray]:
+        if self.translations is None:
+            positions = np.zeros((len(self.frames), 3), dtype=np.float64)
+        else:
+            scale = self.scaling if self.scaling is not None else 1.0
+            relative = (self.translations - self.translations[0]) / scale
+            positions = relative @ AIST_TO_MUJOCO.T
+
+        quaternions = np.empty((len(self.frames), 4), dtype=np.float64)
+        basis = AIST_TO_MUJOCO_ROTATION
+        for index, root_rotvec in enumerate(self.frames[:, 0]):
+            converted = basis * Rotation.from_rotvec(root_rotvec) * basis.inv()
+            quaternions[index] = rotation_to_wxyz(converted)
+        origin_rotation = wxyz_to_rotation(quaternions[0])
+        # Rebase translation and orientation into the same initial-heading frame.
+        positions = origin_rotation.inv().apply(positions)
+        quaternions = np.stack(
+            [rotation_to_wxyz(origin_rotation.inv() * wxyz_to_rotation(value)) for value in quaternions]
+        )
+        return positions, quaternions
+
+    def _interpolate_smpl_frame(self, first: int, second: int, amount: float) -> np.ndarray:
+        a = self.local_quaternions_wxyz[first].astype(np.float64, copy=True)
+        b = self.local_quaternions_wxyz[second].astype(np.float64, copy=True)
+        t = float(np.clip(amount, 0.0, 1.0))
+        dots = np.sum(a * b, axis=1)
+        negative = dots < 0.0
+        b[negative] *= -1.0
+        dots = np.clip(np.abs(dots), -1.0, 1.0)
+        close = dots > 0.9995
+        theta = np.arccos(dots)
+        sin_theta = np.sin(theta)
+        first_weight = np.empty_like(theta)
+        second_weight = np.empty_like(theta)
+        first_weight[close] = 1.0 - t
+        second_weight[close] = t
+        first_weight[~close] = np.sin((1.0 - t) * theta[~close]) / sin_theta[~close]
+        second_weight[~close] = np.sin(t * theta[~close]) / sin_theta[~close]
+        quaternions = first_weight[:, None] * a + second_weight[:, None] * b
+        quaternions /= np.linalg.norm(quaternions, axis=1, keepdims=True)
+        return Rotation.from_quat(quaternions[:, [1, 2, 3, 0]]).as_rotvec()
 
     @staticmethod
-    def _euler_xyz(frame: np.ndarray, joint_index: int) -> np.ndarray:
-        return Rotation.from_rotvec(frame[joint_index]).as_euler("xyz", degrees=False)
+    def _rotation(frame: np.ndarray, joint_index: int) -> Rotation:
+        return Rotation.from_rotvec(frame[joint_index])
+
+    @classmethod
+    def _euler_xyz(cls, frame: np.ndarray, joint_index: int) -> np.ndarray:
+        return cls._rotation(frame, joint_index).as_euler("xyz", degrees=False)
+
+    @staticmethod
+    def _converted_rotation(rotation: Rotation) -> Rotation:
+        return AIST_TO_MUJOCO_ROTATION * rotation * AIST_TO_MUJOCO_ROTATION.inv()
+
+    @classmethod
+    def _global_rotations(cls, frame: np.ndarray) -> tuple[Rotation, ...]:
+        rotations: list[Rotation] = []
+        for joint_index, parent_index in enumerate(cls.SMPL_PARENTS):
+            local = cls._rotation(frame, joint_index)
+            rotations.append(local if parent_index < 0 else rotations[parent_index] * local)
+        return tuple(rotations)
+
+    @staticmethod
+    def _bone_flexion(
+        global_rotations: tuple[Rotation, ...],
+        proximal_joint: int,
+        distal_joint: int,
+        rest_direction: np.ndarray,
+    ) -> float:
+        direction = np.asarray(rest_direction, dtype=np.float64)
+        direction /= np.linalg.norm(direction)
+        proximal = global_rotations[proximal_joint].apply(direction)
+        distal = global_rotations[distal_joint].apply(direction)
+        cosine = float(np.clip(np.dot(proximal, distal), -1.0, 1.0))
+        return float(math.acos(cosine))
+
+    @staticmethod
+    def _morphology_compressed_flexion(angle: float, soft_limit: float, hard_limit: float) -> float:
+        """Preserve ordinary human flexion and smoothly fit deep bends into G1 range."""
+
+        value = max(float(angle), 0.0)
+        if value <= soft_limit:
+            return value
+        span = hard_limit - soft_limit
+        return float(soft_limit + span * (1.0 - math.exp(-(value - soft_limit) / span)))
+
+    @classmethod
+    def _g1_euler(cls, rotation: Rotation) -> tuple[float, float, float]:
+        pitch, roll, yaw = cls._converted_rotation(rotation).as_euler("YXZ", degrees=False)
+        return float(pitch), float(roll), float(yaw)
+
+    @classmethod
+    def _shoulder_angles(cls, frame: np.ndarray, side: str) -> tuple[float, float, float]:
+        if side == "left":
+            collar_index, shoulder_index, neutral_roll = 13, 16, -0.5 * math.pi
+        else:
+            collar_index, shoulder_index, neutral_roll = 14, 17, 0.5 * math.pi
+        source = cls._rotation(frame, collar_index) * cls._rotation(frame, shoulder_index)
+        neutral = cls._converted_rotation(Rotation.from_euler("z", neutral_roll))
+        converted_source = cls._converted_rotation(source)
+        pitch, roll, yaw = (neutral.inv() * converted_source).as_euler("YXZ", degrees=False)
+        return float(pitch), float(roll), float(yaw)
 
     def _retarget(self, frame: np.ndarray) -> dict[str, float]:
-        root = self._euler_xyz(frame, 0)
-        left_hip = self._euler_xyz(frame, 1)
-        right_hip = self._euler_xyz(frame, 2)
-        spine1 = self._euler_xyz(frame, 3)
-        left_knee = self._euler_xyz(frame, 4)
-        right_knee = self._euler_xyz(frame, 5)
-        spine2 = self._euler_xyz(frame, 6)
-        left_ankle = self._euler_xyz(frame, 7)
-        right_ankle = self._euler_xyz(frame, 8)
-        spine3 = self._euler_xyz(frame, 9)
-        neck = self._euler_xyz(frame, 12)
-        head = self._euler_xyz(frame, 15)
-        left_shoulder = self._euler_xyz(frame, 16)
-        right_shoulder = self._euler_xyz(frame, 17)
-        left_elbow = self._euler_xyz(frame, 18)
-        right_elbow = self._euler_xyz(frame, 19)
+        pose, _compression = self._retarget_with_diagnostics(frame)
+        return pose
 
-        spine_yaw = 0.34 * spine1[2] + 0.33 * spine2[2] + 0.33 * spine3[2]
-        spine_roll = 0.34 * spine1[0] + 0.33 * spine2[0] + 0.33 * spine3[0]
-        spine_pitch = 0.34 * spine1[1] + 0.33 * spine2[1] + 0.33 * spine3[1]
-
-        left_elbow_flex = -0.18 - 0.65 * abs(left_elbow[1]) - 0.35 * abs(left_elbow[2])
-        right_elbow_flex = -0.18 - 0.65 * abs(right_elbow[1]) - 0.35 * abs(right_elbow[2])
-        left_knee_flex = 0.15 + 0.72 * abs(left_knee[0]) + 0.18 * abs(left_knee[2])
-        right_knee_flex = 0.15 + 0.72 * abs(right_knee[0]) + 0.18 * abs(right_knee[2])
-
-        return {
-            "torso_yaw": 0.22 * root[2] + 0.50 * spine_yaw,
-            "torso_roll": 0.18 * root[0] + 0.42 * spine_roll,
-            "torso_pitch": 0.16 * root[1] + 0.48 * spine_pitch,
-            "neck_pitch": 0.35 * neck[1] + 0.30 * head[1],
-            "left_shoulder_pitch": 0.65 * left_shoulder[1] - 0.18 * left_shoulder[0],
-            "left_shoulder_roll": 0.62 + 0.52 * left_shoulder[2] + 0.18 * left_shoulder[0],
-            "left_elbow": left_elbow_flex,
-            "right_shoulder_pitch": 0.65 * right_shoulder[1] - 0.18 * right_shoulder[0],
-            "right_shoulder_roll": -0.62 + 0.52 * right_shoulder[2] - 0.18 * right_shoulder[0],
-            "right_elbow": right_elbow_flex,
-            "left_hip_yaw": 0.42 * left_hip[2],
-            "left_hip_roll": 0.42 * left_hip[0],
-            "left_hip_pitch": 0.52 * left_hip[1] - 0.10 * left_knee_flex,
-            "left_knee": left_knee_flex,
-            "left_ankle_pitch": 0.35 * left_ankle[1],
-            "right_hip_yaw": 0.42 * right_hip[2],
-            "right_hip_roll": 0.42 * right_hip[0],
-            "right_hip_pitch": 0.52 * right_hip[1] - 0.10 * right_knee_flex,
-            "right_knee": right_knee_flex,
-            "right_ankle_pitch": 0.35 * right_ankle[1],
+    def _retarget_with_diagnostics(
+        self,
+        frame: np.ndarray,
+    ) -> tuple[dict[str, float], dict[str, tuple[float, float]]]:
+        left_hip = self._g1_euler(self._rotation(frame, 1))
+        right_hip = self._g1_euler(self._rotation(frame, 2))
+        spine_rotation = self._rotation(frame, 3) * self._rotation(frame, 6) * self._rotation(frame, 9)
+        spine = self._g1_euler(spine_rotation)
+        left_ankle = self._g1_euler(self._rotation(frame, 7))
+        right_ankle = self._g1_euler(self._rotation(frame, 8))
+        left_shoulder_pitch, left_shoulder_roll, left_shoulder_yaw = self._shoulder_angles(frame, "left")
+        right_shoulder_pitch, right_shoulder_roll, right_shoulder_yaw = self._shoulder_angles(frame, "right")
+        global_rotations = self._global_rotations(frame)
+        source_flexion = {
+            "left_elbow": self._bone_flexion(global_rotations, 16, 18, np.asarray([1.0, 0.0, 0.0])),
+            "right_elbow": self._bone_flexion(global_rotations, 17, 19, np.asarray([-1.0, 0.0, 0.0])),
+            "left_knee": self._bone_flexion(global_rotations, 1, 4, np.asarray([0.0, -1.0, 0.0])),
+            "right_knee": self._bone_flexion(global_rotations, 2, 5, np.asarray([0.0, -1.0, 0.0])),
         }
+        mapped_flexion = {
+            "left_elbow": self._morphology_compressed_flexion(source_flexion["left_elbow"], 1.75, 2.05),
+            "right_elbow": self._morphology_compressed_flexion(source_flexion["right_elbow"], 1.75, 2.05),
+            "left_knee": self._morphology_compressed_flexion(source_flexion["left_knee"], 2.50, 2.80),
+            "right_knee": self._morphology_compressed_flexion(source_flexion["right_knee"], 2.50, 2.80),
+        }
+        left_wrist = self._g1_euler(self._rotation(frame, 20))
+        right_wrist = self._g1_euler(self._rotation(frame, 21))
+
+        pose = {
+            "waist_yaw": float(0.70 * spine[2]),
+            "waist_roll": float(0.40 * spine[1]),
+            "waist_pitch": float(0.40 * spine[0]),
+            "left_shoulder_pitch": left_shoulder_pitch,
+            "left_shoulder_roll": left_shoulder_roll,
+            "left_shoulder_yaw": left_shoulder_yaw,
+            "left_elbow": mapped_flexion["left_elbow"],
+            "left_wrist_roll": float(left_wrist[1]),
+            "left_wrist_pitch": float(left_wrist[0]),
+            "left_wrist_yaw": float(left_wrist[2]),
+            "right_shoulder_pitch": right_shoulder_pitch,
+            "right_shoulder_roll": right_shoulder_roll,
+            "right_shoulder_yaw": right_shoulder_yaw,
+            "right_elbow": mapped_flexion["right_elbow"],
+            "right_wrist_roll": float(right_wrist[1]),
+            "right_wrist_pitch": float(right_wrist[0]),
+            "right_wrist_yaw": float(right_wrist[2]),
+            "left_hip_yaw": float(left_hip[2]),
+            "left_hip_roll": float(-left_hip[1]),
+            "left_hip_pitch": float(left_hip[0]),
+            "left_knee": mapped_flexion["left_knee"],
+            "left_ankle_pitch": float(left_ankle[0]),
+            "left_ankle_roll": float(left_ankle[1]),
+            "right_hip_yaw": float(right_hip[2]),
+            "right_hip_roll": float(right_hip[1]),
+            "right_hip_pitch": float(right_hip[0]),
+            "right_knee": mapped_flexion["right_knee"],
+            "right_ankle_pitch": float(right_ankle[0]),
+            "right_ankle_roll": float(right_ankle[1]),
+        }
+        compression = {
+            name: (source_flexion[name], mapped_flexion[name])
+            for name in source_flexion
+        }
+        return {name: float(value) for name, value in pose.items()}, compression
 
 
 class GmrUnitreeG1MotionSampler:
@@ -266,44 +498,157 @@ class GmrUnitreeG1MotionSampler:
         use_music_amplitude: bool,
     ) -> None:
         self.motion_path = motion_path
-        self.pose_gain = max(pose_gain, 0.0)
+        if not math.isclose(float(pose_gain), 1.0, rel_tol=0.0, abs_tol=1e-12):
+            print(
+                f"Ignoring pose_gain={pose_gain:g} for GMR motion {motion_path.name}; "
+                "GMR dof_pos is always played at its authored scale."
+            )
         self.accent_gain = max(accent_gain, 0.0)
-        self.use_music_amplitude = use_music_amplitude
+        if use_music_amplitude:
+            print("Ignoring legacy GMR music-amplitude scaling; authored GMR joint values remain unchanged.")
+        self.use_music_amplitude = False
 
         with motion_path.open("rb") as motion_file:
             motion = pickle.load(motion_file)
         if not isinstance(motion, dict):
             raise ValueError(f"GMR motion pickle must contain a dict, got {type(motion).__name__}.")
+        self.motion_path = motion_path
+        self.format_version = motion.get("format_version")
+        self.pipeline_version = motion.get("pipeline_version")
+        self.source_format = motion.get("source_format")
+        self.source_motion_id = motion.get("source_motion_id")
+        self.source_sha256 = motion.get("source_sha256")
+        self.smpl_model_sha256 = motion.get("smpl_model_sha256")
+        self.retargeter = motion.get("retargeter")
+        self.retargeter_version = motion.get("retargeter_version")
+        self.collision_avoidance = motion.get("collision_avoidance")
+        self.mink_limits_api = motion.get("mink_limits_api")
+
+        if self.format_version != 1 or self.pipeline_version != 4:
+            raise ValueError(
+                "GMR motion must use canonical format_version=1 and pipeline_version=4."
+            )
+        if self.source_format != "aistpp_smpl_direct":
+            raise ValueError(
+                "GMR motion must set source_format='aistpp_smpl_direct'; legacy BVH artifacts are refused."
+            )
+        if self.retargeter != "GMR":
+            raise ValueError(f"GMR motion has unexpected retargeter: {self.retargeter!r}.")
+
+        missing = {
+            "fps",
+            "root_pos",
+            "root_rot",
+            "root_rot_order",
+            "dof_pos",
+            "dof_names",
+            "source_motion_id",
+            "source_sha256",
+            "smpl_model_sha256",
+            "retargeter_version",
+            "collision_avoidance",
+            "mink_limits_api",
+            "continuity_limits",
+        } - set(motion)
+        if missing:
+            raise ValueError(f"GMR motion is missing required fields: {sorted(missing)}.")
+        if (
+            not isinstance(self.collision_avoidance, dict)
+            or self.collision_avoidance.get("preset") != "g1_self_collision_v2"
+        ):
+            raise ValueError("GMR motion has missing or unsupported collision-avoidance metadata.")
 
         dof_pos = np.asarray(motion.get("dof_pos"), dtype=np.float32)
         if dof_pos.ndim != 2:
             raise ValueError(f"Expected GMR dof_pos with shape (N, D), got {dof_pos.shape}.")
         if len(dof_pos) < 2:
             raise ValueError("GMR motion must contain at least two frames.")
+        if not np.all(np.isfinite(dof_pos)):
+            raise ValueError("GMR dof_pos contains non-finite values.")
 
         g1_dof_count = len(UnitreeG1DanceAdapter.GMR_DOF_NAMES)
-        if dof_pos.shape[1] < g1_dof_count:
-            raise ValueError(f"Expected at least {g1_dof_count} G1 DoF columns, got {dof_pos.shape[1]}.")
+        if dof_pos.shape[1] != g1_dof_count:
+            raise ValueError(f"Expected exactly {g1_dof_count} G1 DoF columns, got {dof_pos.shape[1]}.")
 
-        dof_names = motion.get("dof_names") or motion.get("joint_names")
-        if dof_names is None:
-            self.dof_names = UnitreeG1DanceAdapter.GMR_DOF_NAMES
-            self.frames = dof_pos[:, :g1_dof_count]
-        else:
-            self.dof_names = tuple(_logical_g1_name(str(name)) for name in dof_names)
-            if len(self.dof_names) != dof_pos.shape[1]:
-                raise ValueError(
-                    f"GMR dof_names length ({len(self.dof_names)}) does not match "
-                    f"dof_pos columns ({dof_pos.shape[1]})."
-                )
-            self.frames = dof_pos
+        dof_names = motion["dof_names"]
+        loaded_names = tuple(str(name) for name in dof_names)
+        if len(loaded_names) != dof_pos.shape[1]:
+            raise ValueError(
+                f"GMR dof_names length ({len(loaded_names)}) does not match "
+                f"dof_pos columns ({dof_pos.shape[1]})."
+            )
+        if len(set(loaded_names)) != len(loaded_names):
+            raise ValueError("GMR dof_names contains duplicate joint names.")
+        canonical_names = UnitreeG1DanceAdapter.GMR_DOF_NAMES
+        canonical_name_set = set(canonical_names)
+        unknown_dofs = set(loaded_names) - canonical_name_set
+        missing_dofs = canonical_name_set - set(loaded_names)
+        if unknown_dofs:
+            raise ValueError(f"GMR motion contains unknown G1 DoFs: {sorted(unknown_dofs)}.")
+        if missing_dofs:
+            raise ValueError(f"GMR motion is missing G1 DoFs: {sorted(missing_dofs)}.")
+        if loaded_names != canonical_names:
+            raise ValueError(
+                "GMR dof_names must exactly match the canonical MuJoCo qpos address order."
+            )
+        self.dof_names = UnitreeG1DanceAdapter.GMR_DOF_NAMES
+        self.frames = dof_pos
+
+        self.root_positions = np.asarray(motion["root_pos"], dtype=np.float64)
+        self.root_quaternions = np.asarray(motion["root_rot"], dtype=np.float64)
+        root_rot_order = motion.get("root_rot_order")
+        if root_rot_order != "wxyz":
+            raise ValueError(
+                "Canonical v3 GMR motion must explicitly set root_rot_order to 'wxyz'."
+            )
+        expected_root_position_shape = (len(self.frames), 3)
+        expected_root_rotation_shape = (len(self.frames), 4)
+        if self.root_positions.shape != expected_root_position_shape:
+            raise ValueError(
+                f"Expected GMR root_pos with shape {expected_root_position_shape}, "
+                f"got {self.root_positions.shape}."
+            )
+        if self.root_quaternions.shape != expected_root_rotation_shape:
+            raise ValueError(
+                f"Expected GMR root_rot with shape {expected_root_rotation_shape}, "
+                f"got {self.root_quaternions.shape}."
+            )
+        if not np.all(np.isfinite(self.root_positions)) or not np.all(np.isfinite(self.root_quaternions)):
+            raise ValueError("GMR root trajectory contains non-finite values.")
+        self.root_quaternions = np.stack(
+            [normalize_wxyz(value, description=f"root_rot[{index}]") for index, value in enumerate(self.root_quaternions)]
+        )
+        if len(self.root_quaternions) > 1:
+            signs = np.sum(self.root_quaternions[1:] * self.root_quaternions[:-1], axis=1)
+            if np.any(signs < -1e-8):
+                frame = int(np.flatnonzero(signs < -1e-8)[0] + 1)
+                raise ValueError(f"GMR root quaternion sign discontinuity at frame {frame}.")
+        self.root_positions = self.root_positions - self.root_positions[0]
+        root_origin = wxyz_to_rotation(self.root_quaternions[0])
+        self.root_positions = root_origin.inv().apply(self.root_positions)
+        self.root_quaternions = np.stack(
+            [rotation_to_wxyz(root_origin.inv() * wxyz_to_rotation(value)) for value in self.root_quaternions]
+        )
+        self.ground_offset_z = 0.0
+        self.is_grounded = False
 
         fps = fps_override if fps_override is not None else float(motion.get("fps", 30.0))
-        self.fps = max(fps, 1e-6)
+        if not math.isfinite(fps) or fps <= 0.0:
+            raise ValueError(f"GMR fps must be finite and positive, got {fps}.")
+        self.fps = fps
         self.duration = len(self.frames) / self.fps
 
     def sample(self, phase: float, amplitude: float, accent: float, features: FeatureState) -> dict[str, float]:
-        del amplitude, accent, features
+        return self.sample_frame(phase, amplitude, accent, features).joint_positions
+
+    def sample_frame(
+        self,
+        phase: float,
+        amplitude: float,
+        accent: float,
+        features: FeatureState,
+    ) -> RobotMotionFrame:
+        del features
         phase = phase % 1.0
         frame_pos = phase * len(self.frames)
         frame_a = int(math.floor(frame_pos)) % len(self.frames)
@@ -312,19 +657,26 @@ class GmrUnitreeG1MotionSampler:
         frame = (1.0 - blend) * self.frames[frame_a] + blend * self.frames[frame_b]
 
         pose = {}
-        gain = self.pose_gain
-        accent_gain = 0.0
-        if self.use_music_amplitude:
-            gain *= max(amplitude, 0.0)
-            accent_gain = self.accent_gain * max(accent, 0.0)
         for index, name in enumerate(self.dof_names):
             if not name:
                 continue
-            value = float(gain * frame[index])
-            if name in {"left_knee", "right_knee", "left_elbow", "right_elbow"}:
-                value += math.copysign(0.08 * accent_gain, value if value != 0.0 else 1.0)
+            value = float(frame[index])
             pose[name] = value
-        return pose
+        if frame_b == 0:
+            root_position = self.root_positions[frame_a].copy()
+            root_quaternion = self.root_quaternions[frame_a].copy()
+        else:
+            root_position = (1.0 - blend) * self.root_positions[frame_a] + blend * self.root_positions[frame_b]
+            root_quaternion = slerp_wxyz(
+                self.root_quaternions[frame_a],
+                self.root_quaternions[frame_b],
+                blend,
+            )
+        return RobotMotionFrame(
+            joint_positions=pose,
+            root_position=root_position + np.asarray([0.0, 0.0, self.ground_offset_z]),
+            root_quaternion_wxyz=root_quaternion,
+        )
 
 
 @dataclass(frozen=True)
@@ -388,6 +740,15 @@ class BvhUnitreeG1MotionSampler:
                 value += math.copysign(0.08 * accent_gain, value if value != 0.0 else 1.0)
             pose[name] = value
         return pose
+
+    def sample_frame(
+        self,
+        phase: float,
+        amplitude: float,
+        accent: float,
+        features: FeatureState,
+    ) -> RobotMotionFrame:
+        return RobotMotionFrame(self.sample(phase, amplitude, accent, features))
 
     @staticmethod
     def _load_bvh(path: Path) -> tuple[list[BvhJoint], np.ndarray, float]:
@@ -537,6 +898,7 @@ class BvhUnitreeG1MotionSampler:
 class MujocoHumanoidPlayer:
     def __init__(self, model_path: Path, realtime: bool, headless: bool) -> None:
         self.model = mujoco.MjModel.from_xml_path(str(model_path))
+        activate_required_collision_geoms(self.model)
         self.data = mujoco.MjData(self.model)
         self.realtime = realtime
         self.headless = headless
@@ -560,6 +922,39 @@ class MujocoHumanoidPlayer:
                 self.actuator_joint_ranges[name] = (float(low), float(high))
             else:
                 self.actuator_joint_ranges[name] = None
+        self.floating_base_joint_id = mujoco.mj_name2id(
+            self.model,
+            mujoco.mjtObj.mjOBJ_JOINT,
+            "floating_base_joint",
+        )
+        self.floating_base_qpos_id = (
+            None
+            if self.floating_base_joint_id < 0
+            else int(self.model.jnt_qposadr[self.floating_base_joint_id])
+        )
+        self.limit_clip_counts = {name: 0 for name in self.actuator_ids}
+        self.collision_projection_count = 0
+        expanded_collision_pairs = {
+            tuple(sorted((first, second)))
+            for first_group, second_group in collision_geom_pairs(self.model)
+            for first in first_group
+            for second in second_group
+            if first != second
+        }
+        self.self_collision_geom_pairs = np.asarray(
+            sorted(expanded_collision_pairs), dtype=np.int32
+        ).reshape((-1, 2))
+        self.collision_scratch = mujoco.MjData(self.model)
+        support_bodies = {
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "left_ankle_roll_link"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "right_ankle_roll_link"),
+        }
+        self.foot_support_geom_ids = tuple(
+            geom_id
+            for geom_id in range(self.model.ngeom)
+            if int(self.model.geom_bodyid[geom_id]) in support_bodies
+            and int(self.model.geom_type[geom_id]) == int(mujoco.mjtGeom.mjGEOM_SPHERE)
+        )
         self.viewer = None
 
     @property
@@ -578,23 +973,176 @@ class MujocoHumanoidPlayer:
             self.viewer.cam.distance = 4.2
             self.viewer.cam.azimuth = 180
             self.viewer.cam.elevation = -12
+            pelvis_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
+            if pelvis_id >= 0:
+                self.viewer.cam.type = mujoco.mjtCamera.mjCAMERA_TRACKING
+                self.viewer.cam.trackbodyid = pelvis_id
+                self.viewer.cam.fixedcamid = -1
 
     def is_running(self) -> bool:
         return self.viewer.is_running() if self.viewer is not None else True
 
-    def set_pose(self, pose: dict[str, float]) -> None:
-        for name, value in pose.items():
+    def root_frame(self) -> RobotMotionFrame:
+        if self.floating_base_qpos_id is None:
+            return RobotMotionFrame({})
+        start = self.floating_base_qpos_id
+        return RobotMotionFrame(
+            {},
+            self.data.qpos[start : start + 3].copy(),
+            normalize_wxyz(self.data.qpos[start + 3 : start + 7].copy()),
+        )
+
+    def _write_frame(self, data: mujoco.MjData, frame: RobotMotionFrame, *, count_limits: bool) -> None:
+        data.ctrl.fill(0.0)
+        data.qvel.fill(0.0)
+        if (
+            self.floating_base_qpos_id is not None
+            and frame.root_position is not None
+            and frame.root_quaternion_wxyz is not None
+        ):
+            start = self.floating_base_qpos_id
+            root_position = np.asarray(frame.root_position, dtype=np.float64)
+            if root_position.shape != (3,) or not np.all(np.isfinite(root_position)):
+                raise ValueError(f"Root position must contain three finite values, got {root_position}.")
+            data.qpos[start : start + 3] = root_position
+            data.qpos[start + 3 : start + 7] = normalize_wxyz(frame.root_quaternion_wxyz)
+
+        for name, value in frame.joint_positions.items():
             actuator_id = self.actuator_ids.get(name)
             qpos_id = self.actuator_joint_qpos_ids.get(name, self.joint_qpos_ids.get(name))
             if actuator_id is None:
                 continue
-            low, high = self.model.actuator_ctrlrange[actuator_id]
-            target = float(np.clip(value, low, high))
-            self.data.ctrl[actuator_id] = target
             if qpos_id is not None:
                 joint_range = self.actuator_joint_ranges.get(name)
+                target = float(value)
                 qpos_target = target if joint_range is None else float(np.clip(target, joint_range[0], joint_range[1]))
-                self.data.qpos[qpos_id] = qpos_target
+                if count_limits and abs(qpos_target - target) > 1e-9:
+                    self.limit_clip_counts[name] += 1
+                data.qpos[qpos_id] = qpos_target
+
+    def set_frame(self, frame: RobotMotionFrame) -> None:
+        self._write_frame(self.data, frame, count_limits=True)
+
+    def _has_self_clearance_violation(
+        self,
+        data: mujoco.MjData,
+        minimum_distance: float,
+        tolerance: float = 1e-7,
+    ) -> bool:
+        mujoco.mj_forward(self.model, data)
+        pairs = self.self_collision_geom_pairs
+        if not len(pairs):
+            return False
+        first = pairs[:, 0]
+        second = pairs[:, 1]
+        center_distance = np.linalg.norm(data.geom_xpos[first] - data.geom_xpos[second], axis=1)
+        sphere_clearance = center_distance - (
+            self.model.geom_rbound[first] + self.model.geom_rbound[second]
+        )
+        distance_limit = max(float(minimum_distance) + tolerance, 1e-4)
+        from_to = np.empty(6, dtype=np.float64)
+        for pair_index in np.flatnonzero(sphere_clearance < distance_limit):
+            geom_a, geom_b = (int(value) for value in pairs[pair_index])
+            distance = mujoco.mj_geomDistance(
+                self.model,
+                data,
+                geom_a,
+                geom_b,
+                distance_limit,
+                from_to,
+            )
+            if float(distance) < float(minimum_distance) - tolerance:
+                return True
+        return False
+
+    def project_self_collision_safe(
+        self,
+        frame: RobotMotionFrame,
+        minimum_distance: float = DEFAULT_COLLISION_MIN_DISTANCE_M + COLLISION_CLEARANCE_BUFFER_M,
+        iterations: int = 14,
+    ) -> RobotMotionFrame:
+        """Scale a realtime pose update back toward the last safe displayed pose."""
+        scratch = self.collision_scratch
+        scratch.qpos[:] = self.data.qpos
+        self._write_frame(scratch, frame, count_limits=False)
+        candidate_qpos = scratch.qpos.copy()
+        if not self._has_self_clearance_violation(scratch, minimum_distance):
+            return frame
+
+        anchor_qpos = self.data.qpos.copy()
+        scratch.qpos[:] = anchor_qpos
+        if self._has_self_clearance_violation(scratch, minimum_distance):
+            raise ValueError(
+                "Realtime self-collision projection has no safe anchor; regenerate the GMR artifact."
+            )
+
+        safe_amount = 0.0
+        unsafe_amount = 1.0
+        probe = candidate_qpos.copy()
+        for _iteration in range(max(int(iterations), 1)):
+            amount = 0.5 * (safe_amount + unsafe_amount)
+            probe[:] = candidate_qpos
+            probe[7:] = anchor_qpos[7:] + amount * (candidate_qpos[7:] - anchor_qpos[7:])
+            scratch.qpos[:] = probe
+            if self._has_self_clearance_violation(scratch, minimum_distance):
+                unsafe_amount = amount
+            else:
+                safe_amount = amount
+        probe[:] = candidate_qpos
+        probe[7:] = anchor_qpos[7:] + safe_amount * (candidate_qpos[7:] - anchor_qpos[7:])
+        projected_joints = {
+            name: float(probe[qpos_id])
+            for name, qpos_id in self.actuator_joint_qpos_ids.items()
+        }
+        self.collision_projection_count += 1
+        return frame.with_joint_positions(projected_joints)
+
+    def support_height(self, data: mujoco.MjData | None = None) -> float:
+        target = self.data if data is None else data
+        return min(
+            float(target.geom_xpos[geom_id, 2] - self.model.geom_size[geom_id, 0])
+            for geom_id in self.foot_support_geom_ids
+        )
+
+    def ground_sampler(
+        self,
+        sampler: object,
+        pose_adapter: UnitreeG1DanceAdapter | UnitreeG1JointPoseAdapter | None,
+    ) -> float:
+        if not hasattr(sampler, "ground_offset_z") or not hasattr(sampler, "frames"):
+            return 0.0
+        if len(self.foot_support_geom_ids) != 8:
+            raise ValueError(
+                "Expected eight spherical G1 foot support geoms under the ankle-roll bodies, "
+                f"found {len(self.foot_support_geom_ids)}."
+            )
+        if bool(getattr(sampler, "is_grounded", False)):
+            return float(getattr(sampler, "ground_offset_z"))
+        setattr(sampler, "ground_offset_z", 0.0)
+        scratch = mujoco.MjData(self.model)
+        features = FeatureState()
+        frame_count = len(getattr(sampler, "frames"))
+        minimum = math.inf
+        for frame_index in range(frame_count):
+            frame = sampler.sample_frame(frame_index / frame_count, 1.0, 0.0, features)
+            joints = frame.joint_positions
+            if pose_adapter is not None:
+                joints = pose_adapter.adapt_pose(joints, features)
+            self._write_frame(scratch, frame.with_joint_positions(joints), count_limits=False)
+            mujoco.mj_forward(self.model, scratch)
+            minimum = min(minimum, self.support_height(scratch))
+        if not math.isfinite(minimum):
+            raise ValueError("Could not compute a finite foot support height for the motion.")
+        offset = -minimum
+        setattr(sampler, "ground_offset_z", offset)
+        setattr(sampler, "is_grounded", True)
+        print(f"Grounded {sampler_source_id(sampler)} with constant root Z offset {offset:+.6f} m.")
+        return offset
+
+    def set_pose(self, pose: dict[str, float]) -> None:
+        """Backward-compatible joint-only kinematic target."""
+
+        self.set_frame(RobotMotionFrame(pose))
 
     def step(self) -> None:
         mujoco.mj_forward(self.model, self.data)
@@ -619,6 +1167,7 @@ class FileMicrophoneSource:
         analyzer: RealtimeMusicAnalyzer,
         startup_delay_sec: float = 1.0,
         throttle: bool = True,
+        play_audio: bool = False,
     ) -> None:
         if not path.exists():
             raise FileNotFoundError(f"Audio input file not found: {path}")
@@ -629,6 +1178,8 @@ class FileMicrophoneSource:
         self.startup_delay_sec = max(float(startup_delay_sec), 0.0)
         self.startup_samples = int(round(self.startup_delay_sec * self.sample_rate))
         self.throttle = bool(throttle)
+        self.play_audio = bool(play_audio)
+        self.output_stream: Any | None = None
         audio, _ = librosa.load(path, sr=self.sample_rate, mono=True)
         self.audio = np.asarray(audio, dtype=np.float32).reshape(-1)
         if self.audio.size == 0:
@@ -651,11 +1202,40 @@ class FileMicrophoneSource:
         # This is the virtual equivalent of opening a microphone. Resetting here
         # makes the following silent delay available to startup noise calibration.
         self.analyzer.reset()
+        if self.play_audio:
+            stream = None
+            try:
+                import sounddevice as sd
+
+                stream = sd.OutputStream(
+                    samplerate=self.sample_rate,
+                    blocksize=self.block_size,
+                    channels=1,
+                    dtype="float32",
+                )
+                stream.start()
+            except Exception as exc:
+                if stream is not None:
+                    try:
+                        stream.close()
+                    except Exception:
+                        pass
+                raise RuntimeError(
+                    "Could not open the default audio output for --play-audio. "
+                    "Check the Windows output device and sounddevice/PortAudio setup."
+                ) from exc
+            self.output_stream = stream
         self.stream_start_wall = time.perf_counter()
         self.last_advance_wall = self.stream_start_wall
 
     def stop(self) -> None:
-        return
+        stream = self.output_stream
+        self.output_stream = None
+        if stream is not None:
+            try:
+                stream.stop()
+            finally:
+                stream.close()
 
     def advance(self, dt: float) -> None:
         dt = max(float(dt), 0.0)
@@ -709,6 +1289,9 @@ class FileMicrophoneSource:
             {"callback_time": callback_time},
             None,
         )
+        if self.output_stream is not None:
+            output_block = np.ascontiguousarray(block.reshape(-1, 1), dtype=np.float32)
+            self.output_stream.write(output_block)
         self.cursor = end
 
 
@@ -730,6 +1313,18 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--aistpp-fps", type=float, default=SMPL_FPS)
     parser.add_argument(
+        "--retarget-policy",
+        choices=("prefer-gmr", "require-gmr", "direct"),
+        default="require-gmr",
+        help="Require pre-retargeted GMR artifacts for AIST++ motions, or explicitly select a diagnostic fallback.",
+    )
+    parser.add_argument(
+        "--gmr-motion-root",
+        type=Path,
+        default=DEFAULT_GMR_MOTION_ROOT,
+        help="Directory containing <AIST motion id>.pkl GMR artifacts.",
+    )
+    parser.add_argument(
         "--gmr-motion",
         type=Path,
         default=None,
@@ -744,7 +1339,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--gmr-use-music-amplitude",
         action="store_true",
-        help="Legacy GMR amplitude scaling used only with --disable-music-modulation.",
+        help="Deprecated compatibility option; ignored because GMR values are always preserved.",
     )
     parser.add_argument(
         "--bvh-motion",
@@ -793,6 +1388,11 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1.0,
         help="Silent virtual-microphone time before file playback, reserved for denoiser reset/calibration.",
+    )
+    parser.add_argument(
+        "--play-audio",
+        action="store_true",
+        help="Play --audio-input through the default output device in sync with virtual-microphone analysis.",
     )
     parser.add_argument("--max-seconds", type=float, default=None, help="Optional duration limit for smoke tests.")
     parser.add_argument("--realtime", action="store_true", help="Sleep at the MuJoCo timestep.")
@@ -851,6 +1451,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pose-gain", type=float, default=1.0)
     parser.add_argument("--accent-gain", type=float, default=0.55)
     parser.add_argument("--music-modulation-strength", type=float, default=1.0)
+    parser.add_argument(
+        "--pose-modulation-mode",
+        choices=("off", "subtle", "expressive"),
+        default="subtle",
+        help="Subtle preserves authored amplitudes; expressive retains the legacy full-pose scaling.",
+    )
+    parser.add_argument(
+        "--root-motion",
+        choices=("continuous", "in-place", "reset"),
+        default="continuous",
+        help="How floating-base motion is anchored across clip loops and switches.",
+    )
     parser.add_argument(
         "--disable-music-modulation",
         action="store_true",
@@ -986,6 +1598,28 @@ def make_sampler(
         return sampler
 
     motion_path = resolve_aistpp_motion(args.aistpp_root, args.aistpp_motion)
+    if args.retarget_policy != "direct":
+        gmr_root = args.gmr_motion_root if args.gmr_motion_root.is_absolute() else ROOT / args.gmr_motion_root
+        gmr_candidate = gmr_root / f"{motion_path.stem}.pkl"
+        if gmr_candidate.exists():
+            sampler = GmrUnitreeG1MotionSampler(
+                motion_path=gmr_candidate,
+                fps_override=args.gmr_fps,
+                pose_gain=args.pose_gain,
+                accent_gain=args.accent_gain,
+                use_music_amplitude=False,
+            )
+            print(
+                f"Loaded preferred GMR artifact for AIST++ motion: {gmr_candidate.name} "
+                f"({len(sampler.frames)} frames, {sampler.duration:.2f}s)."
+            )
+            return sampler
+        if args.retarget_policy == "require-gmr":
+            raise FileNotFoundError(
+                f"Required GMR artifact not found: {gmr_candidate}\n"
+                f"Generate it with:\n{gmr_generation_hint(motion_path)}"
+            )
+        print(f"GMR artifact not found for {motion_path.stem}; using direct AIST++ fallback.")
     sampler = AistppMotionSampler(
         motion_path=motion_path,
         fps=args.aistpp_fps,
@@ -1069,19 +1703,30 @@ def resolve_controller_keypoints(
         if args.keypoint_max_count is not None
         else default_keypoint_count(motion_cycle_duration)
     )
-    use_aist_velocity = isinstance(sampler, AistppMotionSampler) and args.keypoint_mode in (
+    aist_source_sampler: AistppMotionSampler | None = (
+        sampler if isinstance(sampler, AistppMotionSampler) else None
+    )
+    if (
+        aist_source_sampler is None
+        and args.motion_source == "aistpp"
+        and isinstance(sampler, GmrUnitreeG1MotionSampler)
+    ):
+        source_path = resolve_aistpp_motion(args.aistpp_root, args.aistpp_motion)
+        aist_source_sampler = AistppMotionSampler(source_path, args.aistpp_fps, 1.0, 0.0)
+    use_aist_velocity = aist_source_sampler is not None and args.keypoint_mode in (
         "auto",
         "aist-velocity",
     )
-    if args.keypoint_mode == "aist-velocity" and not isinstance(sampler, AistppMotionSampler):
+    if args.keypoint_mode == "aist-velocity" and aist_source_sampler is None:
         raise ValueError("--keypoint-mode aist-velocity requires --motion-source aistpp.")
 
     if use_aist_velocity:
+        assert aist_source_sampler is not None
         result = detect_aistpp_velocity_keypoints(
-            smpl_poses=sampler.frames,
-            smpl_trans=sampler.translations,
-            smpl_scaling=sampler.scaling,
-            fps=sampler.fps,
+            smpl_poses=aist_source_sampler.frames,
+            smpl_trans=aist_source_sampler.translations,
+            smpl_scaling=aist_source_sampler.scaling,
+            fps=aist_source_sampler.fps,
             smoothing_sec=args.keypoint_smoothing_sec,
             min_spacing_sec=args.keypoint_min_spacing_sec,
             prominence=args.keypoint_prominence,
@@ -1168,6 +1813,36 @@ def print_status(
     )
 
 
+def sample_robot_motion_frame(
+    sampler: HumanoidDanceSampler | AistppMotionSampler | GmrUnitreeG1MotionSampler | BvhUnitreeG1MotionSampler,
+    *,
+    phase: float,
+    amplitude: float,
+    accent: float,
+    features: FeatureState,
+    pose_adapter: UnitreeG1DanceAdapter | UnitreeG1JointPoseAdapter | None,
+    modulator: MusicPoseModulator | None,
+) -> RobotMotionFrame:
+    frame = sampler.sample_frame(phase, amplitude, accent, features)
+    joints = frame.joint_positions
+    if modulator is not None:
+        joints = modulator.modulate(
+            joints,
+            features,
+            phase=phase,
+            amplitude=amplitude,
+            accent=accent,
+        )
+    if pose_adapter is not None:
+        joints = pose_adapter.adapt_pose(joints, features)
+    return frame.with_joint_positions(joints)
+
+
+def sampler_source_id(sampler: object) -> str:
+    motion_path = getattr(sampler, "motion_path", None)
+    return str(motion_path) if motion_path is not None else type(sampler).__name__
+
+
 def run_trajectory_preview(
     args: argparse.Namespace,
     sampler: HumanoidDanceSampler | AistppMotionSampler | GmrUnitreeG1MotionSampler | BvhUnitreeG1MotionSampler,
@@ -1188,6 +1863,15 @@ def run_trajectory_preview(
     amplitude = max(args.preview_amplitude, 0.0)
 
     player.start()
+    initial_root = player.root_frame()
+    root_motion = RootMotionContinuity(
+        initial_root.root_position if initial_root.root_position is not None else np.zeros(3),
+        initial_root.root_quaternion_wxyz
+        if initial_root.root_quaternion_wxyz is not None
+        else np.asarray([1.0, 0.0, 0.0, 0.0]),
+        mode=args.root_motion,
+        grounded_z=True,
+    )
     print(
         f"Previewing authored dance trajectory at normal speed "
         f"({cycle_duration:.2f}s per cycle, amplitude={amplitude:.2f})."
@@ -1203,12 +1887,17 @@ def run_trajectory_preview(
                 break
 
             phase = (elapsed / cycle_duration) % 1.0
-            pose = sampler.sample(phase, amplitude, accent=0.0, features=features)
-            if modulator is not None:
-                pose = modulator.modulate(pose, features, phase=phase, amplitude=amplitude, accent=0.0)
-            if pose_adapter is not None:
-                pose = pose_adapter.adapt_pose(pose, features)
-            player.set_pose(pose)
+            frame = sample_robot_motion_frame(
+                sampler,
+                phase=phase,
+                amplitude=amplitude,
+                accent=0.0,
+                features=features,
+                pose_adapter=pose_adapter,
+                modulator=None,
+            )
+            frame = root_motion.apply(frame, phase=phase, source_id=sampler_source_id(sampler))
+            player.set_frame(frame)
             player.step()
 
             if now - last_status >= args.status_interval:
@@ -1224,7 +1913,13 @@ def main() -> None:
     motion_cycle_duration = max(args.motion_cycle_duration or sampler.duration, 1e-6)
     player = MujocoHumanoidPlayer(args.model, realtime=args.realtime, headless=args.headless)
     pose_adapter = make_pose_adapter(args, player, sampler)
-    modulator = None if args.disable_music_modulation else MusicPoseModulator(args.music_modulation_strength)
+    player.ground_sampler(sampler, pose_adapter)
+    modulation_off = args.disable_music_modulation or args.pose_modulation_mode == "off"
+    modulator = (
+        None
+        if modulation_off
+        else MusicPoseModulator(args.music_modulation_strength, mode=args.pose_modulation_mode)
+    )
     if args.preview_trajectory:
         run_trajectory_preview(args, sampler, player, pose_adapter, modulator)
         return
@@ -1261,15 +1956,26 @@ def main() -> None:
             analyzer,
             startup_delay_sec=args.audio_input_delay_sec,
             throttle=not args.realtime,
+            play_audio=args.play_audio,
         )
     features = FeatureState(rms_norm=0.45, brightness=0.35, low_energy=0.55, mid_energy=0.45, high_energy=0.25)
 
     player.start()
+    initial_root = player.root_frame()
+    root_motion = RootMotionContinuity(
+        initial_root.root_position if initial_root.root_position is not None else np.zeros(3),
+        initial_root.root_quaternion_wxyz
+        if initial_root.root_quaternion_wxyz is not None
+        else np.asarray([1.0, 0.0, 0.0, 0.0]),
+        mode=args.root_motion,
+        grounded_z=True,
+    )
     if file_source is not None:
         file_source.start()
         print(
             f"Using realtime virtual microphone: {file_source.path} "
-            f"(audio starts after {file_source.startup_delay_sec:.2f}s denoiser reset time)."
+            f"(audio starts after {file_source.startup_delay_sec:.2f}s denoiser reset time; "
+            f"speaker output={'on' if file_source.play_audio else 'off'})."
         )
     elif analyzer is not None:
         print(f"Calibrating microphone noise from the first {args.startup_calibration_sec:.2f}s of live input.")
@@ -1311,12 +2017,22 @@ def main() -> None:
                 controller.target_amplitude_scale = 0.75
 
             phase, amplitude, accent, _brightness = controller.update(now)
-            pose = sampler.sample(phase, amplitude, accent, features)
-            if modulator is not None:
-                pose = modulator.modulate(pose, features, phase=phase, amplitude=amplitude, accent=accent)
-            if pose_adapter is not None:
-                pose = pose_adapter.adapt_pose(pose, features)
-            player.set_pose(pose)
+            motion_frame = sample_robot_motion_frame(
+                sampler,
+                phase=phase,
+                amplitude=amplitude,
+                accent=accent,
+                features=features,
+                pose_adapter=pose_adapter,
+                modulator=modulator,
+            )
+            motion_frame = root_motion.apply(
+                motion_frame,
+                phase=phase,
+                source_id=sampler_source_id(sampler),
+            )
+            motion_frame = player.project_self_collision_safe(motion_frame)
+            player.set_frame(motion_frame)
             player.step()
 
             if now - last_status >= args.status_interval:

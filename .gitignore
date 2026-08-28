@@ -8,5 +8,9 @@ __pycache__/
 *.pyc
 realtime/humanoid_robot/data/aistpp/
 realtime/humanoid_robot/data/aistpp_bvh/
+realtime/humanoid_robot/data/aistpp_gmr/
 realtime/humanoid_robot/assets/body_models/
+realtime/humanoid_robot/assets/SMPL_python*.zip
+realtime/humanoid_robot/.deps/
+realtime/humanoid_robot/.venv-gmr/
 realtime/humanoid_robot/models/

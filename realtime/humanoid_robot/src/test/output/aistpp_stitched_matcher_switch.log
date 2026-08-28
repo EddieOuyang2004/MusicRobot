@@ -1,0 +1,94 @@
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\aistpp_stitched_test.wav (audio starts after 1.00s denoiser reset time).
+Initial motion: gWA_sBM_cAll_d26_mWA0_ch07
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=107.1 | speed=1.38x | amp=1.08 | rms/gate=0.2748/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.13 | bands=0.89/0.09/0.01 | rhythm=0.16 | offbeat=0.30
+music | bpm=107.1 | speed=1.31x | amp=0.70 | rms/gate=0.0377/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.27 | bands=0.40/0.51/0.07 | rhythm=0.24 | offbeat=0.58
+music | bpm=107.1 | speed=1.32x | amp=0.73 | rms/gate=0.1880/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.60 result=accepted | bright=0.26 | bands=0.67/0.18/0.11 | rhythm=0.31 | offbeat=0.47
+music | bpm=107.1 | speed=1.35x | amp=0.84 | rms/gate=0.2641/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.71 result=accepted | bright=0.11 | bands=0.90/0.08/0.01 | rhythm=0.34 | offbeat=0.41
+music | bpm=107.1 | speed=1.35x | amp=0.63 | rms/gate=0.0289/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.44 result=accepted | bright=0.27 | bands=0.27/0.67/0.05 | rhythm=0.37 | offbeat=0.31
+music | bpm=107.1 | speed=1.34x | amp=0.84 | rms/gate=0.2371/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.60 result=accepted | bright=0.26 | bands=0.61/0.29/0.08 | rhythm=0.39 | offbeat=0.33
+match | bpm=107.1 | tracks=[BR0:0.97, LH0:0.79, BR1:0.69] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.91 | tags=[Electronic---Chiptune, Electronic---Minimal, Electronic---Darkwave]
+Pending motion after stable retrieval: gBR_sBM_cAll_d04_mBR0_ch03
+Switching on bar boundary: gWA_sBM_cAll_d26_mWA0_ch07 -> gBR_sBM_cAll_d04_mBR0_ch03 (0.560s blend)
+music | bpm=107.1 | speed=1.35x | amp=0.91 | rms/gate=0.2830/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.13 | bands=0.93/0.05/0.00 | rhythm=0.38 | offbeat=0.44
+match | bpm=107.1 | tracks=[BR0:0.96, LH0:0.80, BR1:0.69] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.91 | tags=[Electronic---Chiptune, Electronic---Minimal, Electronic---Darkwave]
+Pending motion after stable retrieval: gBR_sBM_cAll_d04_mBR0_ch03
+Motion switch complete: gBR_sBM_cAll_d04_mBR0_ch03
+music | bpm=107.1 | speed=0.63x | amp=0.83 | rms/gate=0.1797/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.32 result=accepted | bright=0.25 | bands=0.77/0.16/0.04 | rhythm=0.45 | offbeat=0.33
+match | bpm=107.1 | tracks=[BR0:0.96, LH0:0.80, JS1:0.69] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.90 | tags=[Electronic---Chiptune, Electronic---Minimal, Electronic---Electro]
+music | bpm=107.1 | speed=0.77x | amp=0.70 | rms/gate=0.3069/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.69 result=accepted | bright=0.33 | bands=0.70/0.17/0.12 | rhythm=0.48 | offbeat=0.43
+match | bpm=107.1 | tracks=[BR0:0.95, LH0:0.81, JS1:0.70] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.90 | tags=[Electronic---Chiptune, Electronic---Techno, Electronic---Minimal]
+music | bpm=107.1 | speed=0.72x | amp=0.79 | rms/gate=0.1437/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.35 result=accepted | bright=0.23 | bands=0.84/0.07/0.02 | rhythm=0.48 | offbeat=0.30
+match | bpm=107.1 | tracks=[BR0:0.90, LH0:0.78, JS1:0.72] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.87 | tags=[Electronic---Chiptune, Electronic---Techno, Electronic---Electro]
+music | bpm=107.1 | speed=0.86x | amp=1.00 | rms/gate=0.2753/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.47 result=accepted | bright=0.25 | bands=0.89/0.04/0.02 | rhythm=0.45 | offbeat=0.17
+match | bpm=107.1 | tracks=[BR0:0.81, LH0:0.72, JS1:0.71] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.83 | tags=[Electronic---Chiptune, Electronic---Techno, Electronic---Industrial]
+music | bpm=107.1 | speed=0.69x | amp=0.82 | rms/gate=0.2220/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.12 result=accepted | bright=0.31 | bands=0.58/0.33/0.07 | rhythm=0.44 | offbeat=0.20
+match | bpm=107.1 | tracks=[JS3:0.86, KR2:0.71, MH4:0.69] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.81 | tags=[Electronic---Chiptune, Electronic---Techno, Electronic---Industrial]
+Pending motion after stable retrieval: gJS_sBM_cAll_d01_mJS3_ch04
+music | bpm=107.1 | speed=0.83x | amp=0.79 | rms/gate=0.1095/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.56 result=accepted | bright=0.37 | bands=0.58/0.24/0.13 | rhythm=0.42 | offbeat=0.00
+match | bpm=110.3 | tracks=[JS3:0.91, KR2:0.72, MH4:0.72] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.84 | tags=[Electronic---Techno, Electronic---Industrial, Electronic---Experimental]
+Pending motion after stable retrieval: gJS_sBM_cAll_d01_mJS3_ch04
+Switching on bar boundary: gBR_sBM_cAll_d04_mBR0_ch03 -> gJS_sBM_cAll_d01_mJS3_ch04 (0.560s blend)
+Motion switch complete: gJS_sBM_cAll_d01_mJS3_ch04
+music | bpm=107.1 | speed=1.06x | amp=0.58 | rms/gate=0.0787/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.21 result=accepted | bright=0.48 | bands=0.04/0.60/0.36 | rhythm=0.48 | offbeat=0.22
+match | bpm=110.3 | tracks=[JS3:0.93, KR2:0.74, MH4:0.73] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.86 | tags=[Electronic---Industrial, Electronic---Techno, Electronic---Experimental]
+music | bpm=107.1 | speed=1.20x | amp=0.82 | rms/gate=0.2174/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.59 result=accepted | bright=0.31 | bands=0.71/0.19/0.05 | rhythm=0.48 | offbeat=0.30
+match | bpm=110.3 | tracks=[JS3:0.94, KR2:0.73, MH4:0.72] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.86 | tags=[Electronic---Industrial, Electronic---Techno, Electronic---Experimental]
+music | bpm=107.1 | speed=1.51x | amp=0.82 | rms/gate=0.2879/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.62 result=accepted | bright=0.31 | bands=0.85/0.08/0.06 | rhythm=0.47 | offbeat=0.18
+match | bpm=110.3 | tracks=[JS3:0.92, KR2:0.76, KR4:0.67] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.85 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Techno]
+music | bpm=107.1 | speed=0.96x | amp=0.84 | rms/gate=0.2499/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.85 result=accepted | bright=0.25 | bands=0.85/0.08/0.02 | rhythm=0.47 | offbeat=0.17
+match | bpm=110.3 | tracks=[JS3:0.89, KR2:0.81, MH4:0.65] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.85 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Techno]
+Pending motion after stable retrieval: gKR_sBM_cAll_d30_mKR2_ch06
+music | bpm=107.1 | speed=1.05x | amp=0.79 | rms/gate=0.0914/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.94 result=accepted | bright=0.26 | bands=0.71/0.23/0.05 | rhythm=0.42 | offbeat=0.01
+match | bpm=107.1 | tracks=[JS3:0.85, KR2:0.84, LO3:0.66] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.87 | tags=[Electronic---Experimental, Electronic---Techno, Electronic---Industrial]
+Pending motion after stable retrieval: gKR_sBM_cAll_d30_mKR2_ch06
+Switching on bar boundary: gJS_sBM_cAll_d01_mJS3_ch04 -> gKR_sBM_cAll_d30_mKR2_ch06 (0.560s blend)
+Motion switch complete: gKR_sBM_cAll_d30_mKR2_ch06
+music | bpm=107.1 | speed=0.89x | amp=0.89 | rms/gate=0.2589/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.91 result=accepted | bright=0.24 | bands=0.78/0.19/0.03 | rhythm=0.40 | offbeat=0.18
+match | bpm=101.4 | tracks=[KR2:0.88, JS3:0.81, LO3:0.66] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.89 | tags=[Electronic---Experimental, Electronic---Techno, Electronic---Industrial]
+music | bpm=107.1 | speed=0.55x | amp=0.58 | rms/gate=0.0617/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.74 result=accepted | bright=0.38 | bands=0.56/0.28/0.16 | rhythm=0.41 | offbeat=0.12
+match | bpm=101.4 | tracks=[KR2:0.92, JS3:0.75, JS1:0.62] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.92 | tags=[Electronic---Experimental, Electronic---Techno, Electronic---Industrial]
+music | bpm=107.1 | speed=0.66x | amp=0.77 | rms/gate=0.1046/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.56 result=accepted | bright=0.31 | bands=0.71/0.17/0.10 | rhythm=0.44 | offbeat=0.10
+match | bpm=101.4 | tracks=[KR2:0.95, JS3:0.74, LO3:0.62] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.94 | tags=[Electronic---Experimental, Electronic---Techno, Electronic---Industrial]
+music | bpm=107.1 | speed=0.64x | amp=0.89 | rms/gate=0.2645/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.30 | bands=0.79/0.14/0.06 | rhythm=0.47 | offbeat=0.17
+match | bpm=101.4 | tracks=[KR2:0.95, JS3:0.73, LO3:0.64] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.93 | tags=[Electronic---Experimental, Electronic---Techno, Electronic---Chiptune]
+music | bpm=107.1 | speed=0.79x | amp=0.74 | rms/gate=0.1246/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.32 result=accepted | bright=0.27 | bands=0.76/0.14/0.05 | rhythm=0.49 | offbeat=0.16
+match | bpm=101.4 | tracks=[KR2:0.94, JS3:0.72, LO3:0.62] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.93 | tags=[Electronic---Experimental, Electronic---Chiptune, Electronic---Techno]
+music | bpm=107.1 | speed=0.59x | amp=0.66 | rms/gate=0.1584/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.88 result=accepted | bright=0.22 | bands=0.58/0.37/0.03 | rhythm=0.47 | offbeat=0.31
+match | bpm=101.4 | tracks=[KR2:0.93, JS3:0.73, WA2:0.66] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.93 | tags=[Electronic---Experimental, Electronic---Industrial, Electronic---Chiptune]
+music | bpm=107.1 | speed=0.78x | amp=0.82 | rms/gate=0.1359/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.82 result=accepted | bright=0.22 | bands=0.90/0.03/0.03 | rhythm=0.45 | offbeat=0.39
+match | bpm=101.4 | tracks=[KR2:0.89, PO1:0.71, JS3:0.69] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.91 | tags=[Electronic---Experimental, Electronic---Industrial, Electronic---Techno]
+music | bpm=107.1 | speed=0.58x | amp=0.75 | rms/gate=0.3456/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.47 result=accepted | bright=0.24 | bands=0.67/0.28/0.04 | rhythm=0.46 | offbeat=0.01
+match | bpm=89.3 | tracks=[KR2:0.81, PO1:0.80, LO2:0.69] | motion=gKR_sBM_cAll_d30_mKR2_ch06:0.83 | tags=[Electronic---Techno, Electronic---Experimental, Electronic---Industrial]
+music | bpm=107.1 | speed=0.65x | amp=0.77 | rms/gate=0.1477/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.62 result=accepted | bright=0.29 | bands=0.82/0.07/0.05 | rhythm=0.47 | offbeat=0.00
+match | bpm=91.5 | tracks=[PO1:0.92, WA1:0.74, LO1:0.71] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.82 | tags=[Electronic---Techno, Electronic---Industrial, Electronic---Chiptune]
+Pending motion after stable retrieval: gPO_sFM_cAll_d12_mPO1_ch16
+music | bpm=107.1 | speed=1.05x | amp=0.78 | rms/gate=0.2688/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.38 result=accepted | bright=0.26 | bands=0.69/0.27/0.03 | rhythm=0.46 | offbeat=0.14
+match | bpm=89.3 | tracks=[PO1:0.95, WA1:0.75, LO1:0.73] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.83 | tags=[Electronic---Techno, Electronic---Industrial, Electronic---Experimental]
+Pending motion after stable retrieval: gPO_sFM_cAll_d12_mPO1_ch16
+music | bpm=107.1 | speed=0.64x | amp=0.84 | rms/gate=0.1232/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.76 result=accepted | bright=0.28 | bands=0.87/0.05/0.04 | rhythm=0.44 | offbeat=0.18
+Switching on bar boundary: gKR_sBM_cAll_d30_mKR2_ch06 -> gPO_sFM_cAll_d12_mPO1_ch16 (0.560s blend)
+match | bpm=89.3 | tracks=[PO1:0.97, WA1:0.77, LO1:0.76] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.85 | tags=[Electronic---Techno, Electronic---Industrial, Electronic---New Beat]
+Pending motion after stable retrieval: gPO_sFM_cAll_d12_mPO1_ch16
+Motion switch complete: gPO_sFM_cAll_d12_mPO1_ch16
+music | bpm=107.1 | speed=0.91x | amp=0.88 | rms/gate=0.3254/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.76 result=accepted | bright=0.24 | bands=0.84/0.10/0.05 | rhythm=0.40 | offbeat=0.00
+match | bpm=89.3 | tracks=[PO1:0.96, LO1:0.75, WA1:0.75] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.84 | tags=[Electronic---Techno, Electronic---Experimental, Electronic---Industrial]
+music | bpm=107.1 | speed=1.08x | amp=0.87 | rms/gate=0.1797/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.68 result=accepted | bright=0.25 | bands=0.86/0.04/0.02 | rhythm=0.38 | offbeat=0.00
+match | bpm=91.5 | tracks=[PO1:0.96, LO1:0.76, WA1:0.75] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.84 | tags=[Electronic---Techno, Electronic---Experimental, Electronic---Industrial]
+music | bpm=107.1 | speed=1.35x | amp=0.56 | rms/gate=0.0528/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.24 result=accepted | bright=0.25 | bands=0.69/0.18/0.03 | rhythm=0.36 | offbeat=0.24
+match | bpm=91.5 | tracks=[PO1:0.91, WA0:0.76, WA1:0.72] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.82 | tags=[Electronic---Techno, Electronic---Industrial, Electronic---Experimental]
+music | bpm=107.1 | speed=0.97x | amp=0.80 | rms/gate=0.2961/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.59 result=accepted | bright=0.27 | bands=0.73/0.22/0.04 | rhythm=0.38 | offbeat=0.24
+match | bpm=91.5 | tracks=[PO1:0.86, WA0:0.83, JS1:0.70] | motion=gWA_sBM_cAll_d26_mWA0_ch02:0.81 | tags=[Electronic---Chiptune, Electronic---Techno, Electronic---Industrial]
+Pending motion after stable retrieval: gWA_sBM_cAll_d26_mWA0_ch02
+Switching on bar boundary: gPO_sFM_cAll_d12_mPO1_ch16 -> gWA_sBM_cAll_d26_mWA0_ch02 (0.560s blend)
+music | bpm=107.1 | speed=1.20x | amp=0.84 | rms/gate=0.1247/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.35 result=accepted | bright=0.20 | bands=0.87/0.06/0.01 | rhythm=0.37 | offbeat=0.31
+match | bpm=79.8 | tracks=[WA0:0.90, PO1:0.81, LO1:0.69] | motion=gWA_sBM_cAll_d26_mWA0_ch02:0.87 | tags=[Electronic---Chiptune, Electronic---Techno, Electronic---Industrial]
+Pending motion after stable retrieval: gWA_sBM_cAll_d26_mWA0_ch02
+Motion switch complete: gWA_sBM_cAll_d26_mWA0_ch02
+music | bpm=107.1 | speed=1.27x | amp=0.54 | rms/gate=0.0133/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.12 result=accepted | bright=0.23 | bands=0.54/0.34/0.03 | rhythm=0.37 | offbeat=0.37
+match | bpm=79.8 | tracks=[WA0:0.95, PO1:0.73, JS0:0.70] | motion=gWA_sBM_cAll_d26_mWA0_ch02:0.90 | tags=[Electronic---Chiptune, Electronic---Industrial, Electronic---Techno]
+music | bpm=107.1 | speed=0.68x | amp=0.82 | rms/gate=0.2058/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.18 result=accepted | bright=0.27 | bands=0.77/0.18/0.03 | rhythm=0.36 | offbeat=0.25
+match | bpm=79.8 | tracks=[WA0:0.97, PO1:0.71, JS0:0.69] | motion=gWA_sBM_cAll_d26_mWA0_ch02:0.90 | tags=[Electronic---Chiptune, Electronic---Minimal, Electronic---Techno]
+music | bpm=107.1 | speed=1.06x | amp=0.78 | rms/gate=0.0660/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.41 result=accepted | bright=0.18 | bands=0.76/0.12/0.01 | rhythm=0.36 | offbeat=0.38
+match | bpm=79.8 | tracks=[WA0:0.97, JS0:0.70, PO1:0.69] | motion=gWA_sBM_cAll_d26_mWA0_ch02:0.90 | tags=[Electronic---Chiptune, Electronic---Minimal, Electronic---Techno]
+music | bpm=107.1 | speed=0.90x | amp=0.52 | rms/gate=0.0140/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.12 result=accepted | bright=0.20 | bands=0.57/0.36/0.02 | rhythm=0.36 | offbeat=0.29

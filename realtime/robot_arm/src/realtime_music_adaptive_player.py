@@ -804,6 +804,7 @@ class AdaptiveMotionController:
         beat_keypoint_interval_ratio: float = 0.85,
         beat_selection_mode: str = "every",
         beat_contrast_weight: float = 0.5,
+        phase_correction_tau: float = 0.25,
     ) -> None:
         self.authored_cycle_duration = max(authored_cycle_duration, 1e-6)
         self.authored_phase_rate = 1.0 / max(authored_cycle_duration, 1e-6)
@@ -823,12 +824,15 @@ class AdaptiveMotionController:
             raise ValueError("beat_selection_mode must be 'every' or 'adaptive'")
         self.beat_selection_mode = beat_selection_mode
         self.beat_contrast_weight = float(np.clip(beat_contrast_weight, 0.0, 1.0))
+        self.phase_correction_tau = max(float(phase_correction_tau), 1e-6)
         self.keypoint_intervals = self._keypoint_intervals()
         self.min_accepted_beat_interval = self._min_accepted_beat_interval()
 
         self.phase = 0.0
         self.phase_rate = self.default_phase_rate
+        self.effective_phase_rate = self.default_phase_rate
         self.target_phase_rate = self.default_phase_rate
+        self.phase_correction_remaining = 0.0
         self.amplitude_scale = 0.0
         self.target_amplitude_scale = 0.0
         self.last_update_wall: Optional[float] = None
@@ -867,7 +871,9 @@ class AdaptiveMotionController:
     def reset(self) -> None:
         self.phase = 0.0
         self.phase_rate = self.default_phase_rate
+        self.effective_phase_rate = self.default_phase_rate
         self.target_phase_rate = self.default_phase_rate
+        self.phase_correction_remaining = 0.0
         self.amplitude_scale = 0.0
         self.target_amplitude_scale = 0.0
         self.last_update_wall = None
@@ -946,13 +952,12 @@ class AdaptiveMotionController:
 
         self.last_beat_wall = frame.timestamp
         expected_phase = self._expected_beat_phase()
-        if self.beat_index == 0:
-            self.phase = expected_phase
-        else:
-            beat_alignment_error = wrap_phase_error(expected_phase - self.phase)
-            correction_source = selection_score if self.beat_selection_mode == "adaptive" else confidence
-            correction_gain = 0.25 + 0.35 * correction_source
-            self.phase = (self.phase + correction_gain * beat_alignment_error) % 1.0
+        beat_alignment_error = wrap_phase_error(expected_phase - self.phase)
+        correction_source = selection_score if self.beat_selection_mode == "adaptive" else confidence
+        correction_gain = 1.0 if self.beat_index == 0 else 0.25 + 0.35 * correction_source
+        self.phase_correction_remaining = wrap_phase_error(
+            self.phase_correction_remaining + correction_gain * beat_alignment_error
+        )
         self.beat_index += 1
 
         if self.beat_selection_mode == "adaptive" and previous_beat_wall is not None:
@@ -1040,8 +1045,24 @@ class AdaptiveMotionController:
 
         alpha = 1.0 - math.exp(-dt / self.smoothing_tau)
         self.phase_rate += alpha * (self.target_phase_rate - self.phase_rate)
+        minimum_rate = self.authored_phase_rate * self.speed_min
+        maximum_rate = self.authored_phase_rate * self.speed_max
+        self.phase_rate = float(np.clip(self.phase_rate, minimum_rate, maximum_rate))
         self.amplitude_scale += alpha * (self.target_amplitude_scale - self.amplitude_scale)
-        self.phase = (self.phase + self.phase_rate * dt) % 1.0
+        base_delta = self.phase_rate * dt
+        correction_alpha = 1.0 - math.exp(-dt / self.phase_correction_tau)
+        desired_correction = self.phase_correction_remaining * correction_alpha
+        correction = float(
+            np.clip(
+                desired_correction,
+                (minimum_rate - self.phase_rate) * dt,
+                (maximum_rate - self.phase_rate) * dt,
+            )
+        )
+        self.phase_correction_remaining -= correction
+        total_delta = base_delta + correction
+        self.effective_phase_rate = self.phase_rate if dt <= 0.0 else total_delta / dt
+        self.phase = (self.phase + total_delta) % 1.0
         return self.phase, self.amplitude_scale, self._accent(now_wall), self.last_brightness
 
     def _expected_beat_phase(self) -> float:
@@ -1060,7 +1081,7 @@ class AdaptiveMotionController:
 
     @property
     def speed_multiplier(self) -> float:
-        return self.phase_rate / max(self.authored_phase_rate, 1e-6)
+        return self.effective_phase_rate / max(self.authored_phase_rate, 1e-6)
 
     @property
     def estimated_bpm(self) -> Optional[float]:

@@ -24,6 +24,9 @@ DEFAULT_MODEL = (
 DEFAULT_OUTPUT = (
     PROJECT_ROOT / "realtime" / "humanoid_robot" / "data" / "music_catalog"
 )
+DEFAULT_GMR_MOTION_ROOT = (
+    PROJECT_ROOT / "realtime" / "humanoid_robot" / "data" / "aistpp_gmr"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,6 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--aistpp-root", type=Path, default=DEFAULT_AISTPP_ROOT)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
+    parser.add_argument("--gmr-motion-root", type=Path, default=DEFAULT_GMR_MOTION_ROOT)
     parser.add_argument(
         "--embedding-model",
         type=Path,
@@ -64,6 +68,7 @@ def main() -> int:
         embedding_model=args.embedding_model,
         tag_model=args.tag_model,
         mujoco_model=args.model,
+        gmr_motion_root=args.gmr_motion_root,
         run_preflight=not args.skip_mujoco_preflight,
         limit_motions=args.limit_motions,
         window_seconds=args.window_seconds,

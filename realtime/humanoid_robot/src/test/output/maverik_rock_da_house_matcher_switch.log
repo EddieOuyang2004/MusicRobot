@@ -1,0 +1,33 @@
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\MAVERIK - Rock da House (127 BPM).mp3 (audio starts after 1.00s denoiser reset time).
+Initial motion: gWA_sBM_cAll_d26_mWA0_ch07
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=125.0 | speed=1.35x | amp=0.81 | rms/gate=0.2351/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.37 | bands=0.54/0.26/0.19 | rhythm=0.09 | offbeat=0.00
+music | bpm=125.0 | speed=1.55x | amp=0.79 | rms/gate=0.3612/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.31 | bands=0.57/0.35/0.08 | rhythm=0.16 | offbeat=0.00
+music | bpm=125.0 | speed=1.67x | amp=0.75 | rms/gate=0.0472/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.29 result=accepted | bright=0.22 | bands=0.65/0.31/0.04 | rhythm=0.22 | offbeat=0.49
+music | bpm=125.0 | speed=1.49x | amp=0.64 | rms/gate=0.1591/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.33 result=accepted | bright=0.17 | bands=0.62/0.37/0.01 | rhythm=0.26 | offbeat=0.57
+music | bpm=125.0 | speed=1.46x | amp=0.73 | rms/gate=0.2527/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.05 result=accepted | bright=0.21 | bands=0.62/0.34/0.04 | rhythm=0.30 | offbeat=0.50
+music | bpm=125.0 | speed=1.68x | amp=0.67 | rms/gate=0.1556/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.23 | bands=0.65/0.29/0.05 | rhythm=0.37 | offbeat=0.39
+match | bpm=125.0 | tracks=[HO4:0.84, HO3:0.81, MH5:0.77] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]
+Pending motion after stable retrieval: gHO_sBM_cAll_d21_mHO4_ch02
+music | bpm=125.0 | speed=1.61x | amp=0.70 | rms/gate=0.1533/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.23 result=too-early | bright=0.21 | bands=0.70/0.27/0.03 | rhythm=0.38 | offbeat=0.40
+match | bpm=125.0 | tracks=[HO4:0.84, HO3:0.81, BR5:0.77] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]
+Pending motion after stable retrieval: gHO_sBM_cAll_d21_mHO4_ch02
+music | bpm=125.0 | speed=0.96x | amp=0.78 | rms/gate=0.2101/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.15 result=too-early | bright=0.22 | bands=0.45/0.53/0.02 | rhythm=0.44 | offbeat=0.42
+match | bpm=125.0 | tracks=[HO4:0.85, HO3:0.80, BR5:0.77] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]
+Pending motion after stable retrieval: gHO_sBM_cAll_d21_mHO4_ch02
+Switching on bar boundary: gWA_sBM_cAll_d26_mWA0_ch07 -> gHO_sBM_cAll_d21_mHO4_ch02 (0.480s blend)
+Motion switch complete: gHO_sBM_cAll_d21_mHO4_ch02
+music | bpm=125.0 | speed=1.57x | amp=0.94 | rms/gate=0.2435/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.53 result=accepted | bright=0.21 | bands=0.34/0.63/0.03 | rhythm=0.75 | offbeat=0.48
+match | bpm=125.0 | tracks=[HO4:0.84, HO3:0.81, BR5:0.76] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]
+music | bpm=125.0 | speed=1.62x | amp=0.81 | rms/gate=0.2118/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.74 result=accepted | bright=0.20 | bands=0.42/0.56/0.02 | rhythm=0.76 | offbeat=0.44
+match | bpm=125.0 | tracks=[HO4:0.84, HO3:0.80, BR5:0.76] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]
+music | bpm=125.0 | speed=0.59x | amp=0.81 | rms/gate=0.2096/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.82 result=too-early | bright=0.19 | bands=0.53/0.46/0.01 | rhythm=0.75 | offbeat=0.52
+match | bpm=125.0 | tracks=[HO4:0.83, HO3:0.80, BR5:0.76] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]
+music | bpm=125.0 | speed=1.21x | amp=0.59 | rms/gate=0.0374/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.53 result=accepted | bright=0.26 | bands=0.50/0.46/0.04 | rhythm=0.76 | offbeat=0.47
+match | bpm=125.0 | tracks=[HO4:0.83, HO3:0.80, BR5:0.76] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]
+music | bpm=125.0 | speed=0.90x | amp=0.74 | rms/gate=0.2480/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.76 result=accepted | bright=0.23 | bands=0.47/0.48/0.05 | rhythm=0.75 | offbeat=0.44
+match | bpm=125.0 | tracks=[HO4:0.83, HO3:0.79, BR5:0.77] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.78 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Tech House]
+music | bpm=125.0 | speed=1.06x | amp=0.71 | rms/gate=0.1771/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.38 result=accepted | bright=0.33 | bands=0.37/0.54/0.09 | rhythm=0.75 | offbeat=0.48
+match | bpm=125.0 | tracks=[HO4:0.83, HO3:0.79, BR5:0.78] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.78 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Tech House]
+music | bpm=125.0 | speed=0.82x | amp=0.85 | rms/gate=0.2684/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.47 result=accepted | bright=0.31 | bands=0.63/0.31/0.06 | rhythm=0.73 | offbeat=0.44
+match | bpm=125.0 | tracks=[HO4:0.83, HO3:0.80, MH5:0.78] | motion=gHO_sBM_cAll_d21_mHO4_ch02:0.79 | tags=[Electronic---Techno, Electronic---Tech Trance, Electronic---Electro House]

@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-08-23T01:36:22.601037+00:00",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.11.14",
+    "onnxruntime_providers": [
+      "CPUExecutionProvider"
+    ]
+  },
+  "configuration": {
+    "catalog": "realtime/humanoid_robot/data/music_catalog/catalog.json",
+    "model": "realtime/humanoid_robot/models/discogs-effnet-bsdynamic-1.onnx",
+    "model_sha256": "a280825b334797cf677939db8cd5762c0392aedd0ca6415dbc1cd083f045e43c",
+    "seconds_per_file": 10.0,
+    "match_window_seconds": 6.0,
+    "match_interval_seconds": 1.0,
+    "microphone_sample_rate": 16000,
+    "microphone_block_size": 512,
+    "startup_delay_seconds": 1.0,
+    "top_tracks": 5,
+    "top_motions": 10
+  },
+  "summary": {
+    "files": 1,
+    "genres": 1,
+    "completed_matches": 4,
+    "waveform_to_match_latency": {
+      "samples": 4,
+      "mean_ms": 62.40602500110981,
+      "median_ms": 62.54535000334727,
+      "p95_ms": 87.29355499599478,
+      "p99_ms": 87.30511099493015,
+      "min_ms": 37.22540000308072,
+      "max_ms": 87.30799999466399
+    },
+    "cold_match_latency_ms": 87.21170000353595,
+    "steady_state_latency": {
+      "samples": 3,
+      "mean_ms": 54.13746666696776,
+      "median_ms": 37.87900000315858,
+      "p95_ms": 82.36509999551345,
+      "p99_ms": 86.31941999483388,
+      "min_ms": 37.22540000308072,
+      "max_ms": 87.30799999466399
+    },
+    "source_setup_latency": {
+      "samples": 1,
+      "mean_ms": 2447.3286000065855,
+      "median_ms": 2447.3286000065855,
+      "p95_ms": 2447.3286000065855,
+      "p99_ms": 2447.3286000065855,
+      "min_ms": 2447.3286000065855,
+      "max_ms": 2447.3286000065855
+    },
+    "match_interval_ms": 1000.0,
+    "within_interval_rate": 1.0,
+    "track_top_1_rate": 1.0,
+    "track_top_3_rate": 1.0,
+    "genre_top_1_rate": 1.0,
+    "genre_top_3_rate": 1.0,
+    "mean_realtime_factor": 0.9984356544482612,
+    "submit_attempts": 4,
+    "busy_submit_attempts": 0,
+    "busy_submit_rate": 0.0,
+    "scheduled_match_slots": 4,
+    "scheduled_slot_completion_rate": 1.0,
+    "music_frames": 359,
+    "beat_frames": 17
+  },
+  "files": [
+    {
+      "music_id": "BR0",
+      "genre": "BR",
+      "wav": "realtime/humanoid_robot/data/aistpp/audio/gBR_sBM_cAll_d04_mBR0_ch01.wav",
+      "source_setup_ms": 2447.3286000065855,
+      "audio_played_seconds": 10.008,
+      "playback_loop_wall_seconds": 11.023680500002229,
+      "total_wall_seconds_including_final_result": 11.023681999999098,
+      "realtime_factor": 0.9984356544482612,
+      "stream_realtime_factor_including_startup": 0.9985775621851317,
+      "music_frames": 359,
+      "beat_frames": 17,
+      "submit_attempts": 4,
+      "busy_submit_attempts": 0,
+      "scheduled_match_slots": 4,
+      "completed_matches": 4,
+      "top_1_track_hits": 4,
+      "top_3_track_hits": 4,
+      "top_1_genre_hits": 4,
+      "top_3_genre_hits": 4,
+      "matches": [
+        {
+          "query_audio_time_seconds": 6.04,
+          "latency_ms": 87.21170000353595,
+          "top_tracks": [
+            "BR0",
+            "LH0",
+            "BR1",
+            "PO0",
+            "JS0"
+          ],
+          "top_track_genres": [
+            "BR",
+            "LH",
+            "BR",
+            "PO",
+            "JS"
+          ],
+          "top_motion_id": "gBR_sBM_cAll_d04_mBR0_ch03",
+          "query_bpm": 107.14285714285714
+        },
+        {
+          "query_audio_time_seconds": 7.064,
+          "latency_ms": 87.30799999466399,
+          "top_tracks": [
+            "BR0",
+            "LH0",
+            "BR1",
+            "WA0",
+            "JS0"
+          ],
+          "top_track_genres": [
+            "BR",
+            "LH",
+            "BR",
+            "WA",
+            "JS"
+          ],
+          "top_motion_id": "gBR_sBM_cAll_d04_mBR0_ch03",
+          "query_bpm": 107.14285714285714
+        },
+        {
+          "query_audio_time_seconds": 8.088,
+          "latency_ms": 37.22540000308072,
+          "top_tracks": [
+            "BR0",
+            "LH0",
+            "BR1",
+            "WA0",
+            "PO0"
+          ],
+          "top_track_genres": [
+            "BR",
+            "LH",
+            "BR",
+            "WA",
+            "PO"
+          ],
+          "top_motion_id": "gBR_sBM_cAll_d04_mBR0_ch03",
+          "query_bpm": 107.14285714285714
+        },
+        {
+          "query_audio_time_seconds": 9.144,
+          "latency_ms": 37.87900000315858,
+          "top_tracks": [
+            "BR0",
+            "LH0",
+            "BR1",
+            "PO0",
+            "WA0"
+          ],
+          "top_track_genres": [
+            "BR",
+            "LH",
+            "BR",
+            "PO",
+            "WA"
+          ],
+          "top_motion_id": "gBR_sBM_cAll_d04_mBR0_ch03",
+          "query_bpm": 107.14285714285714
+        }
+      ]
+    }
+  ],
+  "result_files": {
+    "json": "realtime/humanoid_robot/src/test/output/latency_20260823_virtual_mic/humanoid_matcher_virtual_microphone.json",
+    "markdown": "realtime/humanoid_robot/src/test/output/latency_20260823_virtual_mic/humanoid_matcher_virtual_microphone.md"
+  }
+}

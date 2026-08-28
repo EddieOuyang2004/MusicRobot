@@ -9,6 +9,12 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation
 
+from aistpp_smpl import (
+    import_smpl_dependencies,
+    load_aistpp_motion as load_aistpp_motion_m,
+    load_smpl_rest_pose,
+)
+
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_AISTPP_ROOT = Path(__file__).resolve().parents[1] / "data" / "aistpp"
@@ -30,6 +36,8 @@ GMR_LAFAN_JOINTS: tuple[JointSpec, ...] = (
     JointSpec("Spine", 3, "Hips"),
     JointSpec("Spine1", 6, "Spine"),
     JointSpec("Spine2", 9, "Spine1"),
+    JointSpec("Neck", 12, "Spine2"),
+    JointSpec("Head", 15, "Neck"),
     JointSpec("LeftUpLeg", 1, "Hips"),
     JointSpec("LeftLeg", 4, "LeftUpLeg"),
     JointSpec("LeftFoot", 7, "LeftLeg"),
@@ -38,12 +46,16 @@ GMR_LAFAN_JOINTS: tuple[JointSpec, ...] = (
     JointSpec("RightLeg", 5, "RightUpLeg"),
     JointSpec("RightFoot", 8, "RightLeg"),
     JointSpec("RightToe", 11, "RightFoot"),
-    JointSpec("LeftArm", 16, "Spine2"),
+    JointSpec("LeftShoulder", 13, "Spine2"),
+    JointSpec("LeftArm", 16, "LeftShoulder"),
     JointSpec("LeftForeArm", 18, "LeftArm"),
     JointSpec("LeftHand", 20, "LeftForeArm"),
-    JointSpec("RightArm", 17, "Spine2"),
+    JointSpec("LeftHandEnd", 22, "LeftHand"),
+    JointSpec("RightShoulder", 14, "Spine2"),
+    JointSpec("RightArm", 17, "RightShoulder"),
     JointSpec("RightForeArm", 19, "RightArm"),
     JointSpec("RightHand", 21, "RightForeArm"),
+    JointSpec("RightHandEnd", 23, "RightHand"),
 )
 JOINT_BY_NAME = {joint.name: joint for joint in GMR_LAFAN_JOINTS}
 
@@ -90,41 +102,6 @@ def parse_args() -> argparse.Namespace:
 
 def resolve_workspace_path(path: Path) -> Path:
     return path if path.is_absolute() else ROOT / path
-
-
-def import_smpl_dependencies() -> tuple[object, object]:
-    try:
-        import smplx  # type: ignore
-        import torch  # type: ignore
-    except ImportError as exc:
-        raise RuntimeError(
-            "AIST++ -> BVH conversion needs optional dependencies: "
-            "install torch and smplx[all] in the environment used to run this script."
-        ) from exc
-    return smplx, torch
-
-
-def load_smpl_rest_pose(model_path: Path, gender: str) -> tuple[np.ndarray, np.ndarray]:
-    model_path = resolve_workspace_path(model_path)
-    if not model_path.exists():
-        raise FileNotFoundError(
-            f"SMPL model path not found: {model_path}. "
-            "Place licensed SMPL model files there before converting."
-        )
-
-    smplx, torch = import_smpl_dependencies()
-    model = smplx.create(
-        model_path=str(model_path),
-        model_type="smpl",
-        gender=gender,
-        batch_size=1,
-    )
-    with torch.no_grad():
-        rest = model()
-
-    joints = rest.joints.detach().cpu().numpy().squeeze()[:SMPL_JOINT_COUNT]
-    parents = model.parents.detach().cpu().numpy()[:SMPL_JOINT_COUNT]
-    return joints.astype(np.float64), parents.astype(np.int64)
 
 
 def collect_motion_jobs(args: argparse.Namespace) -> list[tuple[Path, Path]]:
@@ -205,37 +182,55 @@ def output_joint_eulers(global_quats: np.ndarray) -> dict[str, np.ndarray]:
     return rotations
 
 
-def load_aistpp_motion(path: Path) -> tuple[np.ndarray, np.ndarray]:
-    if not path.exists():
-        raise FileNotFoundError(f"AIST++ motion file not found: {path}")
-
-    with path.open("rb") as motion_file:
-        motion = pickle.load(motion_file)
-    if not isinstance(motion, dict):
-        raise ValueError(f"AIST++ motion must contain a dict, got {type(motion).__name__}: {path}")
-
-    missing = {"smpl_poses", "smpl_trans"} - set(motion)
-    if missing:
-        raise ValueError(f"AIST++ motion is missing keys {sorted(missing)}: {path}")
-
-    poses = np.asarray(motion["smpl_poses"], dtype=np.float64)
-    if poses.ndim != 2 or poses.shape[1] != SMPL_JOINT_COUNT * 3:
-        raise ValueError(f"Expected smpl_poses with shape (N, 72), got {poses.shape}: {path}")
-
-    translations = np.asarray(motion["smpl_trans"], dtype=np.float64)
-    if translations.shape != (poses.shape[0], 3):
-        raise ValueError(
-            f"Expected smpl_trans with shape {(poses.shape[0], 3)}, got {translations.shape}: {path}"
+def validate_bvh_fk(
+    global_quats: np.ndarray,
+    rotations: dict[str, np.ndarray],
+    offsets: dict[str, np.ndarray],
+    root_positions: np.ndarray,
+    tolerance_cm: float = 1e-5,
+) -> float:
+    """Verify that the LaFAN hierarchy reconstructs the selected SMPL joints."""
+    source_globals = {
+        joint.name: Rotation.from_quat(global_quats[:, joint.smpl_index])
+        for joint in GMR_LAFAN_JOINTS
+    }
+    source_positions: dict[str, np.ndarray] = {}
+    bvh_positions: dict[str, np.ndarray] = {}
+    bvh_globals: dict[str, Rotation] = {}
+    maximum_error = 0.0
+    for joint in channel_order(hierarchy_children()):
+        local = Rotation.from_euler(ROTATION_ORDER, rotations[joint.name], degrees=True)
+        if joint.parent is None:
+            source_positions[joint.name] = root_positions.copy()
+            bvh_positions[joint.name] = root_positions.copy()
+            bvh_globals[joint.name] = local
+        else:
+            source_parent_rotation = source_globals[joint.parent]
+            source_positions[joint.name] = (
+                source_positions[joint.parent]
+                + source_parent_rotation.apply(offsets[joint.name])
+            )
+            bvh_parent_rotation = bvh_globals[joint.parent]
+            bvh_positions[joint.name] = (
+                bvh_positions[joint.parent]
+                + bvh_parent_rotation.apply(offsets[joint.name])
+            )
+            bvh_globals[joint.name] = bvh_parent_rotation * local
+        error = float(
+            np.max(np.linalg.norm(source_positions[joint.name] - bvh_positions[joint.name], axis=1))
         )
+        maximum_error = max(maximum_error, error)
+    if maximum_error > tolerance_cm:
+        raise ValueError(
+            f"SMPL -> BVH FK mismatch is {maximum_error:.6g} cm "
+            f"(tolerance {tolerance_cm:.6g} cm)."
+        )
+    return maximum_error
 
-    scaling = motion.get("smpl_scaling")
-    if scaling is not None:
-        scale_value = float(np.asarray(scaling, dtype=np.float64).reshape(-1)[0])
-        if scale_value == 0.0:
-            raise ValueError(f"smpl_scaling must be nonzero: {path}")
-        translations = translations / scale_value
 
-    return poses.reshape(poses.shape[0], SMPL_JOINT_COUNT, 3), translations * 100.0
+def load_aistpp_motion(path: Path) -> tuple[np.ndarray, np.ndarray]:
+    poses, translations_m = load_aistpp_motion_m(path)
+    return poses, translations_m * 100.0
 
 
 def hierarchy_children() -> dict[str | None, list[JointSpec]]:
@@ -330,8 +325,12 @@ def convert_motion(
     global_quats = global_smpl_rotations(poses, smpl_parents)
     rotations = output_joint_eulers(global_quats)
     root_positions = root_positions + offsets["Hips"][None, :]
+    fk_error = validate_bvh_fk(global_quats, rotations, offsets, root_positions)
     write_bvh(output_path, offsets, root_positions, rotations, fps)
-    return True, f"wrote {output_path} ({len(root_positions)} frames)"
+    return True, (
+        f"wrote {output_path} ({len(root_positions)} frames, "
+        f"SMPL/BVH FK max error {fk_error:.3g} cm)"
+    )
 
 
 def main() -> int:

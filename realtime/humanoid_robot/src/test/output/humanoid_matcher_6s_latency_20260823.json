@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-08-23T01:35:24.673478+00:00",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.11.14",
+    "numpy": "1.26.4",
+    "librosa": "0.10.2.post1",
+    "onnxruntime": "1.28.0"
+  },
+  "configuration": {
+    "catalog": "realtime/humanoid_robot/data/music_catalog/catalog.json",
+    "latency_iterations": 200,
+    "warmup_iterations": 30,
+    "gain_check_limit": 0,
+    "feature_iterations": 20,
+    "top_k_tracks": 5,
+    "top_k_motions": 10
+  },
+  "catalog": {
+    "segments": 348,
+    "tracks": 60,
+    "motions": 411,
+    "preflight_passed_motions": 411,
+    "embedding_dimensions": 1280,
+    "rhythm_timbre_dimensions": 24,
+    "tag_dimensions": 400,
+    "feature_array_bytes": 2382400,
+    "matcher_index_bytes": 2371968,
+    "catalog_json_bytes": 866330,
+    "catalog_npz_bytes": 2152040
+  },
+  "quality": {
+    "query_count": 348,
+    "same_segment_descriptor_track_recall_at_1": 1.0,
+    "same_segment_descriptor_note": "Sanity check only: each exact stored segment descriptor is queried against a catalog that contains that segment.",
+    "source_track_motion_recall_at_1": 0.9712643678160919,
+    "source_track_motion_recall_at_3": 0.985632183908046,
+    "source_track_motion_recall_at_10": 1.0,
+    "queries_with_motion_candidates_rate": 1.0,
+    "leave_one_music_genre_recall_at_1": 0.25862068965517243,
+    "leave_one_music_genre_recall_at_3": 0.5057471264367817,
+    "leave_one_music_genre_recall_at_5": 0.646551724137931,
+    "leave_one_music_genre_mean_reciprocal_rank": 0.44172900026895434,
+    "random_genre_recall_baseline_at_1": 0.0847457627118644,
+    "random_genre_recall_baseline_at_3": 0.2370112891814574,
+    "random_genre_recall_baseline_at_5": 0.3683048011080249,
+    "per_genre": {
+      "BR": {
+        "queries": 40,
+        "recall_at_1": 0.1,
+        "recall_at_3": 0.825,
+        "recall_at_5": 0.875
+      },
+      "HO": {
+        "queries": 27,
+        "recall_at_1": 0.8518518518518519,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0
+      },
+      "JB": {
+        "queries": 31,
+        "recall_at_1": 0.8709677419354839,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0
+      },
+      "JS": {
+        "queries": 34,
+        "recall_at_1": 0.0,
+        "recall_at_3": 0.058823529411764705,
+        "recall_at_5": 0.08823529411764706
+      },
+      "KR": {
+        "queries": 36,
+        "recall_at_1": 0.1111111111111111,
+        "recall_at_3": 0.3888888888888889,
+        "recall_at_5": 0.5833333333333334
+      },
+      "LH": {
+        "queries": 32,
+        "recall_at_1": 0.09375,
+        "recall_at_3": 0.40625,
+        "recall_at_5": 0.65625
+      },
+      "LO": {
+        "queries": 36,
+        "recall_at_1": 0.08333333333333333,
+        "recall_at_3": 0.3888888888888889,
+        "recall_at_5": 0.8055555555555556
+      },
+      "MH": {
+        "queries": 34,
+        "recall_at_1": 0.6764705882352942,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0
+      },
+      "PO": {
+        "queries": 38,
+        "recall_at_1": 0.07894736842105263,
+        "recall_at_3": 0.21052631578947367,
+        "recall_at_5": 0.21052631578947367
+      },
+      "WA": {
+        "queries": 40,
+        "recall_at_1": 0.0,
+        "recall_at_3": 0.0,
+        "recall_at_5": 0.4
+      }
+    }
+  },
+  "runtime": {
+    "catalog_load_ms": 31.2873,
+    "matcher_initialization_ms": 1.9615,
+    "catalog_descriptor_match_latency": {
+      "samples": 200,
+      "mean_ms": 2.126719,
+      "median_ms": 2.15835,
+      "p95_ms": 2.464905,
+      "p99_ms": 2.6245719999999992,
+      "min_ms": 1.7229,
+      "max_ms": 2.7369,
+      "queries_per_second": 470.2078647907879
+    },
+    "rss_before_catalog_load_bytes": 83664896,
+    "rss_after_initialization_bytes": 91013120,
+    "rss_initialization_delta_bytes": 7348224
+  },
+  "audio_pipeline": {
+    "evaluated": true,
+    "backend": "discogs-effnet-onnx",
+    "onnxruntime_available": true,
+    "model_files": [
+      "realtime/humanoid_robot/models/discogs-effnet-bsdynamic-1.onnx"
+    ],
+    "missing_model_files": [],
+    "waveform_to_match_latency": {
+      "samples": 20,
+      "mean_ms": 47.31394,
+      "median_ms": 44.243300000000005,
+      "p95_ms": 62.80641000000001,
+      "p99_ms": 69.006642,
+      "min_ms": 38.0873,
+      "max_ms": 70.5567,
+      "queries_per_second": 21.135420131994923
+    },
+    "gain_invariance": {
+      "checked_tracks": 0,
+      "unchanged_tracks": 0,
+      "rate": 0.0,
+      "gains": [
+        0.1,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "details": []
+    }
+  },
+  "result_files": {
+    "json": "realtime/humanoid_robot/src/test/output/humanoid_matcher_6s_latency_20260823.json",
+    "markdown": "realtime/humanoid_robot/src/test/output/humanoid_matcher_6s_latency_20260823.md"
+  }
+}
