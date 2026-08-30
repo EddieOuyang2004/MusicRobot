@@ -546,7 +546,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--keypoint-boundary-sec", type=float, default=0.10)
     parser.add_argument("--keypoint-max-count", type=int)
     parser.add_argument("--speed-min", type=float, default=0.55)
-    parser.add_argument("--speed-max", type=float, default=1.9)
+    parser.add_argument("--speed-max", type=float, default=1.6)
     parser.add_argument("--amp-min", type=float, default=0.35)
     parser.add_argument("--amp-max", type=float, default=1.25)
     parser.add_argument("--smoothing-tau", type=float, default=0.22)

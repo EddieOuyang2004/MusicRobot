@@ -163,38 +163,17 @@ class AistppGmrEndToEndTests(unittest.TestCase):
             )
             self.assertEqual("ok", report["status"])
 
-            from aistpp_smpl import load_aistpp_motion, load_smpl_rest_pose, smpl_world_kinematics
-            from audit_aistpp_retargeting import G1_BODY_NAMES, g1_body_positions, load_g1_artifact
-
-            source_poses, source_translations = load_aistpp_motion(motion_path)
-            rest, parents = load_smpl_rest_pose(SMPL_ROOT, "NEUTRAL")
-            smpl_positions, _rotations = smpl_world_kinematics(
-                source_poses, source_translations, rest, parents
-            )
-            artifact = load_g1_artifact(output_root / "symmetric.pkl")
-            g1_positions = g1_body_positions(
-                MODEL,
-                artifact["root_pos"],
-                artifact["root_rot"],
-                artifact["dof_pos"],
-                tuple(artifact["dof_names"]),
-            )
-            g1_index = {name: index for index, name in enumerate(G1_BODY_NAMES)}
-            arm_bones = {
-                "left_upper_arm": (16, 18, "left_shoulder_yaw_link", "left_elbow_link"),
-                "right_upper_arm": (17, 19, "right_shoulder_yaw_link", "right_elbow_link"),
-                "left_forearm": (18, 20, "left_elbow_link", "left_wrist_yaw_link"),
-                "right_forearm": (19, 21, "right_elbow_link", "right_wrist_yaw_link"),
-            }
-            for bone, (source_start, source_end, target_start, target_end) in arm_bones.items():
-                source_vector = smpl_positions[:, source_end] - smpl_positions[:, source_start]
-                target_vector = (
-                    g1_positions[:, g1_index[target_end]] - g1_positions[:, g1_index[target_start]]
-                )
-                cosine = np.sum(source_vector * target_vector, axis=1) / (
-                    np.linalg.norm(source_vector, axis=1) * np.linalg.norm(target_vector, axis=1)
-                )
-                self.assertGreater(float(np.median(cosine)), 0.9, bone)
+            # The audit runs under the dedicated GMR environment where torch and
+            # smplx are installed. Assert its serialized bone metrics here rather
+            # than importing those optional dependencies into the main test venv.
+            for bone in (
+                "left_upper_arm",
+                "right_upper_arm",
+                "left_forearm",
+                "right_forearm",
+            ):
+                median_cosine = report["pose_similarity"]["bones"][bone]["median_cosine"]
+                self.assertGreater(float(median_cosine), 0.9, bone)
 
 
 if __name__ == "__main__":

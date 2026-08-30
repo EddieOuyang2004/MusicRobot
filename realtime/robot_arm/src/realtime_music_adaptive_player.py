@@ -7,6 +7,7 @@ import os
 import time
 import warnings
 from collections import deque
+from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, SimpleQueue
@@ -242,6 +243,156 @@ class BeatIntervalEstimator:
         return True, float(np.median(valid))
 
 
+@dataclass(frozen=True)
+class WindowAnalysisResult:
+    """Immutable result produced by the background rolling-window analyzer."""
+
+    generation: int
+    window_start: float
+    pulse_normalized: np.ndarray
+    pulse_peaks: np.ndarray
+    pulse_prominences: np.ndarray
+    beat_loudness: np.ndarray
+    beat_onset_impacts: np.ndarray
+    onset_peaks: np.ndarray
+    rhythm_density: float
+    spectral_contrast: float
+    mfcc_1: float
+    mfcc_2: float
+    started_wall: float
+    completed_wall: float
+
+
+def compute_window_analysis_job(
+    generation: int,
+    window_start: float,
+    audio: np.ndarray,
+    sample_rate: int,
+    hop_length: int,
+    refractory_sec: float,
+    peak_prominence: float,
+    min_beat_period: float,
+    max_beat_period: float,
+) -> WindowAnalysisResult | None:
+    """Compute rolling beat features outside the realtime Python process."""
+
+    started_wall = time.perf_counter()
+    try:
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="n_fft=.*too large.*")
+            onset_env = librosa.onset.onset_strength(
+                y=audio,
+                sr=sample_rate,
+                hop_length=hop_length,
+            )
+            pulse = librosa.beat.plp(
+                onset_envelope=onset_env,
+                sr=sample_rate,
+                hop_length=hop_length,
+                tempo_min=60.0 / max(max_beat_period, 1e-6),
+                tempo_max=60.0 / max(min_beat_period, 1e-6),
+            )
+    except Exception:
+        return None
+    if pulse.size == 0 or float(np.max(pulse)) <= 1e-9:
+        return None
+
+    pulse = np.asarray(pulse, dtype=float)
+    pulse_norm = pulse / max(float(np.max(pulse)), 1e-9)
+    distance = max(1, int(round(refractory_sec * sample_rate / hop_length)))
+    peaks, prominences = find_pulse_peaks(
+        pulse_norm,
+        distance=distance,
+        prominence=peak_prominence,
+    )
+    beat_loudness = []
+    beat_onset_impacts = []
+    for peak in peaks:
+        loudness, impact = _beat_measurement(
+            audio,
+            onset_env,
+            int(peak),
+            sample_rate,
+            hop_length,
+        )
+        beat_loudness.append(loudness)
+        beat_onset_impacts.append(impact)
+
+    onset = np.asarray(onset_env, dtype=float)
+    onset_max = float(np.max(onset)) if onset.size else 0.0
+    if onset.size < 3 or onset_max <= 1e-9:
+        onset_peaks = np.empty(0, dtype=int)
+        rhythm_density = 0.0
+    else:
+        onset_norm = onset / onset_max
+        threshold = max(0.2, float(np.median(onset_norm) + 0.5 * np.std(onset_norm)))
+        onset_peaks, _ = find_pulse_peaks(
+            onset_norm,
+            distance=max(1, int(round(0.08 * sample_rate / hop_length))),
+            prominence=threshold,
+        )
+        duration = max(audio.size / sample_rate, 1e-6)
+        rhythm_density = float(np.clip((onset_peaks.size / duration) / 8.0, 0.0, 1.0))
+    try:
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="n_fft=.*too large.*")
+            contrast = librosa.feature.spectral_contrast(
+                y=audio,
+                sr=sample_rate,
+                hop_length=hop_length,
+            )
+            mfcc = librosa.feature.mfcc(
+                y=audio,
+                sr=sample_rate,
+                n_mfcc=2,
+                hop_length=hop_length,
+            )
+        spectral_contrast = float(np.clip(np.nan_to_num(np.mean(contrast) / 80.0), 0.0, 1.0))
+        mfcc_1 = float(np.clip(np.nan_to_num(np.mean(mfcc[0]) / 100.0), -2.0, 2.0))
+        mfcc_2 = float(np.clip(np.nan_to_num(np.mean(mfcc[1]) / 100.0), -2.0, 2.0))
+    except Exception:
+        spectral_contrast = mfcc_1 = mfcc_2 = 0.0
+    return WindowAnalysisResult(
+        generation=generation,
+        window_start=float(window_start),
+        pulse_normalized=pulse_norm,
+        pulse_peaks=np.asarray(peaks, dtype=int),
+        pulse_prominences=np.asarray(prominences, dtype=float),
+        beat_loudness=np.asarray(beat_loudness, dtype=float),
+        beat_onset_impacts=np.asarray(beat_onset_impacts, dtype=float),
+        onset_peaks=np.asarray(onset_peaks, dtype=int),
+        rhythm_density=rhythm_density,
+        spectral_contrast=spectral_contrast,
+        mfcc_1=mfcc_1,
+        mfcc_2=mfcc_2,
+        started_wall=started_wall,
+        completed_wall=time.perf_counter(),
+    )
+
+
+def warm_window_analysis_worker(sample_rate: int, hop_length: int) -> None:
+    """Import and JIT the heavy librosa path before microphone playback starts."""
+
+    duration_sec = 2.0
+    sample_count = int(round(duration_sec * sample_rate))
+    audio = np.zeros(sample_count, dtype=np.float32)
+    click_width = max(1, int(round(0.01 * sample_rate)))
+    for click_time in (0.25, 0.75, 1.25, 1.75):
+        start = int(round(click_time * sample_rate))
+        audio[start : start + click_width] = np.hanning(click_width).astype(np.float32)
+    compute_window_analysis_job(
+        0,
+        0.0,
+        audio,
+        sample_rate,
+        hop_length,
+        0.18,
+        0.08,
+        0.25,
+        1.0,
+    )
+
+
 class RealtimeMusicAnalyzer:
     def __init__(
         self,
@@ -258,6 +409,7 @@ class RealtimeMusicAnalyzer:
         plp_analysis_interval_sec: float,
         plp_hop_length: int,
         plp_peak_prominence: float,
+        input_device: int | str | None = None,
     ) -> None:
         self.sample_rate = sample_rate
         self.block_size = block_size
@@ -272,6 +424,7 @@ class RealtimeMusicAnalyzer:
         self.plp_analysis_interval_sec = max(plp_analysis_interval_sec, 0.02)
         self.plp_hop_length = max(plp_hop_length, 64)
         self.plp_peak_prominence = max(plp_peak_prominence, 0.0)
+        self.input_device = input_device
         self.frames: SimpleQueue[MusicFrame] = SimpleQueue()
         self.estimator = BeatIntervalEstimator(min_period=min_beat_period, max_period=max_beat_period)
 
@@ -284,6 +437,15 @@ class RealtimeMusicAnalyzer:
         self.onset_floor = 0.0
         self.last_beat_time = 0.0
         self.last_plp_analysis_time = 0.0
+        self.analysis_generation = 0
+        self.analysis_executor: ThreadPoolExecutor | ProcessPoolExecutor | None = None
+        self.analysis_future: Future[WindowAnalysisResult | None] | None = None
+        self.analysis_submitted = 0
+        self.analysis_completed = 0
+        self.analysis_skipped_busy = 0
+        self.analysis_errors = 0
+        self.analysis_last_latency_sec = 0.0
+        self.analysis_max_latency_sec = 0.0
         self.latest_status_frame: Optional[MusicFrame] = None
         self.inactive_since: Optional[float] = None
         self.activity_release_sec = 0.5
@@ -306,7 +468,10 @@ class RealtimeMusicAnalyzer:
         if sd is None:
             raise RuntimeError("sounddevice is not installed. Install requirements.txt to use realtime music input.")
 
+        self.prepare_background_analysis()
+
         self.stream = sd.InputStream(
+            device=self.input_device,
             samplerate=self.sample_rate,
             channels=1,
             dtype="float32",
@@ -315,11 +480,36 @@ class RealtimeMusicAnalyzer:
         )
         self.stream.start()
 
+    def prepare_background_analysis(self) -> None:
+        """Start and warm DSP before a GUI/OpenGL context is created."""
+
+        # Windows must import librosa and initialize its numerical kernels in
+        # the spawned worker.  Do that before opening the input stream so the
+        # one-time startup cost can never pre-empt motion playback.
+        if self.analysis_executor is None:
+            self.analysis_executor = ProcessPoolExecutor(max_workers=1)
+            try:
+                self.analysis_executor.submit(
+                    warm_window_analysis_worker,
+                    self.sample_rate,
+                    self.plp_hop_length,
+                ).result()
+            except Exception:
+                executor = self.analysis_executor
+                self.analysis_executor = None
+                executor.shutdown(wait=True, cancel_futures=True)
+                raise
+
     def stop(self) -> None:
         if self.stream is not None:
             self.stream.stop()
             self.stream.close()
             self.stream = None
+        executor = self.analysis_executor
+        self.analysis_executor = None
+        self.analysis_future = None
+        if executor is not None:
+            executor.shutdown(wait=True, cancel_futures=True)
 
     def drain(self) -> list[MusicFrame]:
         self._analyze_plp_if_due()
@@ -331,6 +521,7 @@ class RealtimeMusicAnalyzer:
                 return frames
 
     def reset(self) -> None:
+        self.analysis_generation += 1
         self.estimator.reset()
         self.prev_energy = 0.0
         self.last_beat_time = 0.0
@@ -512,61 +703,84 @@ class RealtimeMusicAnalyzer:
         return start_time, np.concatenate(pieces)
 
     def _analyze_plp_if_due(self) -> None:
+        """Poll one background analysis and submit at most one replacement.
+
+        This method intentionally performs no librosa work.  It is called by
+        the realtime motion loop, so all rolling-window DSP must stay in the
+        executor below.
+        """
+
         now = time.perf_counter()
+        future = self.analysis_future
+        if future is not None and future.done():
+            self.analysis_future = None
+            try:
+                result = future.result()
+            except Exception as exc:
+                self.analysis_errors += 1
+                if self.analysis_errors == 1:
+                    print(f"Warning: background PLP analysis failed: {type(exc).__name__}: {exc}")
+            else:
+                if result is not None and result.generation == self.analysis_generation:
+                    self.analysis_completed += 1
+                    latency = max(result.completed_wall - result.started_wall, 0.0)
+                    self.analysis_last_latency_sec = latency
+                    self.analysis_max_latency_sec = max(self.analysis_max_latency_sec, latency)
+                    self._apply_window_analysis(result, now)
+
         if now - self.last_plp_analysis_time < self.plp_analysis_interval_sec:
             return
-        self.last_plp_analysis_time = now
 
         status = self.latest_status_frame
         if status is None or not status.is_active:
             return
-
+        if self.analysis_future is not None:
+            # Count one dropped analysis slot, rather than polling the same
+            # busy future at the full control-loop rate.
+            self.last_plp_analysis_time = now
+            self.analysis_skipped_busy += 1
+            return
         window_start, audio = self._audio_window()
         min_samples = max(self.sample_rate, self.plp_hop_length * 8)
         if window_start is None or audio.size < min_samples:
             return
-
-        try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", message="n_fft=.*too large.*")
-                onset_env = librosa.onset.onset_strength(
-                    y=audio,
-                    sr=self.sample_rate,
-                    hop_length=self.plp_hop_length,
-                )
-        except Exception:
-            return
-
-        self._update_window_features(audio, onset_env, window_start)
-
-        try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", message="n_fft=.*too large.*")
-                pulse = librosa.beat.plp(
-                    onset_envelope=onset_env,
-                    sr=self.sample_rate,
-                    hop_length=self.plp_hop_length,
-                    tempo_min=60.0 / max(self.max_beat_period, 1e-6),
-                    tempo_max=60.0 / max(self.min_beat_period, 1e-6),
-                )
-        except Exception:
-            return
-
-        if pulse.size == 0 or float(np.max(pulse)) <= 1e-9:
-            return
-
-        pulse = np.asarray(pulse, dtype=float)
-        pulse_norm = pulse / max(float(np.max(pulse)), 1e-9)
-        distance = max(1, int(round(self.refractory_sec * self.sample_rate / self.plp_hop_length)))
-        peaks, prominences = find_pulse_peaks(
-            pulse_norm,
-            distance=distance,
-            prominence=self.plp_peak_prominence,
+        if self.analysis_executor is None:
+            self.analysis_executor = ProcessPoolExecutor(
+                max_workers=1,
+            )
+        self.last_plp_analysis_time = now
+        generation = self.analysis_generation
+        self.analysis_future = self.analysis_executor.submit(
+            compute_window_analysis_job,
+            generation,
+            float(window_start),
+            np.asarray(audio, dtype=np.float32),
+            self.sample_rate,
+            self.plp_hop_length,
+            self.refractory_sec,
+            self.plp_peak_prominence,
+            self.min_beat_period,
+            self.max_beat_period,
         )
+        self.analysis_submitted += 1
+
+    def _apply_window_analysis(self, result: WindowAnalysisResult, now: float) -> None:
+        status = self.latest_status_frame
+        if status is None or not status.is_active:
+            return
+        self.cached_rhythm_density = result.rhythm_density
+        self.cached_spectral_contrast = result.spectral_contrast
+        self.cached_mfcc_1 = result.mfcc_1
+        self.cached_mfcc_2 = result.mfcc_2
+        self.cached_offbeat_ratio = self._offbeat_ratio(
+            result.window_start,
+            result.onset_peaks,
+        )
+        peaks = result.pulse_peaks
         if peaks.size == 0:
             return
 
-        peak_times = window_start + librosa.frames_to_time(
+        peak_times = result.window_start + librosa.frames_to_time(
             peaks,
             sr=self.sample_rate,
             hop_length=self.plp_hop_length,
@@ -585,15 +799,17 @@ class RealtimeMusicAnalyzer:
             return
 
         self.last_beat_time = beat_time
+        prominences = result.pulse_prominences
         prominence = float(prominences[peak_idx]) if len(prominences) > peak_idx else 0.0
-        confidence = float(np.clip(0.5 * pulse_norm[peaks[peak_idx]] + 0.5 * prominence, 0.0, 1.0))
-        loudness, onset_impact = _beat_measurement(
-            audio,
-            onset_env,
-            int(peaks[peak_idx]),
-            self.sample_rate,
-            self.plp_hop_length,
+        confidence = float(
+            np.clip(
+                0.5 * result.pulse_normalized[peaks[peak_idx]] + 0.5 * prominence,
+                0.0,
+                1.0,
+            )
         )
+        loudness = float(result.beat_loudness[peak_idx])
+        onset_impact = float(result.beat_onset_impacts[peak_idx])
         contrast = _relative_beat_contrast(
             loudness,
             onset_impact,
@@ -696,49 +912,6 @@ class RealtimeMusicAnalyzer:
             "energy_delta": float(max(onset_delta, 0.0)),
         }
 
-    def _update_window_features(self, audio: np.ndarray, onset_env: np.ndarray, window_start: float) -> None:
-        if audio.size < self.plp_hop_length * 8 or onset_env.size == 0:
-            return
-
-        try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", message="n_fft=.*too large.*")
-                contrast = librosa.feature.spectral_contrast(
-                    y=audio,
-                    sr=self.sample_rate,
-                    hop_length=self.plp_hop_length,
-                )
-                mfcc = librosa.feature.mfcc(
-                    y=audio,
-                    sr=self.sample_rate,
-                    n_mfcc=2,
-                    hop_length=self.plp_hop_length,
-                )
-        except Exception:
-            return
-
-        self.cached_spectral_contrast = self._finite_float(np.mean(contrast) / 80.0, 0.0, 1.0)
-        self.cached_mfcc_1 = self._finite_float(np.mean(mfcc[0]) / 100.0, -2.0, 2.0) if mfcc.shape[0] > 0 else 0.0
-        self.cached_mfcc_2 = self._finite_float(np.mean(mfcc[1]) / 100.0, -2.0, 2.0) if mfcc.shape[0] > 1 else 0.0
-
-        onset = np.asarray(onset_env, dtype=float)
-        onset_max = float(np.max(onset)) if onset.size else 0.0
-        if onset.size < 3 or onset_max <= 1e-9:
-            self.cached_rhythm_density = 0.0
-            self.cached_offbeat_ratio = 0.0
-            return
-
-        onset_norm = onset / onset_max
-        threshold = max(0.2, float(np.median(onset_norm) + 0.5 * np.std(onset_norm)))
-        onset_peaks, _prom = find_pulse_peaks(
-            onset_norm,
-            distance=max(1, int(round(0.08 * self.sample_rate / self.plp_hop_length))),
-            prominence=threshold,
-        )
-        duration = max(audio.size / self.sample_rate, 1e-6)
-        self.cached_rhythm_density = float(np.clip((onset_peaks.size / duration) / 8.0, 0.0, 1.0))
-        self.cached_offbeat_ratio = self._offbeat_ratio(window_start, onset_peaks)
-
     def _offbeat_ratio(self, window_start: float, onset_peaks: np.ndarray) -> float:
         if onset_peaks.size == 0 or len(self.estimator.beat_times) < 2:
             return 0.0
@@ -805,6 +978,7 @@ class AdaptiveMotionController:
         beat_selection_mode: str = "every",
         beat_contrast_weight: float = 0.5,
         phase_correction_tau: float = 0.25,
+        max_speed_change_per_sec: float = 2.0,
     ) -> None:
         self.authored_cycle_duration = max(authored_cycle_duration, 1e-6)
         self.authored_phase_rate = 1.0 / max(authored_cycle_duration, 1e-6)
@@ -825,6 +999,7 @@ class AdaptiveMotionController:
         self.beat_selection_mode = beat_selection_mode
         self.beat_contrast_weight = float(np.clip(beat_contrast_weight, 0.0, 1.0))
         self.phase_correction_tau = max(float(phase_correction_tau), 1e-6)
+        self.max_speed_change_per_sec = max(float(max_speed_change_per_sec), 0.0)
         self.keypoint_intervals = self._keypoint_intervals()
         self.min_accepted_beat_interval = self._min_accepted_beat_interval()
 
@@ -1059,9 +1234,27 @@ class AdaptiveMotionController:
                 (maximum_rate - self.phase_rate) * dt,
             )
         )
-        self.phase_correction_remaining -= correction
-        total_delta = base_delta + correction
-        self.effective_phase_rate = self.phase_rate if dt <= 0.0 else total_delta / dt
+        desired_total_delta = base_delta + correction
+        desired_effective_rate = (
+            self.phase_rate if dt <= 0.0 else desired_total_delta / dt
+        )
+        if dt > 0.0 and self.max_speed_change_per_sec > 0.0:
+            maximum_rate_change = (
+                self.authored_phase_rate * self.max_speed_change_per_sec * dt
+            )
+            desired_effective_rate = float(
+                np.clip(
+                    desired_effective_rate,
+                    self.effective_phase_rate - maximum_rate_change,
+                    self.effective_phase_rate + maximum_rate_change,
+                )
+            )
+        self.effective_phase_rate = float(
+            np.clip(desired_effective_rate, minimum_rate, maximum_rate)
+        )
+        total_delta = self.effective_phase_rate * dt
+        applied_correction = total_delta - base_delta
+        self.phase_correction_remaining -= applied_correction
         self.phase = (self.phase + total_delta) % 1.0
         return self.phase, self.amplitude_scale, self._accent(now_wall), self.last_brightness
 
@@ -1268,6 +1461,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--figure-yaw-amp-deg", type=float, default=28.0)
     parser.add_argument("--figure-pitch-amp-deg", type=float, default=22.0)
     parser.add_argument("--mic-sample-rate", type=int, default=16000)
+    parser.add_argument(
+        "--mic-device",
+        default=None,
+        help="Optional sounddevice input index or exact device name.",
+    )
     parser.add_argument("--mic-block-size", type=int, default=512)
     parser.add_argument("--plp-history-sec", type=float, default=8.0)
     parser.add_argument("--plp-analysis-interval-sec", type=float, default=0.10)
@@ -1447,6 +1645,11 @@ def main() -> None:
         plp_analysis_interval_sec=args.plp_analysis_interval_sec,
         plp_hop_length=args.plp_hop_length,
         plp_peak_prominence=args.plp_peak_prominence,
+        input_device=(
+            int(args.mic_device)
+            if args.mic_device is not None and args.mic_device.lstrip("-").isdigit()
+            else args.mic_device
+        ),
     )
     controller = AdaptiveMotionController(
         authored_cycle_duration=trajectory.duration,

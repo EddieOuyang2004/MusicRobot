@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import pickle
+import queue
 import sys
+import threading
 import time
+from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -124,6 +128,86 @@ class FeatureState:
             offbeat_ratio=frame.offbeat_ratio,
             is_active=frame.is_active,
         )
+
+
+class RealtimeLoopScheduler:
+    """Absolute-deadline scheduler that never accumulates catch-up iterations."""
+
+    def __init__(self, rate_hz: float, enabled: bool) -> None:
+        if not math.isfinite(rate_hz) or rate_hz <= 0.0:
+            raise ValueError("--control-rate-hz must be a positive finite value.")
+        self.period = 1.0 / float(rate_hz)
+        self.enabled = bool(enabled)
+        self.next_deadline: float | None = None
+        self.work_seconds: deque[float] = deque(maxlen=200_000)
+        self.deadline_misses = 0
+        self.iterations = 0
+
+    def wait(self, work_started: float) -> None:
+        now = time.perf_counter()
+        self.work_seconds.append(max(now - work_started, 0.0))
+        self.iterations += 1
+        if not self.enabled:
+            return
+        if self.next_deadline is None:
+            self.next_deadline = work_started + self.period
+        else:
+            self.next_deadline += self.period
+        if now < self.next_deadline:
+            time.sleep(self.next_deadline - now)
+            return
+        self.deadline_misses += 1
+        missed = math.floor((now - self.next_deadline) / self.period) + 1
+        self.next_deadline += missed * self.period
+
+    def summary(self) -> dict[str, float | int]:
+        samples_ms = np.asarray(self.work_seconds, dtype=np.float64) * 1_000.0
+
+        def percentile(quantile: float) -> float:
+            return float(np.percentile(samples_ms, quantile)) if samples_ms.size else 0.0
+
+        return {
+            "control_rate_hz": 1.0 / self.period,
+            "iterations": self.iterations,
+            "deadline_misses": self.deadline_misses,
+            "deadline_miss_ratio": self.deadline_misses / max(self.iterations, 1),
+            "work_ms_p50": percentile(50.0),
+            "work_ms_p95": percentile(95.0),
+            "work_ms_p99": percentile(99.0),
+            "work_ms_max": float(np.max(samples_ms)) if samples_ms.size else 0.0,
+        }
+
+
+def write_timing_report(
+    path: Path | None,
+    scheduler: RealtimeLoopScheduler,
+    analyzer: RealtimeMusicAnalyzer | None,
+    player: "MujocoHumanoidPlayer",
+) -> None:
+    if path is None:
+        return
+    report = scheduler.summary()
+    report.update(
+        {
+            "collision_checks": player.collision_check_count,
+            "collision_projections": player.collision_projection_count,
+            "collision_anchor_recoveries": player.collision_anchor_recovery_count,
+        }
+    )
+    if analyzer is not None:
+        report.update(
+            {
+                "plp_submitted": analyzer.analysis_submitted,
+                "plp_completed": analyzer.analysis_completed,
+                "plp_skipped_busy": analyzer.analysis_skipped_busy,
+                "plp_errors": analyzer.analysis_errors,
+                "plp_last_ms": analyzer.analysis_last_latency_sec * 1_000.0,
+                "plp_max_ms": analyzer.analysis_max_latency_sec * 1_000.0,
+            }
+        )
+    report_path = path if path.is_absolute() else ROOT / path
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
 
 class HumanoidDanceSampler:
@@ -896,7 +980,15 @@ class BvhUnitreeG1MotionSampler:
 
 
 class MujocoHumanoidPlayer:
-    def __init__(self, model_path: Path, realtime: bool, headless: bool) -> None:
+    def __init__(
+        self,
+        model_path: Path,
+        realtime: bool,
+        headless: bool,
+        viewer_rate_hz: float = 60.0,
+    ) -> None:
+        if not math.isfinite(viewer_rate_hz) or viewer_rate_hz <= 0.0:
+            raise ValueError("--viewer-rate-hz must be a positive finite value.")
         self.model = mujoco.MjModel.from_xml_path(str(model_path))
         activate_required_collision_geoms(self.model)
         self.data = mujoco.MjData(self.model)
@@ -933,7 +1025,10 @@ class MujocoHumanoidPlayer:
             else int(self.model.jnt_qposadr[self.floating_base_joint_id])
         )
         self.limit_clip_counts = {name: 0 for name in self.actuator_ids}
+        self.collision_check_count = 0
         self.collision_projection_count = 0
+        self.collision_anchor_recovery_count = 0
+        self.last_collision_safe_qpos: np.ndarray | None = None
         expanded_collision_pairs = {
             tuple(sorted((first, second)))
             for first_group, second_group in collision_geom_pairs(self.model)
@@ -956,6 +1051,13 @@ class MujocoHumanoidPlayer:
             and int(self.model.geom_type[geom_id]) == int(mujoco.mjtGeom.mjGEOM_SPHERE)
         )
         self.viewer = None
+        self.viewer_data: mujoco.MjData | None = None
+        self.viewer_rate_hz = float(viewer_rate_hz)
+        self.viewer_stop = threading.Event()
+        self.viewer_thread: threading.Thread | None = None
+        self.viewer_snapshot_lock = threading.Lock()
+        self.viewer_qpos_snapshot: np.ndarray | None = None
+        self.viewer_time_snapshot = 0.0
 
     @property
     def actuator_names(self) -> set[str]:
@@ -969,7 +1071,10 @@ class MujocoHumanoidPlayer:
         if not self.headless:
             if mujoco.viewer is None:
                 raise RuntimeError("mujoco.viewer is unavailable; rerun with --headless for a non-GUI smoke test.")
-            self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            self.viewer_data = mujoco.MjData(self.model)
+            self.viewer_data.qpos[:] = self.data.qpos
+            mujoco.mj_forward(self.model, self.viewer_data)
+            self.viewer = mujoco.viewer.launch_passive(self.model, self.viewer_data)
             self.viewer.cam.distance = 4.2
             self.viewer.cam.azimuth = 180
             self.viewer.cam.elevation = -12
@@ -978,6 +1083,50 @@ class MujocoHumanoidPlayer:
                 self.viewer.cam.type = mujoco.mjtCamera.mjCAMERA_TRACKING
                 self.viewer.cam.trackbodyid = pelvis_id
                 self.viewer.cam.fixedcamid = -1
+            self.viewer_stop.clear()
+            self._publish_viewer_snapshot()
+            self.viewer_thread = threading.Thread(
+                target=self._viewer_sync_loop,
+                name="mujoco-viewer-sync",
+                daemon=True,
+            )
+            self.viewer_thread.start()
+
+    def _publish_viewer_snapshot(self) -> None:
+        if self.viewer is None:
+            return
+        with self.viewer_snapshot_lock:
+            if self.viewer_qpos_snapshot is None:
+                self.viewer_qpos_snapshot = np.empty_like(self.data.qpos)
+            np.copyto(self.viewer_qpos_snapshot, self.data.qpos)
+            self.viewer_time_snapshot = float(self.data.time)
+
+    def _viewer_sync_loop(self) -> None:
+        viewer = self.viewer
+        viewer_data = self.viewer_data
+        if viewer is None or viewer_data is None:
+            return
+        period = 1.0 / self.viewer_rate_hz
+        next_sync = time.perf_counter()
+        while not self.viewer_stop.is_set() and viewer.is_running():
+            with self.viewer_snapshot_lock:
+                snapshot = (
+                    None
+                    if self.viewer_qpos_snapshot is None
+                    else self.viewer_qpos_snapshot.copy()
+                )
+                snapshot_time = self.viewer_time_snapshot
+            if snapshot is not None:
+                viewer_data.qpos[:] = snapshot
+                viewer_data.time = snapshot_time
+                mujoco.mj_forward(self.model, viewer_data)
+            viewer.sync()
+            next_sync += period
+            delay = next_sync - time.perf_counter()
+            if delay <= 0.0:
+                next_sync = time.perf_counter()
+                continue
+            self.viewer_stop.wait(delay)
 
     def is_running(self) -> bool:
         return self.viewer.is_running() if self.viewer is not None else True
@@ -1062,19 +1211,36 @@ class MujocoHumanoidPlayer:
         iterations: int = 14,
     ) -> RobotMotionFrame:
         """Scale a realtime pose update back toward the last safe displayed pose."""
+        self.collision_check_count += 1
         scratch = self.collision_scratch
         scratch.qpos[:] = self.data.qpos
         self._write_frame(scratch, frame, count_limits=False)
         candidate_qpos = scratch.qpos.copy()
         if not self._has_self_clearance_violation(scratch, minimum_distance):
+            self.last_collision_safe_qpos = candidate_qpos
             return frame
 
         anchor_qpos = self.data.qpos.copy()
         scratch.qpos[:] = anchor_qpos
         if self._has_self_clearance_violation(scratch, minimum_distance):
-            raise ValueError(
-                "Realtime self-collision projection has no safe anchor; regenerate the GMR artifact."
-            )
+            fallback = self.last_collision_safe_qpos
+            if fallback is not None:
+                anchor_qpos = fallback.copy()
+                scratch.qpos[:] = anchor_qpos
+            if fallback is None or self._has_self_clearance_violation(
+                scratch,
+                minimum_distance,
+            ):
+                anchor_qpos = self.data.qpos.copy()
+                anchor_qpos[7:] = 0.0
+                scratch.qpos[:] = anchor_qpos
+            if self._has_self_clearance_violation(scratch, minimum_distance):
+                # Keep the realtime loop alive even when an incompatible model
+                # provides no safe neutral anchor.  The policy benchmark will
+                # force the default mode to off if this path is observed.
+                self.collision_anchor_recovery_count += 1
+                return frame
+            self.collision_anchor_recovery_count += 1
 
         safe_amount = 0.0
         unsafe_amount = 1.0
@@ -1094,8 +1260,20 @@ class MujocoHumanoidPlayer:
             name: float(probe[qpos_id])
             for name, qpos_id in self.actuator_joint_qpos_ids.items()
         }
+        self.last_collision_safe_qpos = probe.copy()
         self.collision_projection_count += 1
         return frame.with_joint_positions(projected_joints)
+
+    def apply_collision_policy(
+        self,
+        frame: RobotMotionFrame,
+        mode: str,
+        *,
+        runtime_modified: bool,
+    ) -> RobotMotionFrame:
+        if mode == "off" or (mode == "auto" and not runtime_modified):
+            return frame
+        return self.project_self_collision_safe(frame)
 
     def support_height(self, data: mujoco.MjData | None = None) -> float:
         target = self.data if data is None else data
@@ -1144,18 +1322,101 @@ class MujocoHumanoidPlayer:
 
         self.set_frame(RobotMotionFrame(pose))
 
-    def step(self) -> None:
+    def step(self, elapsed: float | None = None) -> None:
         mujoco.mj_forward(self.model, self.data)
-        self.data.time += self.dt
-        if self.viewer is not None:
-            self.viewer.sync()
-        if self.realtime:
-            time.sleep(self.dt)
+        self.data.time += self.dt if elapsed is None else max(float(elapsed), 0.0)
+        self._publish_viewer_snapshot()
 
     def stop(self) -> None:
+        self.viewer_stop.set()
+        if self.viewer_thread is not None:
+            self.viewer_thread.join(timeout=1.0)
         if self.viewer is not None:
             self.viewer.close()
             self.viewer = None
+        if self.viewer_thread is not None and self.viewer_thread.is_alive():
+            self.viewer_thread.join(timeout=1.0)
+        self.viewer_thread = None
+        self.viewer_data = None
+        self.viewer_qpos_snapshot = None
+
+
+class _AsyncAudioOutput:
+    """Write speaker blocks on a worker so PortAudio cannot stall control."""
+
+    def __init__(self, stream: Any, max_pending_blocks: int = 8) -> None:
+        self.stream = stream
+        self.blocks: queue.Queue[np.ndarray] = queue.Queue(
+            maxsize=max(int(max_pending_blocks), 1)
+        )
+        self.closing = threading.Event()
+        self.error: BaseException | None = None
+        self.dropped_blocks = 0
+        self.thread = threading.Thread(
+            target=self._run,
+            name="audio-output",
+            daemon=True,
+        )
+        self.thread.start()
+
+    def submit(self, block: np.ndarray) -> None:
+        self.raise_if_failed()
+        rendered = np.ascontiguousarray(block, dtype=np.float32)
+        try:
+            self.blocks.put_nowait(rendered)
+            return
+        except queue.Full:
+            # Keeping stale audio would increase A/V latency indefinitely. Drop
+            # the oldest block and preserve the newest point on the timeline.
+            try:
+                self.blocks.get_nowait()
+                self.blocks.task_done()
+                self.dropped_blocks += 1
+            except queue.Empty:
+                pass
+        try:
+            self.blocks.put_nowait(rendered)
+        except queue.Full:
+            self.dropped_blocks += 1
+
+    def raise_if_failed(self) -> None:
+        if self.error is not None:
+            raise RuntimeError("Audio output worker failed.") from self.error
+
+    def stop(self) -> None:
+        self.closing.set()
+        self.thread.join(timeout=2.0)
+        if self.thread.is_alive():
+            abort = getattr(self.stream, "abort", None)
+            if callable(abort):
+                abort()
+            self.thread.join(timeout=1.0)
+        self.raise_if_failed()
+
+    def _run(self) -> None:
+        try:
+            while not self.closing.is_set() or not self.blocks.empty():
+                try:
+                    block = self.blocks.get(timeout=0.05)
+                except queue.Empty:
+                    continue
+                try:
+                    self.stream.write(block)
+                finally:
+                    self.blocks.task_done()
+        except BaseException as exc:
+            self.error = exc
+        finally:
+            while True:
+                try:
+                    self.blocks.get_nowait()
+                    self.blocks.task_done()
+                except queue.Empty:
+                    break
+            try:
+                self.stream.stop()
+            finally:
+                self.stream.close()
 
 
 class FileMicrophoneSource:
@@ -1180,6 +1441,7 @@ class FileMicrophoneSource:
         self.throttle = bool(throttle)
         self.play_audio = bool(play_audio)
         self.output_stream: Any | None = None
+        self.audio_output: _AsyncAudioOutput | None = None
         audio, _ = librosa.load(path, sr=self.sample_rate, mono=True)
         self.audio = np.asarray(audio, dtype=np.float32).reshape(-1)
         if self.audio.size == 0:
@@ -1225,13 +1487,21 @@ class FileMicrophoneSource:
                     "Check the Windows output device and sounddevice/PortAudio setup."
                 ) from exc
             self.output_stream = stream
+            self.audio_output = _AsyncAudioOutput(stream)
         self.stream_start_wall = time.perf_counter()
         self.last_advance_wall = self.stream_start_wall
 
     def stop(self) -> None:
+        analyzer_stop = getattr(self.analyzer, "stop", None)
+        if callable(analyzer_stop):
+            analyzer_stop()
+        audio_output = self.audio_output
+        self.audio_output = None
         stream = self.output_stream
         self.output_stream = None
-        if stream is not None:
+        if audio_output is not None:
+            audio_output.stop()
+        elif stream is not None:
             try:
                 stream.stop()
             finally:
@@ -1289,9 +1559,9 @@ class FileMicrophoneSource:
             {"callback_time": callback_time},
             None,
         )
-        if self.output_stream is not None:
+        if self.audio_output is not None:
             output_block = np.ascontiguousarray(block.reshape(-1, 1), dtype=np.float32)
-            self.output_stream.write(output_block)
+            self.audio_output.submit(output_block)
         self.cursor = end
 
 
@@ -1395,7 +1665,31 @@ def parse_args() -> argparse.Namespace:
         help="Play --audio-input through the default output device in sync with virtual-microphone analysis.",
     )
     parser.add_argument("--max-seconds", type=float, default=None, help="Optional duration limit for smoke tests.")
-    parser.add_argument("--realtime", action="store_true", help="Sleep at the MuJoCo timestep.")
+    parser.add_argument("--realtime", action="store_true", help="Throttle the control loop to wall-clock time.")
+    parser.add_argument(
+        "--control-rate-hz",
+        type=float,
+        default=120.0,
+        help="Realtime kinematic control frequency (default: 120 Hz).",
+    )
+    parser.add_argument(
+        "--viewer-rate-hz",
+        type=float,
+        default=60.0,
+        help="MuJoCo Viewer refresh frequency, decoupled from control (default: 60 Hz).",
+    )
+    parser.add_argument(
+        "--timing-report",
+        type=Path,
+        default=None,
+        help="Optional JSON report containing loop, PLP, and collision timing counters.",
+    )
+    parser.add_argument(
+        "--runtime-collision-check",
+        choices=("auto", "always", "off"),
+        default="off",
+        help="Check modified/blended poses, every pose, or no realtime poses.",
+    )
     parser.add_argument("--motion-cycle-duration", type=float, default=None)
     parser.add_argument("--preview-amplitude", type=float, default=0.85, help="Fixed dance amplitude for --preview-trajectory.")
     parser.add_argument("--beats-per-cycle", type=int, default=2)
@@ -1445,7 +1739,13 @@ def parse_args() -> argparse.Namespace:
         help="Maximum number of auto-detected keypoints per dance cycle. Defaults to the rounded motion duration in seconds.",
     )
     parser.add_argument("--speed-min", type=float, default=0.55)
-    parser.add_argument("--speed-max", type=float, default=1.9)
+    parser.add_argument("--speed-max", type=float, default=1.6)
+    parser.add_argument(
+        "--max-speed-change-per-sec",
+        type=float,
+        default=2.0,
+        help="Maximum change in motion speed multiplier per second (default: 2.0x/s).",
+    )
     parser.add_argument("--amp-min", type=float, default=0.35)
     parser.add_argument("--amp-max", type=float, default=1.25)
     parser.add_argument("--pose-gain", type=float, default=1.0)
@@ -1474,6 +1774,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--accent-duration", type=float, default=0.16)
     parser.add_argument("--status-interval", type=float, default=1.0)
     parser.add_argument("--mic-sample-rate", type=int, default=16000)
+    parser.add_argument(
+        "--mic-device",
+        default=None,
+        help="Optional sounddevice input index or exact device name.",
+    )
     parser.add_argument("--mic-block-size", type=int, default=512)
     parser.add_argument("--plp-history-sec", type=float, default=8.0)
     parser.add_argument("--plp-analysis-interval-sec", type=float, default=0.10)
@@ -1674,6 +1979,11 @@ def make_analyzer(args: argparse.Namespace) -> RealtimeMusicAnalyzer:
         plp_analysis_interval_sec=args.plp_analysis_interval_sec,
         plp_hop_length=args.plp_hop_length,
         plp_peak_prominence=args.plp_peak_prominence,
+        input_device=(
+            int(getattr(args, "mic_device", ""))
+            if str(getattr(args, "mic_device", "")).lstrip("-").isdigit()
+            else getattr(args, "mic_device", None)
+        ),
     )
 
 
@@ -1878,10 +2188,15 @@ def run_trajectory_preview(
     )
 
     start = time.perf_counter()
+    scheduler = RealtimeLoopScheduler(
+        getattr(args, "control_rate_hz", 120.0),
+        getattr(args, "realtime", False),
+    )
     last_status = start
     try:
         while player.is_running():
-            now = time.perf_counter()
+            work_started = time.perf_counter()
+            now = work_started
             elapsed = now - start
             if args.max_seconds is not None and elapsed >= args.max_seconds:
                 break
@@ -1903,6 +2218,7 @@ def run_trajectory_preview(
             if now - last_status >= args.status_interval:
                 print(f"preview | phase={phase:.2f} | amp={amplitude:.2f} | speed=1.00x")
                 last_status = now
+            scheduler.wait(work_started)
     finally:
         player.stop()
 
@@ -1911,7 +2227,12 @@ def main() -> None:
     args = parse_args()
     sampler = make_sampler(args)
     motion_cycle_duration = max(args.motion_cycle_duration or sampler.duration, 1e-6)
-    player = MujocoHumanoidPlayer(args.model, realtime=args.realtime, headless=args.headless)
+    player = MujocoHumanoidPlayer(
+        args.model,
+        realtime=args.realtime,
+        headless=args.headless,
+        viewer_rate_hz=args.viewer_rate_hz,
+    )
     pose_adapter = make_pose_adapter(args, player, sampler)
     player.ground_sampler(sampler, pose_adapter)
     modulation_off = args.disable_music_modulation or args.pose_modulation_mode == "off"
@@ -1945,6 +2266,7 @@ def main() -> None:
         beat_keypoint_interval_ratio=args.beat_keypoint_interval_ratio,
         beat_selection_mode=args.beat_selection_mode,
         beat_contrast_weight=args.beat_contrast_weight,
+        max_speed_change_per_sec=args.max_speed_change_per_sec,
     )
     file_source: FileMicrophoneSource | None = None
     analyzer = None if args.no_mic and args.audio_input is None else make_analyzer(args)
@@ -1960,7 +2282,17 @@ def main() -> None:
         )
     features = FeatureState(rms_norm=0.45, brightness=0.35, low_energy=0.55, mid_energy=0.45, high_energy=0.25)
 
+    if analyzer is not None:
+        # Spawning a numerical worker after MuJoCo creates its OpenGL viewer
+        # can deadlock on Windows.  Finish worker startup first.
+        analyzer.prepare_background_analysis()
+    live_microphone_started = analyzer is not None and file_source is None
+    if live_microphone_started:
+        print(f"Calibrating microphone noise from the first {args.startup_calibration_sec:.2f}s of live input.")
+        analyzer.start()
     player.start()
+    if live_microphone_started:
+        analyzer.reset()
     initial_root = player.root_frame()
     root_motion = RootMotionContinuity(
         initial_root.root_position if initial_root.root_position is not None else np.zeros(3),
@@ -1978,13 +2310,13 @@ def main() -> None:
             f"speaker output={'on' if file_source.play_audio else 'off'})."
         )
     elif analyzer is not None:
-        print(f"Calibrating microphone noise from the first {args.startup_calibration_sec:.2f}s of live input.")
-        analyzer.start()
+        pass
     else:
         controller.target_amplitude_scale = 0.75
         print("Running in --no-mic demo mode.")
 
     start = time.perf_counter()
+    scheduler = RealtimeLoopScheduler(args.control_rate_hz, args.realtime)
     last_status = start
     last_feature_update = start
     last_frame: MusicFrame | None = None
@@ -1992,9 +2324,10 @@ def main() -> None:
     recent_accepted_beat_frame: MusicFrame | None = None
     try:
         while player.is_running():
-            now = time.perf_counter()
+            work_started = time.perf_counter()
+            now = work_started
             if file_source is not None:
-                file_source.advance(player.dt)
+                file_source.advance(scheduler.period)
                 elapsed = file_source.playback_seconds
             else:
                 elapsed = now - start
@@ -2009,7 +2342,7 @@ def main() -> None:
                         recent_detected_beat_frame = frame
                     if controller.observe(frame):
                         recent_accepted_beat_frame = frame
-                    dt = max(now - last_feature_update, player.dt)
+                    dt = max(now - last_feature_update, scheduler.period)
                     alpha = 1.0 - math.exp(-dt / max(args.feature_smoothing_tau, 1e-6))
                     features.update(frame, alpha)
                     last_feature_update = now
@@ -2031,9 +2364,13 @@ def main() -> None:
                 phase=phase,
                 source_id=sampler_source_id(sampler),
             )
-            motion_frame = player.project_self_collision_safe(motion_frame)
+            motion_frame = player.apply_collision_policy(
+                motion_frame,
+                args.runtime_collision_check,
+                runtime_modified=modulator is not None and features.is_active,
+            )
             player.set_frame(motion_frame)
-            player.step()
+            player.step(scheduler.period)
 
             if now - last_status >= args.status_interval:
                 print_status(
@@ -2048,12 +2385,14 @@ def main() -> None:
                 last_status = now
             if file_source is not None and file_source.done:
                 break
+            scheduler.wait(work_started)
     finally:
         if file_source is not None:
             file_source.stop()
         elif analyzer is not None:
             analyzer.stop()
         player.stop()
+        write_timing_report(args.timing_report, scheduler, analyzer, player)
 
 
 if __name__ == "__main__":

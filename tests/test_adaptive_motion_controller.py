@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import sys
+import time
 import unittest
 from collections import deque
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 
@@ -14,6 +16,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 try:
+    import realtime_music_adaptive_player as player_module
     from realtime_music_adaptive_player import (
         AdaptiveMotionController,
         MusicFrame,
@@ -130,6 +133,20 @@ class AdaptiveMotionControllerBeatFilterTests(unittest.TestCase):
         self.assertGreater(controller.phase_correction_remaining, 0.0)
 
     @unittest.skipIf(AdaptiveMotionController is None, _IMPORT_SKIP_REASON)
+    def test_effective_speed_change_is_rate_limited(self) -> None:
+        controller = make_adaptive_controller(speed_min=0.5, speed_max=2.0)
+        controller.max_speed_change_per_sec = 2.0
+        controller.update(1.0)
+        controller.target_phase_rate = controller.authored_phase_rate * 2.0
+        controller.phase_correction_remaining = 0.4
+
+        previous = controller.speed_multiplier
+        controller.update(1.1)
+
+        self.assertLessEqual(controller.speed_multiplier - previous, 0.2 + 1e-12)
+        self.assertGreater(controller.phase_correction_remaining, 0.0)
+
+    @unittest.skipIf(AdaptiveMotionController is None, _IMPORT_SKIP_REASON)
     def test_rejects_low_confidence_beats(self) -> None:
         controller = make_controller()
 
@@ -236,6 +253,71 @@ class RealtimeMusicAnalyzerBeatFilterTests(unittest.TestCase):
         analyzer.estimator.add_beat(2.0)
 
         self.assertAlmostEqual(0.275, analyzer._minimum_next_beat_gap())
+
+    @unittest.skipIf(RealtimeMusicAnalyzer is None, _IMPORT_SKIP_REASON)
+    def test_heavy_window_analysis_never_blocks_drain_or_builds_a_backlog(self) -> None:
+        analyzer = RealtimeMusicAnalyzer(
+            sample_rate=16000,
+            block_size=512,
+            onset_threshold_scale=3.0,
+            min_beat_period=0.25,
+            max_beat_period=2.0,
+            refractory_sec=0.18,
+            noise_gate_rms=0.002,
+            noise_gate_ratio=1.8,
+            startup_calibration_sec=0.0,
+            plp_history_sec=8.0,
+            plp_analysis_interval_sec=0.02,
+            plp_hop_length=256,
+            plp_peak_prominence=0.15,
+        )
+        analyzer.latest_status_frame = make_frame(1.0, 0.9, is_beat=False)
+        analyzer._append_audio_chunk(time.perf_counter() - 1.0, np.ones(16000))
+
+        def slow_analysis(*_args: object) -> None:
+            time.sleep(0.05)
+            return None
+
+        analyzer.analysis_executor = player_module.ThreadPoolExecutor(max_workers=1)
+        with patch.object(player_module, "compute_window_analysis_job", side_effect=slow_analysis):
+            started = time.perf_counter()
+            analyzer.drain()
+            first_drain = time.perf_counter() - started
+            analyzer.last_plp_analysis_time = 0.0
+            analyzer.drain()
+            self.assertLess(first_drain, 0.02)
+            self.assertEqual(1, analyzer.analysis_submitted)
+            self.assertEqual(1, analyzer.analysis_skipped_busy)
+        analyzer.stop()
+
+    @unittest.skipIf(RealtimeMusicAnalyzer is None, _IMPORT_SKIP_REASON)
+    def test_reset_discards_completed_analysis_from_an_older_generation(self) -> None:
+        analyzer = RealtimeMusicAnalyzer(
+            sample_rate=16000,
+            block_size=512,
+            onset_threshold_scale=3.0,
+            min_beat_period=0.25,
+            max_beat_period=2.0,
+            refractory_sec=0.18,
+            noise_gate_rms=0.002,
+            noise_gate_ratio=1.8,
+            startup_calibration_sec=0.0,
+            plp_history_sec=8.0,
+            plp_analysis_interval_sec=0.02,
+            plp_hop_length=256,
+            plp_peak_prominence=0.15,
+        )
+        analyzer.latest_status_frame = make_frame(1.0, 0.9, is_beat=False)
+        analyzer._append_audio_chunk(time.perf_counter() - 1.0, np.ones(16000))
+        analyzer.analysis_executor = player_module.ThreadPoolExecutor(max_workers=1)
+        with patch.object(player_module, "compute_window_analysis_job", return_value=None):
+            analyzer.drain()
+            analyzer.reset()
+            while analyzer.analysis_future is not None and not analyzer.analysis_future.done():
+                time.sleep(0.001)
+            analyzer.drain()
+        self.assertEqual(0, analyzer.analysis_completed)
+        analyzer.stop()
 
     @unittest.skipIf(compute_beat_contrasts is None, _IMPORT_SKIP_REASON)
     def test_beat_contrast_separates_alternating_strong_and_weak_beats(self) -> None:

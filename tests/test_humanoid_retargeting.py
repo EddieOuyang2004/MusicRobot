@@ -8,7 +8,7 @@ import unittest
 from argparse import Namespace
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import mujoco
@@ -27,7 +27,9 @@ from realtime_music_humanoid_dancer import (
     AistppMotionSampler,
     FeatureState,
     GmrUnitreeG1MotionSampler,
+    HumanoidDanceSampler,
     MujocoHumanoidPlayer,
+    run_trajectory_preview,
 )
 from realtime_music_humanoid_matcher import load_motion_sampler
 from robot_motion import RobotMotionFrame, RootMotionContinuity, align_motion_frame_root, blend_motion_frames
@@ -64,6 +66,85 @@ class HumanoidRetargetingTests(unittest.TestCase):
         player._write_frame(player.collision_scratch, projected, count_limits=False)
         self.assertFalse(player._has_self_clearance_violation(player.collision_scratch, 0.006))
         self.assertEqual(1, player.collision_projection_count)
+
+        features = FeatureState(
+            rms_norm=1.0,
+            brightness=1.0,
+            low_energy=1.0,
+            mid_energy=1.0,
+            high_energy=1.0,
+            rhythm_density=1.0,
+            offbeat_ratio=1.0,
+            is_active=True,
+        )
+        for mode in ("subtle", "expressive"):
+            player.set_frame(projected)
+            player.step()
+            modulated = MusicPoseModulator(1.0, mode=mode).modulate(
+                projected.joint_positions,
+                features,
+                phase=0.3125,
+                amplitude=1.25,
+                accent=1.0,
+            )
+            safe_modulated = player.project_self_collision_safe(
+                projected.with_joint_positions(modulated)
+            )
+            player.collision_scratch.qpos[:] = player.data.qpos
+            player._write_frame(player.collision_scratch, safe_modulated, count_limits=False)
+            self.assertFalse(
+                player._has_self_clearance_violation(player.collision_scratch, 0.006),
+                mode,
+            )
+
+    def test_authored_preview_does_not_apply_music_modulation(self) -> None:
+        class OneFramePlayer:
+            def __init__(self) -> None:
+                self.running = True
+                self.frames: list[RobotMotionFrame] = []
+
+            def start(self) -> None:
+                return
+
+            def root_frame(self) -> RobotMotionFrame:
+                return RobotMotionFrame(
+                    {},
+                    np.zeros(3),
+                    np.asarray([1.0, 0.0, 0.0, 0.0]),
+                )
+
+            def is_running(self) -> bool:
+                return self.running
+
+            def set_frame(self, frame: RobotMotionFrame) -> None:
+                self.frames.append(frame)
+
+            def step(self) -> None:
+                self.running = False
+
+            def stop(self) -> None:
+                return
+
+        class ForbiddenModulator:
+            def modulate(self, *_args: object, **_kwargs: object) -> dict[str, float]:
+                raise AssertionError("authored preview must not apply music modulation")
+
+        player = OneFramePlayer()
+        args = SimpleNamespace(
+            preview_amplitude=0.85,
+            motion_cycle_duration=None,
+            root_motion="continuous",
+            max_seconds=None,
+            status_interval=1000.0,
+        )
+        run_trajectory_preview(
+            args,
+            HumanoidDanceSampler(1.0, 0.0),
+            player,  # type: ignore[arg-type]
+            None,
+            ForbiddenModulator(),  # type: ignore[arg-type]
+        )
+        self.assertEqual(1, len(player.frames))
 
     def test_playback_collision_pairs_include_rubber_hands_and_head(self) -> None:
         model_path = ROOT / "realtime" / "humanoid_robot" / "assets" / "open_humanoid_dancer.xml"
@@ -607,7 +688,10 @@ class HumanoidRetargetingTests(unittest.TestCase):
                 type=None,
                 trackbodyid=-1,
                 fixedcamid=0,
-            )
+            ),
+            is_running=Mock(return_value=True),
+            sync=Mock(),
+            close=Mock(),
         )
         with patch(
             "realtime_music_humanoid_dancer.mujoco.viewer.launch_passive",
@@ -618,6 +702,7 @@ class HumanoidRetargetingTests(unittest.TestCase):
         self.assertEqual(int(mujoco.mjtCamera.mjCAMERA_TRACKING), int(viewer.cam.type))
         self.assertEqual(pelvis_id, viewer.cam.trackbodyid)
         self.assertEqual(-1, viewer.cam.fixedcamid)
+        player.stop()
 
     def test_whole_clip_grounding_preserves_root_vertical_range(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from argparse import Namespace
 from pathlib import Path
@@ -58,6 +60,18 @@ class RecordingOutputStream:
 
     def close(self) -> None:
         self.closed = True
+
+
+class BlockingOutputStream(RecordingOutputStream):
+    def __init__(self) -> None:
+        super().__init__()
+        self.write_started = threading.Event()
+        self.allow_write = threading.Event()
+
+    def write(self, block: np.ndarray) -> None:
+        self.write_started.set()
+        self.allow_write.wait(timeout=1.0)
+        super().write(block)
 
 
 class FileMicrophoneSourceTests(unittest.TestCase):
@@ -134,6 +148,33 @@ class FileMicrophoneSourceTests(unittest.TestCase):
             rendered = np.concatenate([block[:, 0] for block in output.blocks])
             self.assertTrue(np.allclose(rendered[:10], 0.0))
             self.assertTrue(np.allclose(rendered[10:20], 0.5))
+
+    def test_slow_audio_output_does_not_block_source_advance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            audio_path = Path(directory) / "input.wav"
+            sf.write(audio_path, np.full(20, 0.5, dtype=np.float32), 100, subtype="FLOAT")
+            output = BlockingOutputStream()
+            with patch("sounddevice.OutputStream", return_value=output):
+                source = FileMicrophoneSource(
+                    audio_path,
+                    RecordingAnalyzer(),
+                    startup_delay_sec=0.0,
+                    throttle=False,
+                    play_audio=True,
+                )
+                source.start()
+                started = time.perf_counter()
+                source.advance(0.1)
+                advance_seconds = time.perf_counter() - started
+
+                self.assertTrue(output.write_started.wait(timeout=0.5))
+                self.assertLess(advance_seconds, 0.05)
+                output.allow_write.set()
+                source.stop()
+
+            self.assertEqual(len(output.blocks), 1)
+            self.assertTrue(output.stopped)
+            self.assertTrue(output.closed)
 
     def test_matcher_file_beats_include_relative_contrast(self) -> None:
         sample_rate = 1000

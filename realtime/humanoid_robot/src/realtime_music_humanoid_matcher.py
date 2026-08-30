@@ -292,12 +292,23 @@ MotionSampler = base.AistppMotionSampler | base.GmrUnitreeG1MotionSampler
 
 
 class MotionLoader:
-    def __init__(self, catalog: MusicCatalog, args: argparse.Namespace) -> None:
+    def __init__(self, catalog: MusicCatalog, args: argparse.Namespace, adapter: Any) -> None:
         self.catalog = catalog
         self.args = args
+        self.adapter = adapter
         self.max_cached = max(int(args.match_top_motions), 1)
         self.executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="motion-load")
+        self.prepare_executor = ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix="motion-prepare",
+        )
+        self.grounding_player = base.MujocoHumanoidPlayer(
+            args.model,
+            realtime=False,
+            headless=True,
+        )
         self.futures: dict[str, Future[MotionSampler]] = {}
+        self.prepare_futures: dict[str, Future[MotionSampler]] = {}
         self.cache: dict[str, MotionSampler] = {}
 
     def submit(self, motion_id: str) -> None:
@@ -326,16 +337,50 @@ class MotionLoader:
     def take_ready(self, motion_id: str) -> MotionSampler | None:
         if motion_id in self.cache:
             return self.cache[motion_id]
-        future = self.futures.get(motion_id)
+        future = self.prepare_futures.get(motion_id)
         if future is None or not future.done():
             return None
         sampler = future.result()
-        del self.futures[motion_id]
+        del self.prepare_futures[motion_id]
+        self.futures.pop(motion_id, None)
         self.cache[motion_id] = sampler
+        return sampler
+
+    def prepare(self, motion_id: str) -> None:
+        if motion_id in self.cache or motion_id in self.prepare_futures:
+            return
+        load_future = self.futures.get(motion_id)
+        if load_future is None:
+            sampler = self.cache.get(motion_id)
+            load_future = (
+                self.executor.submit(lambda value=sampler: value)
+                if sampler is not None
+                else self.executor.submit(
+                    load_motion_sampler,
+                    self.args,
+                    self.catalog,
+                    self.catalog.motions[motion_id],
+                )
+            )
+            self.futures[motion_id] = load_future
+        self.prepare_futures[motion_id] = self.prepare_executor.submit(
+            self._prepare_sampler,
+            motion_id,
+            load_future,
+        )
+
+    def _prepare_sampler(
+        self,
+        motion_id: str,
+        load_future: Future[MotionSampler],
+    ) -> MotionSampler:
+        sampler = load_future.result()
+        self.grounding_player.ground_sampler(sampler, self.adapter)
         return sampler
 
     def close(self) -> None:
         self.executor.shutdown(wait=False, cancel_futures=True)
+        self.prepare_executor.shutdown(wait=False, cancel_futures=True)
 
 
 def motion_path(catalog: MusicCatalog, profile: MotionProfile) -> Path:
@@ -392,6 +437,7 @@ def make_extractor(args: argparse.Namespace, catalog: MusicCatalog) -> AudioFeat
         sample_rate=int(metadata["sample_rate"]),
         embedding_model=embedding_path,
         tag_model=tag_path,
+        onnx_intra_op_threads=1,
     )
     expected = str(metadata["embedding_backend"])
     if extractor.backend_name != expected:
@@ -426,6 +472,7 @@ def make_controller(
         beat_keypoint_interval_ratio=args.beat_keypoint_interval_ratio,
         beat_selection_mode=args.beat_selection_mode,
         beat_contrast_weight=args.beat_contrast_weight,
+        max_speed_change_per_sec=getattr(args, "max_speed_change_per_sec", 2.0),
     )
     if previous is not None:
         strongest = (
@@ -545,6 +592,7 @@ def main() -> int:
         args.model,
         realtime=args.realtime,
         headless=args.headless,
+        viewer_rate_hz=args.viewer_rate_hz,
     )
     adapter = base.make_pose_adapter(args, player, current_sampler)
     player.ground_sampler(current_sampler, adapter)
@@ -590,7 +638,7 @@ def main() -> int:
         args.match_top_tracks,
         args.match_top_motions,
     )
-    loader = MotionLoader(catalog, args)
+    loader = MotionLoader(catalog, args, adapter)
     selection_policy = MotionSelectionPolicy(
         current_motion_id=current_id,
         required_wins=args.switch_required_wins,
@@ -646,7 +694,20 @@ def main() -> int:
         )
         trace_writer.writeheader()
 
+    source_analyzer = getattr(source, "analyzer", None)
+    if source_analyzer is not None:
+        # Windows process spawning must happen before the viewer owns an
+        # OpenGL context; source.start() remains responsible for the stream.
+        source_analyzer.prepare_background_analysis()
+    live_microphone_started = isinstance(source, MicrophoneSource)
+    if live_microphone_started:
+        # Some Windows PortAudio backends can block when opened after an
+        # OpenGL viewer.  Open hardware first, then restart calibration once
+        # the viewer is ready.
+        source.start()
     player.start()
+    if live_microphone_started:
+        source_analyzer.reset()
     initial_root = player.root_frame()
     root_motion = RootMotionContinuity(
         initial_root.root_position if initial_root.root_position is not None else np.zeros(3),
@@ -656,15 +717,18 @@ def main() -> int:
         mode=args.root_motion,
         grounded_z=True,
     )
-    source.start()
+    if not live_microphone_started:
+        source.start()
     wall_start = time.perf_counter()
+    scheduler = base.RealtimeLoopScheduler(args.control_rate_hz, args.realtime)
     print(f"Initial motion: {current_id}")
     try:
         while player.is_running() and not source.done:
             trace_event = ""
             trace_transition_blend = 0.0
-            now = time.perf_counter()
-            source.advance(player.dt)
+            work_started = time.perf_counter()
+            now = work_started
+            source.advance(scheduler.period)
             elapsed = (
                 source.playback_seconds
                 if isinstance(source, MatcherFileMicrophoneSource)
@@ -680,7 +744,7 @@ def main() -> int:
                 accepted = current_controller.observe(frame)
                 if transition_controller is not None:
                     transition_controller.observe(frame)
-                dt = max(now - last_feature_update, player.dt)
+                dt = max(now - last_feature_update, scheduler.period)
                 alpha = 1.0 - math.exp(
                     -dt / max(args.feature_smoothing_tau, 1e-6)
                 )
@@ -716,6 +780,8 @@ def main() -> int:
                 previous_pending = selection_policy.pending
                 pending = selection_policy.observe(result)
                 loader.preload(selection_policy.preload_motion_ids(result))
+                if pending is not None:
+                    loader.prepare(pending.motion_id)
                 if previous_pending is None and pending is not None:
                     pool = ", ".join(
                         f"{item.motion_id}:{item.final_score:.3f}/{item.music_score:.3f}"
@@ -735,9 +801,9 @@ def main() -> int:
                 ready_selection is not None
                 and transition_sampler is None
             ):
+                loader.prepare(ready_selection.motion_id)
                 ready = loader.take_ready(ready_selection.motion_id)
                 if ready is not None:
-                    player.ground_sampler(ready, adapter)
                     transition_sampler = ready
                     transition_selection = ready_selection
                     transition_profile = catalog.motions[ready_selection.motion_id]
@@ -825,9 +891,16 @@ def main() -> int:
                 phase=current_phase if transition_phase is None else transition_phase,
                 source_id=root_source_id,
             )
-            motion_frame = player.project_self_collision_safe(motion_frame)
+            motion_frame = player.apply_collision_policy(
+                motion_frame,
+                args.runtime_collision_check,
+                runtime_modified=(
+                    transition_sampler is not None
+                    or (modulator is not None and features.is_active)
+                ),
+            )
             player.set_frame(motion_frame)
-            player.step()
+            player.step(scheduler.period)
 
             if trace_writer is not None and (
                 trace_event or elapsed + 1e-9 >= trace_next_audio_time
@@ -895,6 +968,7 @@ def main() -> int:
                 recent_detected_beat_frame = None
                 recent_accepted_beat_frame = None
                 last_status = now
+            scheduler.wait(work_started)
     finally:
         source.stop()
         retrieval.close()
@@ -902,6 +976,12 @@ def main() -> int:
         player.stop()
         if trace_handle is not None:
             trace_handle.close()
+        base.write_timing_report(
+            args.timing_report,
+            scheduler,
+            getattr(source, "analyzer", None),
+            player,
+        )
     return 0
 
 

@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "license": "CC0 / public domain",
+  "source_library": "FreePD",
+  "source_library_url": "https://en.freepd.cn/music",
+  "analysis": {
+    "sample_rate_hz": 16000,
+    "tempo_estimator": "librosa.beat.beat_track over the full track",
+    "notes": "Tempo is a diagnostic estimate, not ground-truth annotation."
+  },
+  "tracks": [
+    {
+      "file": "01_electronic_backbeat.mp3",
+      "title": "Backbeat",
+      "style": "electronic / regular beat",
+      "test_role": "steady electronic rhythm",
+      "duration_seconds": 46.2,
+      "estimated_bpm": 104.2,
+      "source_path": "Electronic/Backbeat.mp3",
+      "sha256": "576aa0268ab27ce486f9238df3845ce104c3e05bad015ea08048ba79e88ac79a"
+    },
+    {
+      "file": "02_hiphop_hippety_hop.mp3",
+      "title": "Hippety Hop",
+      "style": "hip-hop / electronic",
+      "test_role": "syncopated beat",
+      "duration_seconds": 116.7,
+      "estimated_bpm": 144.2,
+      "source_path": "Electronic/Hippety Hop.mp3",
+      "sha256": "9e7fafd519e1280fb2cbb41b31110a23eb700d7f55eebaf5e7fd4b561b6e0410"
+    },
+    {
+      "file": "03_jazz_bebop_for_joey.mp3",
+      "title": "BeBop for Joey",
+      "style": "jazz / bebop",
+      "test_role": "fast swing-like phrasing",
+      "duration_seconds": 139.4,
+      "estimated_bpm": 170.5,
+      "source_path": "Comedy/BeBop for Joey.mp3",
+      "sha256": "c512922521ec30604cc2892d3fc84a7e0ed88f3c758ee3ccad40730c641ed2d8"
+    },
+    {
+      "file": "04_world_bollywood_groove.mp3",
+      "title": "Bollywood Groove",
+      "style": "South Asian-inspired / world",
+      "test_role": "non-Western percussion and timbre",
+      "duration_seconds": 150.1,
+      "estimated_bpm": 156.2,
+      "source_path": "World/Bollywood Groove.mp3",
+      "sha256": "3b4249f3027222d46f7cf0a9dd89dba1ec8d7c949bd11b7983289232f323480f"
+    },
+    {
+      "file": "05_latin_cumbish.mp3",
+      "title": "Cumbish",
+      "style": "Latin / cumbia-inspired",
+      "test_role": "Latin groove",
+      "duration_seconds": 192.1,
+      "estimated_bpm": 117.2,
+      "source_path": "World/Cumbish.mp3",
+      "sha256": "d8b688a0e2f26ae620195f3d538ee9915450a15f1d5576b685405ec23f905bb3"
+    },
+    {
+      "file": "06_upbeat_bar_brawl.mp3",
+      "title": "Bar Brawl",
+      "style": "upbeat rock",
+      "test_role": "very fast dense rhythm",
+      "duration_seconds": 122.6,
+      "estimated_bpm": 187.5,
+      "source_path": "Upbeat/Bar Brawl.mp3",
+      "sha256": "5da633e89e8dfd9d2b3ed58794050925dd56fd372354307e3de3ad5d0e5ed86c"
+    },
+    {
+      "file": "07_orchestral_battle_ready.mp3",
+      "title": "Battle Ready",
+      "style": "cinematic orchestral",
+      "test_role": "slow tempo with large dynamic accents",
+      "duration_seconds": 77.7,
+      "estimated_bpm": 89.3,
+      "source_path": "Epic/Battle Ready.mp3",
+      "sha256": "b836e4de121d86f04d9817907490888374648d21ee9ffb0bc2086a4c39306eb6"
+    },
+    {
+      "file": "08_waltz_isolation_waltz.mp3",
+      "title": "Isolation Waltz",
+      "style": "waltz",
+      "test_role": "triple-meter challenge",
+      "duration_seconds": 205.3,
+      "estimated_bpm": 125.0,
+      "source_path": "Romance/Isolation Waltz.mp3",
+      "sha256": "4fb04327dfa8d98c142c4427a05516b525d38740a815f9230d07e9daf8211369"
+    },
+    {
+      "file": "09_funk_funky_energy_loop.mp3",
+      "title": "Funky Energy Loop",
+      "style": "funk",
+      "test_role": "mid-tempo syncopated groove",
+      "duration_seconds": 202.5,
+      "estimated_bpm": 117.2,
+      "source_path": "Scoring/Funky Energy Loop.mp3",
+      "sha256": "b7990b4287cc345b2f42af743c96e26e126b2b03adfad661961a28640fb94c55"
+    },
+    {
+      "file": "10_ambient_alien_spaceship.mp3",
+      "title": "Alien Spaceship Atmosphere",
+      "style": "ambient / soundscape",
+      "test_role": "weak-beat negative control",
+      "duration_seconds": 124.1,
+      "estimated_bpm": 156.2,
+      "source_path": "Horror/Alien Spaceship Atmosphere.mp3",
+      "sha256": "e8feefb42d99ffb72aa6c64da6a5535f4f2080d51a3bf468bf4dcd3f8e4eb939"
+    }
+  ]
+}

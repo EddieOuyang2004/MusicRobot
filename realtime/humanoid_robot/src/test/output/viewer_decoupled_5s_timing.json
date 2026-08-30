@@ -1,0 +1,13 @@
+{
+  "control_rate_hz": 120.0,
+  "iterations": 600,
+  "deadline_misses": 0,
+  "deadline_miss_ratio": 0.0,
+  "work_ms_p50": 0.5292499990900978,
+  "work_ms_p95": 0.6553400125994813,
+  "work_ms_p99": 0.7165829988662152,
+  "work_ms_max": 0.9762999980011955,
+  "collision_checks": 0,
+  "collision_projections": 0,
+  "collision_anchor_recoveries": 0
+}

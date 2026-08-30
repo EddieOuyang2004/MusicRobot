@@ -155,6 +155,7 @@ class OnnxEffnetBackend:
         model_path: Path,
         preferred_dimension: int | None = None,
         normalize_output: bool = True,
+        intra_op_threads: int | None = None,
     ) -> None:
         try:
             import onnxruntime as ort
@@ -166,8 +167,14 @@ class OnnxEffnetBackend:
         self.model_path = Path(model_path).resolve()
         if not self.model_path.exists():
             raise FileNotFoundError(f"ONNX model not found: {self.model_path}")
+        session_options = ort.SessionOptions()
+        if intra_op_threads is not None:
+            session_options.intra_op_num_threads = max(int(intra_op_threads), 1)
+            session_options.inter_op_num_threads = 1
+            session_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         self.session = ort.InferenceSession(
             str(self.model_path),
+            sess_options=session_options,
             providers=["CPUExecutionProvider"],
         )
         self.input = self.session.get_inputs()[0]
@@ -326,12 +333,17 @@ class AudioFeatureExtractor:
         sample_rate: int = DEFAULT_ANALYSIS_SAMPLE_RATE,
         embedding_model: Path | None = None,
         tag_model: Path | None = None,
+        onnx_intra_op_threads: int | None = None,
     ) -> None:
         self.sample_rate = int(sample_rate)
         resolved_embedding = Path(embedding_model).resolve() if embedding_model else None
         resolved_tags = Path(tag_model).resolve() if tag_model else None
         self.embedding_backend = (
-            OnnxEffnetBackend(resolved_embedding, preferred_dimension=1280)
+            OnnxEffnetBackend(
+                resolved_embedding,
+                preferred_dimension=1280,
+                intra_op_threads=onnx_intra_op_threads,
+            )
             if embedding_model is not None
             else None
         )
@@ -344,11 +356,12 @@ class AudioFeatureExtractor:
             self.tag_backend = self.embedding_backend
         else:
             self.tag_backend = (
-            OnnxEffnetBackend(
-                resolved_tags,
-                preferred_dimension=400,
-                normalize_output=False,
-            )
+                OnnxEffnetBackend(
+                    resolved_tags,
+                    preferred_dimension=400,
+                    normalize_output=False,
+                    intra_op_threads=onnx_intra_op_threads,
+                )
             if tag_model is not None
             else None
             )
@@ -713,7 +726,7 @@ class MusicMotionMatcher:
         self,
         catalog: MusicCatalog,
         speed_min: float = 0.55,
-        speed_max: float = 1.9,
+        speed_max: float = 1.6,
     ) -> None:
         self.catalog = catalog
         self.speed_min = float(speed_min)

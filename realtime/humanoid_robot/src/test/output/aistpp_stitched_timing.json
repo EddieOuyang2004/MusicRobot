@@ -1,0 +1,19 @@
+{
+  "control_rate_hz": 120.0,
+  "iterations": 2350,
+  "deadline_misses": 1307,
+  "deadline_miss_ratio": 0.5561702127659575,
+  "work_ms_p50": 14.128249989880715,
+  "work_ms_p95": 30.16963999252766,
+  "work_ms_p99": 30.828746000916,
+  "work_ms_max": 76.53579999168869,
+  "collision_checks": 0,
+  "collision_projections": 0,
+  "collision_anchor_recoveries": 0,
+  "plp_submitted": 346,
+  "plp_completed": 345,
+  "plp_skipped_busy": 0,
+  "plp_errors": 0,
+  "plp_last_ms": 39.481600004364736,
+  "plp_max_ms": 41.137399995932356
+}
