@@ -6,9 +6,10 @@ import json
 import math
 import os
 import re
+import time
 import warnings
 from collections import defaultdict, deque
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -20,7 +21,8 @@ import soundfile as sf
 from aistpp_velocity_keypoints import detect_aistpp_file
 
 
-CATALOG_SCHEMA_VERSION = 1
+CATALOG_SCHEMA_VERSION = 2
+SUPPORTED_CATALOG_SCHEMA_VERSIONS = (1, CATALOG_SCHEMA_VERSION)
 DEFAULT_ANALYSIS_SAMPLE_RATE = 16_000
 DEFAULT_WINDOW_SECONDS = 6.0
 DEFAULT_HOP_SECONDS = 2.0
@@ -119,6 +121,8 @@ class AudioDescriptor:
     tempo_stability: float
     spectral_flux: float
     percussive_ratio: float
+    signal_rms: float = 0.0
+    dynamic_range_db: float = 0.0
 
     @property
     def activity(self) -> float:
@@ -143,8 +147,23 @@ class AudioDescriptor:
             "tempo_stability": self.tempo_stability,
             "spectral_flux": self.spectral_flux,
             "percussive_ratio": self.percussive_ratio,
+            "signal_rms": self.signal_rms,
+            "dynamic_range_db": self.dynamic_range_db,
             "activity": self.activity,
         }
+
+    @property
+    def beat_quality(self) -> float:
+        onset = float(np.clip(self.onset_density / 4.0, 0.0, 1.0))
+        return float(
+            np.clip(
+                0.40 * self.beat_strength
+                + 0.35 * self.tempo_stability
+                + 0.25 * onset,
+                0.0,
+                1.0,
+            )
+        )
 
 
 class OnnxEffnetBackend:
@@ -250,7 +269,7 @@ class OnnxEffnetBackend:
                 res_type="soxr_hq",
             )
         # Match Essentia TensorflowInputMusiCNN: unnormalised Hann window,
-        # magnitude spectrum, Slaney/unit-area mel bands, then
+        # power spectrum, Slaney/unit-area mel bands, then
         # log10(1 + 10000 * bands).
         frames = librosa.util.frame(
             np.pad(np.asarray(audio, dtype=np.float32), (256, 256)),
@@ -258,7 +277,12 @@ class OnnxEffnetBackend:
             hop_length=256,
         ).T
         windowed = frames * np.hanning(512).astype(np.float32)
-        magnitude = np.abs(np.fft.rfft(windowed, n=512, axis=1)).astype(np.float32)
+        # Essentia's TensorflowInputMusiCNN feeds power mel bands into the
+        # Discogs EffNet models.  Feeding magnitude here pushes otherwise
+        # unrelated audio toward the same Electronic activations.
+        power = np.square(
+            np.abs(np.fft.rfft(windowed, n=512, axis=1)).astype(np.float32)
+        )
         mel_basis = librosa.filters.mel(
             sr=DEFAULT_ANALYSIS_SAMPLE_RATE,
             n_fft=512,
@@ -268,7 +292,7 @@ class OnnxEffnetBackend:
             htk=False,
             norm="slaney",
         ).astype(np.float32)
-        mel = magnitude @ mel_basis.T
+        mel = power @ mel_basis.T
         log_mel = np.log10(1.0 + 10_000.0 * np.maximum(mel, 0.0))
         patch_size = 128
         patch_hop = 62
@@ -336,6 +360,7 @@ class AudioFeatureExtractor:
         onnx_intra_op_threads: int | None = None,
     ) -> None:
         self.sample_rate = int(sample_rate)
+        self.last_timing_ms: dict[str, float] = {}
         resolved_embedding = Path(embedding_model).resolve() if embedding_model else None
         resolved_tags = Path(tag_model).resolve() if tag_model else None
         self.embedding_backend = (
@@ -382,6 +407,7 @@ class AudioFeatureExtractor:
         return metadata
 
     def describe(self, audio: np.ndarray, source_sample_rate: int | None = None) -> AudioDescriptor:
+        total_started = time.perf_counter_ns()
         source_rate = int(source_sample_rate or self.sample_rate)
         samples = np.asarray(audio, dtype=np.float32).reshape(-1)
         if source_rate != self.sample_rate:
@@ -391,9 +417,25 @@ class AudioFeatureExtractor:
                 target_sr=self.sample_rate,
                 res_type="soxr_hq",
             ).astype(np.float32)
+        raw_rms = float(np.sqrt(np.mean(np.square(samples, dtype=np.float64)))) if samples.size else 0.0
+        raw_abs = np.abs(samples)
+        low_level = float(np.percentile(raw_abs, 10.0)) if raw_abs.size else 0.0
+        high_level = float(np.percentile(raw_abs, 95.0)) if raw_abs.size else 0.0
+        dynamic_range_db = float(
+            20.0 * math.log10(max(high_level, 1e-8) / max(low_level, 1e-8))
+        )
         samples = robust_audio_normalize(samples)
+        preprocess_finished = time.perf_counter_ns()
         if samples.size < 512 or not np.any(samples):
-            return self._empty_descriptor()
+            descriptor = self._empty_descriptor()
+            total_finished = time.perf_counter_ns()
+            self.last_timing_ms = {
+                "audio_preprocess_ms": (preprocess_finished - total_started) / 1_000_000.0,
+                "handcrafted_features_ms": 0.0,
+                "onnx_inference_ms": 0.0,
+                "descriptor_total_ms": (total_finished - total_started) / 1_000_000.0,
+            }
+            return descriptor
 
         use_dsp_embedding = self.embedding_backend is None
         hop = 256
@@ -462,6 +504,12 @@ class AudioFeatureExtractor:
         )
         spectral_flux = float(np.clip(spectral_flux / 6.0, 0.0, 1.0))
         percussive_ratio = 0.0
+        if use_dsp_embedding and mel.size:
+            harmonic_mel, percussive_mel = librosa.decompose.hpss(mel)
+            total_mel_energy = max(float(np.sum(harmonic_mel + percussive_mel)), 1e-12)
+            percussive_ratio = float(
+                np.clip(np.sum(percussive_mel) / total_mel_energy, 0.0, 1.0)
+            )
 
         band_ratios = self._band_ratios(samples)
         mfcc_mean = np.mean(mfcc, axis=1)
@@ -481,6 +529,8 @@ class AudioFeatureExtractor:
             ],
             dtype=np.float32,
         )
+        handcrafted_finished = time.perf_counter_ns()
+        model_started = handcrafted_finished
         if (
             self.embedding_backend is not None
             and self.tag_backend is self.embedding_backend
@@ -526,7 +576,8 @@ class AudioFeatureExtractor:
                 if self.tag_backend is not None
                 else np.empty(0, dtype=np.float32)
             )
-        return AudioDescriptor(
+        model_finished = time.perf_counter_ns()
+        descriptor = AudioDescriptor(
             embedding=_array(embedding),
             rhythm_timbre=_array(rhythm),
             tag_probabilities=_array(tags),
@@ -537,7 +588,24 @@ class AudioFeatureExtractor:
             tempo_stability=tempo_stability,
             spectral_flux=spectral_flux,
             percussive_ratio=percussive_ratio,
+            signal_rms=raw_rms,
+            dynamic_range_db=dynamic_range_db,
         )
+        total_finished = time.perf_counter_ns()
+        self.last_timing_ms = {
+            "audio_preprocess_ms": (preprocess_finished - total_started) / 1_000_000.0,
+            "handcrafted_features_ms": (
+                handcrafted_finished - preprocess_finished
+            ) / 1_000_000.0,
+            "onnx_inference_ms": (
+                model_finished - model_started
+            ) / 1_000_000.0 if (
+                self.embedding_backend is not None or self.tag_backend is not None
+            ) else 0.0,
+            "descriptor_finalize_ms": (total_finished - model_finished) / 1_000_000.0,
+            "descriptor_total_ms": (total_finished - total_started) / 1_000_000.0,
+        }
+        return descriptor
 
     def _empty_descriptor(self) -> AudioDescriptor:
         embedding_size = (
@@ -563,6 +631,8 @@ class AudioFeatureExtractor:
             tempo_stability=0.0,
             spectral_flux=0.0,
             percussive_ratio=0.0,
+            signal_rms=0.0,
+            dynamic_range_db=0.0,
         )
 
     def _band_ratios(self, samples: np.ndarray) -> np.ndarray:
@@ -632,6 +702,7 @@ class MotionProfile:
     original_bpm: float
     preflight_passed: bool
     preflight_reason: str
+    motion_cluster_id: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         result = dict(self.__dict__)
@@ -644,6 +715,12 @@ class MotionProfile:
         data = dict(values)
         data["keypoint_phases"] = tuple(float(v) for v in data["keypoint_phases"])
         data["keypoint_scores"] = tuple(float(v) for v in data["keypoint_scores"])
+        if not data.get("motion_cluster_id"):
+            velocity_tier = int(round(float(data["velocity_p90"]) * 2.0))
+            density_tier = int(round(float(data["weighted_keypoint_density"]) * 4.0))
+            data["motion_cluster_id"] = (
+                f"{data.get('genre', 'unknown')}:v{velocity_tier}:k{density_tier}"
+            )
         return cls(**data)
 
 
@@ -655,6 +732,13 @@ class TrackMatch:
     embedding_score: float
     rhythm_timbre_score: float
     tag_score: float | None
+
+
+@dataclass(frozen=True)
+class GenreMatch:
+    genre: str
+    score: float
+    track_ids: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -676,6 +760,16 @@ class MatchResult:
     motions: tuple[MotionMatch, ...]
     query_bpm: float
     query_tags: tuple[tuple[str, float], ...] = ()
+    genres: tuple[GenreMatch, ...] = ()
+    accepted: bool = True
+    confidence: float = 1.0
+    rejection_reason: str = ""
+    track_margin: float = 0.0
+    motion_margin: float = 0.0
+    beat_quality: float = 0.0
+    signal_rms: float = 0.0
+    dynamic_range_db: float = 0.0
+    negative_style_score: float = 0.0
 
 
 class MusicCatalog:
@@ -710,10 +804,10 @@ class MusicCatalog:
     def load(cls, catalog_path: Path | str) -> "MusicCatalog":
         path = Path(catalog_path)
         metadata = json.loads(path.read_text(encoding="utf-8"))
-        if int(metadata.get("schema_version", -1)) != CATALOG_SCHEMA_VERSION:
+        if int(metadata.get("schema_version", -1)) not in SUPPORTED_CATALOG_SCHEMA_VERSIONS:
             raise ValueError(
                 f"Unsupported catalog schema {metadata.get('schema_version')}; "
-                f"expected {CATALOG_SCHEMA_VERSION}."
+                f"expected one of {SUPPORTED_CATALOG_SCHEMA_VERSIONS}."
             )
         arrays_path = path.parent / metadata["arrays_file"]
         with np.load(arrays_path, allow_pickle=False) as archive:
@@ -727,10 +821,23 @@ class MusicMotionMatcher:
         catalog: MusicCatalog,
         speed_min: float = 0.55,
         speed_max: float = 1.6,
+        style_first: bool = True,
+        weak_music_threshold: float = 0.17,
+        weak_music_consecutive_windows: int = 2,
+        motion_compatibility: bool = True,
     ) -> None:
         self.catalog = catalog
         self.speed_min = float(speed_min)
         self.speed_max = float(speed_max)
+        self.style_first = bool(style_first)
+        self.weak_music_threshold = max(float(weak_music_threshold), 0.0)
+        self.weak_music_consecutive_windows = max(
+            int(weak_music_consecutive_windows),
+            1,
+        )
+        self.motion_compatibility = bool(motion_compatibility)
+        self.last_timing_ms: dict[str, float] = {}
+        self._weak_music_streak = 0
         self._catalog_embeddings = self._standardized_unit_rows(
             catalog.embeddings,
             catalog.embedding_mean,
@@ -743,12 +850,80 @@ class MusicMotionMatcher:
         )
         self._catalog_tags = self._unit_rows(catalog.tags)
 
+    def _weak_music_is_persistent(self, negative_style_score: float) -> bool:
+        if negative_style_score >= self.weak_music_threshold:
+            self._weak_music_streak += 1
+        else:
+            self._weak_music_streak = 0
+        return self._weak_music_streak >= self.weak_music_consecutive_windows
+
+    @staticmethod
+    def _tag_genre_priors(
+        labels: Sequence[str],
+        probabilities: np.ndarray,
+    ) -> dict[str, float]:
+        """Map broad audio tags onto the ten motion genres in AIST++."""
+
+        scores = defaultdict(float)
+        for label, raw_score in zip(labels, probabilities, strict=False):
+            score = max(float(raw_score), 0.0)
+            parent, _, style = label.partition("---")
+            style_lower = style.lower()
+            if parent == "Hip Hop" or "hip hop" in style_lower:
+                scores["MH"] += score
+                scores["LH"] += 0.85 * score
+            if parent == "Funk / Soul" or any(
+                token in style_lower for token in ("funk", "boogie", "disco")
+            ):
+                scores["LO"] += score
+                scores["PO"] += 0.45 * score
+                scores["WA"] += 0.35 * score
+            if parent == "Jazz":
+                scores["JS"] += score
+                scores["JB"] += 0.70 * score
+            if parent in {"Classical", "Stage & Screen"}:
+                scores["JB"] += score
+                scores["JS"] += 0.35 * score
+            if parent in {"Latin", "Folk, World, & Country", "Reggae"}:
+                scores["WA"] += score
+                scores["LO"] += 0.30 * score
+            if parent == "Rock":
+                scores["BR"] += score
+                if any(
+                    token in style_lower
+                    for token in ("hardcore", "metal", "industrial", "punk")
+                ):
+                    scores["KR"] += 0.80 * score
+            if parent == "Pop":
+                scores["PO"] += score
+                scores["JS"] += 0.25 * score
+            if parent == "Electronic":
+                if any(
+                    token in style_lower
+                    for token in ("house", "techno", "trance", "garage")
+                ):
+                    scores["HO"] += score
+                elif any(
+                    token in style_lower
+                    for token in ("break", "drum n bass", "jungle", "electro")
+                ):
+                    scores["BR"] += score
+                elif any(
+                    token in style_lower
+                    for token in ("experimental", "glitch", "idm", "downtempo")
+                ):
+                    scores["JS"] += score
+                else:
+                    scores["PO"] += 0.60 * score
+        return dict(scores)
+
     def match(
         self,
         descriptor: AudioDescriptor,
         top_k_tracks: int = 5,
         top_k_motions: int = 10,
     ) -> MatchResult:
+        match_started = time.perf_counter_ns()
         query_embedding = self._standardized_unit(
             descriptor.embedding,
             self.catalog.embedding_mean,
@@ -773,6 +948,7 @@ class MusicMotionMatcher:
         else:
             tag_scores = np.zeros_like(embedding_scores)
             segment_scores = (0.70 / 0.90) * embedding_scores + (0.20 / 0.90) * rhythm_scores
+        similarity_finished = time.perf_counter_ns()
 
         by_track: dict[str, list[int]] = defaultdict(list)
         for index, segment in enumerate(self.catalog.segment_metadata):
@@ -793,28 +969,142 @@ class MusicMotionMatcher:
                 )
             )
         track_matches.sort(key=lambda item: item.score, reverse=True)
-        track_matches = track_matches[: max(int(top_k_tracks), 1)]
-        track_scores = {item.music_id: item.score for item in track_matches}
+        all_track_matches = tuple(track_matches)
+
+        tracks_by_genre: dict[str, list[TrackMatch]] = defaultdict(list)
+        for item in all_track_matches:
+            tracks_by_genre[item.genre].append(item)
+        genre_matches = [
+            GenreMatch(
+                genre=genre,
+                score=float(np.mean([item.score for item in items[:3]])),
+                track_ids=tuple(item.music_id for item in items),
+            )
+            for genre, items in tracks_by_genre.items()
+        ]
+        genre_matches.sort(key=lambda item: item.score, reverse=True)
+
+        labels: tuple[str, ...] = ()
+        tag_metadata = self.catalog.metadata.get("extractor", {}).get("tag_model")
+        if tags_available and tag_metadata:
+            labels = tuple(str(label) for label in tag_metadata.get("labels", ()))
+        tag_genre_priors = (
+            self._tag_genre_priors(labels, descriptor.tag_probabilities)
+            if len(labels) == descriptor.tag_probabilities.size
+            else {}
+        )
+        if genre_matches and tag_genre_priors:
+            base_values = np.asarray([item.score for item in genre_matches], dtype=float)
+            base_min = float(np.min(base_values))
+            base_span = max(float(np.max(base_values) - base_min), 1e-9)
+            prior_max = max(tag_genre_priors.values(), default=0.0)
+            if prior_max >= 0.08:
+                genre_matches = [
+                    GenreMatch(
+                        genre=item.genre,
+                        score=float(
+                            0.35 * ((item.score - base_min) / base_span)
+                            + 0.65
+                            * (tag_genre_priors.get(item.genre, 0.0) / prior_max)
+                        ),
+                        track_ids=item.track_ids,
+                    )
+                    for item in genre_matches
+                ]
+                genre_matches.sort(key=lambda item: item.score, reverse=True)
+        negative_style_score = 0.0
+        if len(labels) == descriptor.tag_probabilities.size:
+            weak_markers = (
+                "---Ambient",
+                "---Dark Ambient",
+                "---Drone",
+                "---Field Recording",
+                "---Noise",
+                "---Power Electronics",
+                "---Sound Collage",
+            )
+            weak_indices = [
+                index
+                for index, label in enumerate(labels)
+                if label.startswith("Non-Music---")
+                or any(label.endswith(marker) for marker in weak_markers)
+            ]
+            if weak_indices:
+                negative_style_score = float(
+                    np.max(descriptor.tag_probabilities[np.asarray(weak_indices, dtype=int)])
+                )
+
+        genre_margin = (
+            genre_matches[0].score - genre_matches[1].score
+            if len(genre_matches) >= 2
+            else (genre_matches[0].score if genre_matches else 0.0)
+        )
+        confidence = float(
+            np.clip(
+                0.55 * descriptor.beat_quality
+                + 0.45 * np.clip(genre_margin / 0.10, 0.0, 1.0),
+                0.0,
+                1.0,
+            )
+        )
+        rejection_reason = ""
+        if self._weak_music_is_persistent(negative_style_score):
+            rejection_reason = "non_dance_or_ambient"
+        elif descriptor.beat_quality < 0.35:
+            rejection_reason = "weak_beat_evidence"
+        accepted = not rejection_reason
+        if not self.style_first:
+            accepted = True
+            rejection_reason = ""
+
+        accepted_genres: set[str] = set()
+        if genre_matches:
+            accepted_genres.add(genre_matches[0].genre)
+            if len(genre_matches) > 1 and genre_margin <= 0.025:
+                accepted_genres.add(genre_matches[1].genre)
+
+        returned_tracks = all_track_matches[: max(int(top_k_tracks), 1)]
+        style_tracks = [
+            item
+            for item in all_track_matches
+            if not self.style_first or item.genre in accepted_genres
+        ][: max(int(top_k_tracks), 1)]
+        track_scores = {item.music_id: item.score for item in style_tracks}
+        retrieval_finished = time.perf_counter_ns()
 
         motion_matches: list[MotionMatch] = []
         for profile in self.catalog.motions.values():
-            if not profile.preflight_passed or profile.music_id not in track_scores:
+            if (
+                not accepted
+                or not profile.preflight_passed
+                or profile.music_id not in track_scores
+                or (self.style_first and profile.genre not in accepted_genres)
+            ):
                 continue
-            tempo_score, speed_ratio = self._tempo_compatibility(
-                descriptor.bpm,
-                profile.original_bpm,
-            )
-            if tempo_score is None:
-                continue
-            keypoint_score = self._keypoint_compatibility(
-                descriptor,
-                profile,
-                speed_ratio,
-            )
-            activity_score = self._activity_compatibility(descriptor, profile)
-            motion_score = 0.50 * tempo_score + 0.35 * keypoint_score + 0.15 * activity_score
+            if self.motion_compatibility:
+                tempo_score, speed_ratio = self._tempo_compatibility(
+                    descriptor.bpm,
+                    profile.original_bpm,
+                )
+                if tempo_score is None:
+                    continue
+                keypoint_score = self._keypoint_compatibility(
+                    descriptor,
+                    profile,
+                    speed_ratio,
+                )
+                activity_score = self._activity_compatibility(descriptor, profile)
+                motion_score = (
+                    0.50 * tempo_score
+                    + 0.35 * keypoint_score
+                    + 0.15 * activity_score
+                )
+                final_score = 0.65 * track_scores[profile.music_id] + 0.35 * motion_score
+            else:
+                tempo_score = keypoint_score = activity_score = motion_score = 1.0
+                speed_ratio = 1.0
+                final_score = track_scores[profile.music_id]
             music_score = track_scores[profile.music_id]
-            final_score = 0.55 * music_score + 0.45 * motion_score
             motion_matches.append(
                 MotionMatch(
                     motion_id=profile.motion_id,
@@ -829,22 +1119,49 @@ class MusicMotionMatcher:
                 )
             )
         motion_matches.sort(key=lambda item: item.final_score, reverse=True)
+        ranking_finished = time.perf_counter_ns()
         query_tags: tuple[tuple[str, float], ...] = ()
-        tag_metadata = self.catalog.metadata.get("extractor", {}).get("tag_model")
         if tags_available and tag_metadata:
-            labels = tuple(str(label) for label in tag_metadata.get("labels", ()))
             if len(labels) == descriptor.tag_probabilities.size:
                 top_indices = np.argsort(descriptor.tag_probabilities)[-5:][::-1]
                 query_tags = tuple(
                     (labels[int(index)], float(descriptor.tag_probabilities[int(index)]))
                     for index in top_indices
                 )
-        return MatchResult(
-            tracks=tuple(track_matches),
+        result = MatchResult(
+            tracks=tuple(returned_tracks),
             motions=tuple(motion_matches[: max(int(top_k_motions), 1)]),
             query_bpm=descriptor.bpm,
             query_tags=query_tags,
+            genres=tuple(genre_matches),
+            accepted=accepted,
+            confidence=confidence,
+            rejection_reason=rejection_reason,
+            track_margin=(
+                returned_tracks[0].score - returned_tracks[1].score
+                if len(returned_tracks) >= 2
+                else 0.0
+            ),
+            motion_margin=(
+                motion_matches[0].final_score - motion_matches[1].final_score
+                if len(motion_matches) >= 2
+                else 0.0
+            ),
+            beat_quality=descriptor.beat_quality,
+            signal_rms=descriptor.signal_rms,
+            dynamic_range_db=descriptor.dynamic_range_db,
+            negative_style_score=negative_style_score,
         )
+        match_finished = time.perf_counter_ns()
+        scale = 1e-6
+        self.last_timing_ms = {
+            "similarity_ms": (similarity_finished - match_started) * scale,
+            "track_retrieval_ms": (retrieval_finished - similarity_finished) * scale,
+            "motion_ranking_ms": (ranking_finished - retrieval_finished) * scale,
+            "result_finalize_ms": (match_finished - ranking_finished) * scale,
+            "matcher_total_ms": (match_finished - match_started) * scale,
+        }
+        return result
 
     def _tempo_compatibility(
         self,
@@ -972,6 +1289,7 @@ class MotionSelection:
     reason: str
     final_score: float
     music_score: float
+    cluster_id: str = ""
 
 
 class DiversityCandidateSelector:
@@ -984,18 +1302,24 @@ class DiversityCandidateSelector:
         score_drop: float = 0.05,
         music_score_drop: float = 0.08,
         recent_history: int = 3,
+        motion_clusters: Mapping[str, str] | None = None,
     ) -> None:
         self.required_wins = max(int(required_wins), 1)
         self.top_k = max(int(top_k), 1)
         self.score_drop = max(float(score_drop), 0.0)
         self.music_score_drop = max(float(music_score_drop), 0.0)
         self.recent_history = max(int(recent_history), 0)
+        self.motion_clusters = dict(motion_clusters or {})
         self._streaks: dict[str, int] = {}
         self._scores: dict[str, deque[tuple[float, float]]] = {}
         self._latest_order: tuple[str, ...] = ()
         self._last_played: dict[str, int] = {}
         self._play_counter = 0
         self._recent: deque[str] = deque(maxlen=self.recent_history)
+        self._recent_clusters: deque[str] = deque(maxlen=self.recent_history)
+
+    def _cluster(self, motion_id: str) -> str:
+        return self.motion_clusters.get(motion_id, motion_id)
 
     def observe(self, result: MatchResult) -> None:
         if not result.motions:
@@ -1035,6 +1359,7 @@ class DiversityCandidateSelector:
         self._play_counter += 1
         self._last_played[motion_id] = self._play_counter
         self._recent.append(motion_id)
+        self._recent_clusters.append(self._cluster(motion_id))
 
     def stable_candidates(
         self,
@@ -1057,6 +1382,7 @@ class DiversityCandidateSelector:
                     reason="diversity",
                     final_score=float(np.mean([score[0] for score in history])),
                     music_score=float(np.mean([score[1] for score in history])),
+                    cluster_id=self._cluster(motion_id),
                 )
             )
         return tuple(selections)
@@ -1067,8 +1393,12 @@ class DiversityCandidateSelector:
             return None
 
         recent = set(self._recent)
-        fresh = [item for item in candidates if item.motion_id not in recent]
-        available = fresh if fresh else candidates
+        recent_clusters = set(self._recent_clusters)
+        fresh_clusters = [
+            item for item in candidates if item.cluster_id not in recent_clusters
+        ]
+        fresh_ids = [item for item in candidates if item.motion_id not in recent]
+        available = fresh_clusters or fresh_ids or candidates
         return min(
             available,
             key=lambda item: (
@@ -1092,6 +1422,7 @@ class MotionSelectionPolicy:
         diversity_score_drop: float = 0.05,
         diversity_music_score_drop: float = 0.08,
         recent_history: int = 3,
+        motion_clusters: Mapping[str, str] | None = None,
     ) -> None:
         self.current_motion_id = current_motion_id
         self.max_hold_bars = max(int(max_hold_bars), 0)
@@ -1104,10 +1435,16 @@ class MotionSelectionPolicy:
             score_drop=diversity_score_drop,
             music_score_drop=diversity_music_score_drop,
             recent_history=recent_history,
+            motion_clusters=motion_clusters,
         )
         self.diversity.record_played(current_motion_id)
 
     def observe(self, result: MatchResult) -> MotionSelection | None:
+        if not result.accepted:
+            self.pending = None
+            self.relevance.reset()
+            self.diversity.observe(result)
+            return None
         self.diversity.observe(result)
         if self.pending is not None:
             return self.pending
@@ -1127,6 +1464,7 @@ class MotionSelectionPolicy:
                 reason="relevance",
                 final_score=match.final_score,
                 music_score=match.music_score,
+                cluster_id=self.diversity._cluster(relevant_motion_id),
             )
             return self.pending
 
@@ -1511,6 +1849,29 @@ def build_music_catalog(
             1e-6,
         )
     )
+    density_values = np.asarray(
+        [profile.weighted_keypoint_density for profile in motions.values()],
+        dtype=float,
+    )
+    regularity_values = np.asarray(
+        [profile.keypoint_interval_cv for profile in motions.values()],
+        dtype=float,
+    )
+    velocity_cutoffs = np.quantile(velocity_values, (1.0 / 3.0, 2.0 / 3.0))
+    density_cutoffs = np.quantile(density_values, (1.0 / 3.0, 2.0 / 3.0))
+    regularity_cutoff = float(np.median(regularity_values))
+    for motion_id, profile in tuple(motions.items()):
+        velocity_tier = int(np.searchsorted(velocity_cutoffs, profile.velocity_p90))
+        density_tier = int(
+            np.searchsorted(density_cutoffs, profile.weighted_keypoint_density)
+        )
+        regularity_tier = int(profile.keypoint_interval_cv > regularity_cutoff)
+        motions[motion_id] = replace(
+            profile,
+            motion_cluster_id=(
+                f"{profile.genre}:v{velocity_tier}:k{density_tier}:r{regularity_tier}"
+            ),
+        )
 
     output.mkdir(parents=True, exist_ok=True)
     arrays_path = output / "catalog_features.npz"
@@ -1554,6 +1915,10 @@ def build_music_catalog(
         "motion_stats": {
             "velocity_median": velocity_median,
             "velocity_scale": velocity_scale,
+            "cluster_policy": "genre_velocity_density_regularity_v1",
+            "velocity_cutoffs": [float(value) for value in velocity_cutoffs],
+            "density_cutoffs": [float(value) for value in density_cutoffs],
+            "regularity_cutoff": regularity_cutoff,
         },
         "tracks": tracks,
         "motions": {key: value.to_dict() for key, value in motions.items()},

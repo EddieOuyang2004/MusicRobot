@@ -1,0 +1,14 @@
+section,metric,value
+retrieval,queries,60
+retrieval,recall_at_1,0.31666666666666665
+retrieval,recall_at_3,0.5333333333333333
+retrieval,recall_at_5,0.7833333333333333
+retrieval,macro_f1,0.2719120879120879
+retrieval,mean_reciprocal_rank,0.504755291005291
+retrieval,ndcg_at_5,0.550108390029706
+acceptance,control_work_p99_ms,
+acceptance,deadline_miss_ratio,
+acceptance,ready_pool_underruns,
+acceptance,preparation_hold_last_events,
+acceptance,max_joint_speed_rad_s,
+acceptance,max_joint_acceleration_rad_s2,

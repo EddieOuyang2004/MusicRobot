@@ -1,0 +1,8 @@
+metric,section,value
+queries,strict_leave_one_music,60
+recall_at_1,strict_leave_one_music,0.31666666666666665
+recall_at_3,strict_leave_one_music,0.5333333333333333
+recall_at_5,strict_leave_one_music,0.7833333333333333
+macro_f1,strict_leave_one_music,0.2719120879120879
+mean_reciprocal_rank,strict_leave_one_music,0.504755291005291
+ndcg_at_5,strict_leave_one_music,0.550108390029706

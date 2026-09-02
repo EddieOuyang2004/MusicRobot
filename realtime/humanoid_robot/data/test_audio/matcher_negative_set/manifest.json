@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "sample_rate_hz": 16000,
+  "duration_seconds": 30.0,
+  "clips": [
+    {
+      "file": "silence_01.wav",
+      "category": "silence",
+      "expected_reject": true
+    },
+    {
+      "file": "silence_02.wav",
+      "category": "silence",
+      "expected_reject": true
+    },
+    {
+      "file": "silence_03.wav",
+      "category": "silence",
+      "expected_reject": true
+    },
+    {
+      "file": "silence_04.wav",
+      "category": "silence",
+      "expected_reject": true
+    },
+    {
+      "file": "silence_05.wav",
+      "category": "silence",
+      "expected_reject": true
+    },
+    {
+      "file": "pink_noise_01.wav",
+      "category": "pink_noise",
+      "expected_reject": true
+    },
+    {
+      "file": "pink_noise_02.wav",
+      "category": "pink_noise",
+      "expected_reject": true
+    },
+    {
+      "file": "pink_noise_03.wav",
+      "category": "pink_noise",
+      "expected_reject": true
+    },
+    {
+      "file": "pink_noise_04.wav",
+      "category": "pink_noise",
+      "expected_reject": true
+    },
+    {
+      "file": "pink_noise_05.wav",
+      "category": "pink_noise",
+      "expected_reject": true
+    },
+    {
+      "file": "ambient_drone_01.wav",
+      "category": "ambient_drone",
+      "expected_reject": true
+    },
+    {
+      "file": "ambient_drone_02.wav",
+      "category": "ambient_drone",
+      "expected_reject": true
+    },
+    {
+      "file": "ambient_drone_03.wav",
+      "category": "ambient_drone",
+      "expected_reject": true
+    },
+    {
+      "file": "ambient_drone_04.wav",
+      "category": "ambient_drone",
+      "expected_reject": true
+    },
+    {
+      "file": "ambient_drone_05.wav",
+      "category": "ambient_drone",
+      "expected_reject": true
+    },
+    {
+      "file": "speech_like_01.wav",
+      "category": "speech_like",
+      "expected_reject": true
+    },
+    {
+      "file": "speech_like_02.wav",
+      "category": "speech_like",
+      "expected_reject": true
+    },
+    {
+      "file": "speech_like_03.wav",
+      "category": "speech_like",
+      "expected_reject": true
+    },
+    {
+      "file": "speech_like_04.wav",
+      "category": "speech_like",
+      "expected_reject": true
+    },
+    {
+      "file": "speech_like_05.wav",
+      "category": "speech_like",
+      "expected_reject": true
+    }
+  ],
+  "note": "Synthetic objective rejection stress data; speech_like is not real speech."
+}

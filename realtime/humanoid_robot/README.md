@@ -319,6 +319,10 @@ If you are using the checked-in virtual environment:
 `realtime_music_humanoid_dancer.py` unchanged. It analyzes a six-second rolling
 music window, retrieves matching AIST++ music, ranks only motions that passed
 catalog preflight, and changes motion on a stable four-beat boundary.
+At startup it randomly chooses a sufficiently long motion from the lowest-activity
+quartile of the catalog. Use `--initial-motion-seed` for a reproducible choice,
+`--initial-motion-low-activity-quantile` to tune the pool, or
+`--initial-motion-id` to request an exact catalog motion.
 
 Build the catalog after downloading the synchronized AIST++ audio:
 
@@ -348,6 +352,22 @@ Use `--matcher-help` for retrieval/switching options and `--help` for the
 inherited dancer/controller options. A hardware-free silent smoke test keeps the
 current motion without attempting retrieval:
 
+For playback-speed diagnosis, `--motion-timing authored` keeps music retrieval,
+beat accents, bar-boundary switching, and motion blending enabled while advancing
+every source and target motion at its authored `1.0x` rate. It prevents detected
+beats and motion keypoints from correcting phase or changing speed. Use the same
+`--initial-motion-seed` in authored and default `beat-sync` runs for a repeatable
+A/B comparison. Add `--disable-music-modulation` only for a second, stricter pass
+that also removes music-driven pose modulation.
+
+The default `--match-policy style-first` first selects a confident AIST++ genre
+family, then ranks only that family's motions. Weak beat evidence and strong
+ambient/non-music tags reject the retrieval and hold the current motion instead
+of forcing a dance. `--match-policy legacy` is available for A/B diagnosis, and
+`--match-weak-music-threshold` tunes the ambient/non-music gate. Trace CSV files
+include the decision state, confidence, rejection reason, genre ranking, motion
+ranking, audio evidence, and visual motion-cluster IDs.
+
 The matcher separates relevance-driven changes from diversity rotation. A
 clearly better motion still wins after the configured consecutive retrievals;
 when music remains stable, the default policy changes after four held bars to a
@@ -357,6 +377,18 @@ stable, least-recently-used motion within `0.05` of the best total score and
 `--switch-diversity-score-drop`, `--switch-diversity-music-score-drop`, and
 `--switch-recent-history`. Set `--switch-max-hold-bars 0` to disable forced
 diversity rotation.
+The recency policy prefers a motion from a visual activity/density/regularity
+cluster that has not recently played before considering another motion from the
+same cluster.
+
+Startup motion selection reserves enough authored duration for the rolling
+match window, consecutive wins, maximum playback speed, and background motion
+preparation. Tune the preparation allowance with
+`--startup-ready-reserve-seconds` (default `4`). If a one-shot motion still
+reaches its terminal frame before a candidate is ready—or the current audio is
+rejected as ambient/non-music—the matcher applies a small stationary breathing
+idle instead of displaying a completely frozen pose. Tune it with
+`--terminal-safe-idle-amplitude` or set that value to `0` to disable it.
 
 ```powershell
 python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
@@ -378,6 +410,22 @@ python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
   --play-audio `
   --headless --realtime --max-seconds 10
 ```
+
+Run the same matcher and switching path at authored speed:
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
+  --audio-input "realtime/humanoid_robot/data/test_audio/Metronome 120 BPM - QuickSounds.com.mp3" `
+  --motion-timing authored `
+  --initial-motion-seed 0 `
+  --trace-csv realtime/humanoid_robot/src/test/output/authored_timing.csv `
+  --play-audio --realtime --max-seconds 30
+```
+
+Matcher traces include the timing mode, source and transition speed multipliers,
+remaining phase correction, and raw/output wrist angle and speed maxima. These
+fields distinguish source-motion saturation from beat-driven changes and
+transition-blend spikes.
 
 Absolute microphone RMS and LUFS are not retrieval features. RMS is retained
 only for the noise gate, silence handling, and live pose amplitude. Catalog and

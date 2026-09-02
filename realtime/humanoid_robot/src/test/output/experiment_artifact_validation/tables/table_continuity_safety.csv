@@ -1,0 +1,13 @@
+acceleration_p95,ground_penetration_max_m,jerk_p95,limit,observed,passed,run,safety_metric,speed_p95
+1291.3663530349727,0.0,222006.69250488275,,,,C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\test\output\experiment_e2e_validation\runs\0000_full_s0_BR0_poses.npz,,15.999999046325684
+,,,1000.0,267.97238499957524,True,acceptance,query_p95_ms,
+,,,8.3333333333,21.717948999603298,False,acceptance,control_work_p99_ms,
+,,,0.01,0.1455223880597015,False,acceptance,deadline_miss_ratio,
+,,,0.99,1.0,True,acceptance,completed_query_slot_rate,
+,,,0.01,0.0,True,acceptance,busy_submission_rate,
+,,,0.0,0.0,True,acceptance,ready_pool_underruns,
+,,,0.0,0.0,True,acceptance,preparation_hold_last_events,
+,,,16.0,16.0,True,acceptance,max_joint_speed_rad_s,
+,,,2000.0,2000.0000000000002,True,acceptance,max_joint_acceleration_rad_s2,
+,,,0.0,61.0,False,acceptance,joint_limit_violations,
+,,,0.0,67.0,False,acceptance,self_collision_violations,

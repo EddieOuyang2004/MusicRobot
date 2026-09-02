@@ -1,0 +1,1168 @@
+{
+  "reports": [
+    {
+      "catalog": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog\\catalog.json",
+      "window_seconds": 3.0,
+      "hop_seconds": 1.0,
+      "total_windows": 280,
+      "accepted_windows": 231,
+      "rejected_windows": 49,
+      "unique_genres": 7,
+      "unique_motions": 25,
+      "dominant_genre": "WA",
+      "dominant_genre_share": 0.2943722943722944,
+      "dominant_motion": "gWA_sBM_cAll_d26_mWA5_ch02",
+      "dominant_motion_share": 0.1341991341991342,
+      "ambient_switch_candidates": 0,
+      "genre_counts": {
+        "HO": 28,
+        "PO": 26,
+        "JS": 15,
+        "MH": 1,
+        "JB": 44,
+        "WA": 68,
+        "BR": 49
+      },
+      "motion_counts": {
+        "gHO_sBM_cAll_d20_mHO5_ch10": 28,
+        "gPO_sBM_cAll_d12_mPO4_ch02": 19,
+        "gJS_sBM_cAll_d02_mJS0_ch02": 2,
+        "gPO_sBM_cAll_d10_mPO0_ch01": 1,
+        "gJS_sBM_cAll_d01_mJS3_ch04": 8,
+        "gPO_sBM_cAll_d12_mPO2_ch02": 1,
+        "gPO_sBM_cAll_d12_mPO5_ch01": 2,
+        "gMH_sBM_cAll_d22_mMH0_ch01": 1,
+        "gPO_sFM_cAll_d12_mPO1_ch16": 3,
+        "gJB_sBM_cAll_d08_mJB0_ch02": 17,
+        "gJB_sBM_cAll_d07_mJB2_ch01": 3,
+        "gJB_sBM_cAll_d08_mJB5_ch03": 12,
+        "gJS_sBM_cAll_d02_mJS1_ch02": 1,
+        "gJB_sBM_cAll_d08_mJB1_ch02": 9,
+        "gJB_sBM_cAll_d07_mJB3_ch02": 1,
+        "gJB_sBM_cAll_d09_mJB3_ch02": 3,
+        "gWA_sBM_cAll_d26_mWA0_ch02": 3,
+        "gWA_sBM_cAll_d25_mWA1_ch02": 13,
+        "gWA_sBM_cAll_d26_mWA5_ch02": 31,
+        "gWA_sBM_cAll_d25_mWA3_ch02": 11,
+        "gWA_sBM_cAll_d26_mWA4_ch02": 10,
+        "gBR_sBM_cAll_d04_mBR0_ch03": 17,
+        "gBR_sBM_cAll_d05_mBR1_ch01": 14,
+        "gBR_sBM_cAll_d06_mBR3_ch01": 17,
+        "gJS_sBM_cAll_d02_mJS4_ch01": 4
+      },
+      "rejection_counts": {
+        "non_dance_or_ambient": 48,
+        "weak_beat_evidence": 1
+      },
+      "files": {
+        "01_electronic_backbeat.mp3": {
+          "windows": 28,
+          "accepted": 28,
+          "top_genres": [
+            [
+              "HO",
+              28
+            ]
+          ],
+          "top_motions": [
+            [
+              "gHO_sBM_cAll_d20_mHO5_ch10",
+              28
+            ]
+          ],
+          "rejections": {}
+        },
+        "02_hiphop_hippety_hop.mp3": {
+          "windows": 28,
+          "accepted": 18,
+          "top_genres": [
+            [
+              "PO",
+              14
+            ],
+            [
+              "JS",
+              3
+            ],
+            [
+              "MH",
+              1
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              10
+            ],
+            [
+              "gJS_sBM_cAll_d01_mJS3_ch04",
+              2
+            ],
+            [
+              "gJS_sBM_cAll_d02_mJS0_ch02",
+              1
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 10
+          }
+        },
+        "03_jazz_bebop_for_joey.mp3": {
+          "windows": 28,
+          "accepted": 28,
+          "top_genres": [
+            [
+              "JB",
+              27
+            ],
+            [
+              "JS",
+              1
+            ]
+          ],
+          "top_motions": [
+            [
+              "gJB_sBM_cAll_d08_mJB0_ch02",
+              14
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB5_ch03",
+              4
+            ],
+            [
+              "gJB_sBM_cAll_d07_mJB2_ch01",
+              3
+            ]
+          ],
+          "rejections": {}
+        },
+        "04_world_bollywood_groove.mp3": {
+          "windows": 28,
+          "accepted": 28,
+          "top_genres": [
+            [
+              "WA",
+              18
+            ],
+            [
+              "JB",
+              8
+            ],
+            [
+              "BR",
+              1
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              13
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB5_ch03",
+              5
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA1_ch02",
+              3
+            ]
+          ],
+          "rejections": {}
+        },
+        "05_latin_cumbish.mp3": {
+          "windows": 28,
+          "accepted": 28,
+          "top_genres": [
+            [
+              "WA",
+              28
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d25_mWA3_ch02",
+              11
+            ],
+            [
+              "gWA_sBM_cAll_d26_mWA4_ch02",
+              10
+            ],
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              7
+            ]
+          ],
+          "rejections": {}
+        },
+        "06_upbeat_bar_brawl.mp3": {
+          "windows": 28,
+          "accepted": 26,
+          "top_genres": [
+            [
+              "WA",
+              21
+            ],
+            [
+              "JB",
+              5
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              11
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA1_ch02",
+              10
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB5_ch03",
+              2
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 2
+          }
+        },
+        "07_orchestral_battle_ready.mp3": {
+          "windows": 28,
+          "accepted": 26,
+          "top_genres": [
+            [
+              "BR",
+              19
+            ],
+            [
+              "JB",
+              4
+            ],
+            [
+              "PO",
+              2
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d05_mBR1_ch01",
+              10
+            ],
+            [
+              "gBR_sBM_cAll_d04_mBR0_ch03",
+              8
+            ],
+            [
+              "gPO_sFM_cAll_d12_mPO1_ch16",
+              2
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 2
+          }
+        },
+        "08_waltz_isolation_waltz.mp3": {
+          "windows": 28,
+          "accepted": 21,
+          "top_genres": [
+            [
+              "JS",
+              11
+            ],
+            [
+              "PO",
+              9
+            ],
+            [
+              "BR",
+              1
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              8
+            ],
+            [
+              "gJS_sBM_cAll_d01_mJS3_ch04",
+              6
+            ],
+            [
+              "gJS_sBM_cAll_d02_mJS4_ch01",
+              4
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 6,
+            "weak_beat_evidence": 1
+          }
+        },
+        "09_funk_funky_energy_loop.mp3": {
+          "windows": 28,
+          "accepted": 28,
+          "top_genres": [
+            [
+              "BR",
+              28
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d06_mBR3_ch01",
+              16
+            ],
+            [
+              "gBR_sBM_cAll_d04_mBR0_ch03",
+              8
+            ],
+            [
+              "gBR_sBM_cAll_d05_mBR1_ch01",
+              4
+            ]
+          ],
+          "rejections": {}
+        },
+        "10_ambient_alien_spaceship.mp3": {
+          "windows": 28,
+          "accepted": 0,
+          "top_genres": [],
+          "top_motions": [],
+          "rejections": {
+            "non_dance_or_ambient": 28
+          }
+        }
+      }
+    },
+    {
+      "catalog": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog\\catalog.json",
+      "window_seconds": 6.0,
+      "hop_seconds": 1.0,
+      "total_windows": 250,
+      "accepted_windows": 206,
+      "rejected_windows": 44,
+      "unique_genres": 7,
+      "unique_motions": 19,
+      "dominant_genre": "WA",
+      "dominant_genre_share": 0.32524271844660196,
+      "dominant_motion": "gWA_sBM_cAll_d26_mWA5_ch02",
+      "dominant_motion_share": 0.15048543689320387,
+      "ambient_switch_candidates": 0,
+      "genre_counts": {
+        "HO": 25,
+        "JS": 9,
+        "PO": 23,
+        "MH": 1,
+        "JB": 38,
+        "WA": 67,
+        "BR": 43
+      },
+      "motion_counts": {
+        "gHO_sBM_cAll_d20_mHO5_ch10": 25,
+        "gJS_sBM_cAll_d01_mJS3_ch04": 7,
+        "gPO_sBM_cAll_d12_mPO4_ch02": 22,
+        "gMH_sBM_cAll_d22_mMH0_ch01": 1,
+        "gJB_sBM_cAll_d08_mJB0_ch02": 25,
+        "gJB_sBM_cAll_d07_mJB2_ch01": 1,
+        "gJB_sBM_cAll_d07_mJB3_ch02": 2,
+        "gJB_sBM_cAll_d08_mJB5_ch03": 7,
+        "gWA_sBM_cAll_d26_mWA5_ch02": 31,
+        "gWA_sBM_cAll_d26_mWA4_ch02": 14,
+        "gWA_sBM_cAll_d25_mWA3_ch02": 10,
+        "gJB_sBM_cAll_d08_mJB1_ch02": 8,
+        "gWA_sBM_cAll_d25_mWA1_ch02": 9,
+        "gPO_sBM_cAll_d10_mPO0_ch01": 1,
+        "gBR_sBM_cAll_d05_mBR1_ch01": 19,
+        "gPO_sFM_cAll_d12_mPO1_ch16": 1,
+        "gBR_sBM_cAll_d04_mBR0_ch03": 10,
+        "gPO_sBM_cAll_d12_mPO5_ch01": 1,
+        "gBR_sBM_cAll_d06_mBR3_ch01": 12
+      },
+      "rejection_counts": {
+        "non_dance_or_ambient": 44
+      },
+      "files": {
+        "01_electronic_backbeat.mp3": {
+          "windows": 25,
+          "accepted": 25,
+          "top_genres": [
+            [
+              "HO",
+              25
+            ]
+          ],
+          "top_motions": [
+            [
+              "gHO_sBM_cAll_d20_mHO5_ch10",
+              25
+            ]
+          ],
+          "rejections": {}
+        },
+        "02_hiphop_hippety_hop.mp3": {
+          "windows": 25,
+          "accepted": 13,
+          "top_genres": [
+            [
+              "PO",
+              11
+            ],
+            [
+              "JS",
+              1
+            ],
+            [
+              "MH",
+              1
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              11
+            ],
+            [
+              "gJS_sBM_cAll_d01_mJS3_ch04",
+              1
+            ],
+            [
+              "gMH_sBM_cAll_d22_mMH0_ch01",
+              1
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 12
+          }
+        },
+        "03_jazz_bebop_for_joey.mp3": {
+          "windows": 25,
+          "accepted": 25,
+          "top_genres": [
+            [
+              "JB",
+              25
+            ]
+          ],
+          "top_motions": [
+            [
+              "gJB_sBM_cAll_d08_mJB0_ch02",
+              20
+            ],
+            [
+              "gJB_sBM_cAll_d07_mJB3_ch02",
+              2
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB5_ch03",
+              2
+            ]
+          ],
+          "rejections": {}
+        },
+        "04_world_bollywood_groove.mp3": {
+          "windows": 25,
+          "accepted": 25,
+          "top_genres": [
+            [
+              "WA",
+              21
+            ],
+            [
+              "JB",
+              4
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              20
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB5_ch03",
+              5
+            ]
+          ],
+          "rejections": {}
+        },
+        "05_latin_cumbish.mp3": {
+          "windows": 25,
+          "accepted": 25,
+          "top_genres": [
+            [
+              "WA",
+              25
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA4_ch02",
+              14
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA3_ch02",
+              10
+            ],
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              1
+            ]
+          ],
+          "rejections": {}
+        },
+        "06_upbeat_bar_brawl.mp3": {
+          "windows": 25,
+          "accepted": 25,
+          "top_genres": [
+            [
+              "WA",
+              21
+            ],
+            [
+              "JB",
+              4
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              10
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA1_ch02",
+              9
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB1_ch02",
+              6
+            ]
+          ],
+          "rejections": {}
+        },
+        "07_orchestral_battle_ready.mp3": {
+          "windows": 25,
+          "accepted": 25,
+          "top_genres": [
+            [
+              "BR",
+              18
+            ],
+            [
+              "JB",
+              5
+            ],
+            [
+              "PO",
+              2
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d05_mBR1_ch01",
+              13
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB0_ch02",
+              5
+            ],
+            [
+              "gBR_sBM_cAll_d04_mBR0_ch03",
+              3
+            ]
+          ],
+          "rejections": {}
+        },
+        "08_waltz_isolation_waltz.mp3": {
+          "windows": 25,
+          "accepted": 18,
+          "top_genres": [
+            [
+              "PO",
+              10
+            ],
+            [
+              "JS",
+              8
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              11
+            ],
+            [
+              "gJS_sBM_cAll_d01_mJS3_ch04",
+              6
+            ],
+            [
+              "gPO_sBM_cAll_d12_mPO5_ch01",
+              1
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 7
+          }
+        },
+        "09_funk_funky_energy_loop.mp3": {
+          "windows": 25,
+          "accepted": 25,
+          "top_genres": [
+            [
+              "BR",
+              25
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d06_mBR3_ch01",
+              12
+            ],
+            [
+              "gBR_sBM_cAll_d04_mBR0_ch03",
+              7
+            ],
+            [
+              "gBR_sBM_cAll_d05_mBR1_ch01",
+              6
+            ]
+          ],
+          "rejections": {}
+        },
+        "10_ambient_alien_spaceship.mp3": {
+          "windows": 25,
+          "accepted": 0,
+          "top_genres": [],
+          "top_motions": [],
+          "rejections": {
+            "non_dance_or_ambient": 25
+          }
+        }
+      }
+    },
+    {
+      "catalog": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog\\catalog.json",
+      "window_seconds": 9.0,
+      "hop_seconds": 1.0,
+      "total_windows": 220,
+      "accepted_windows": 180,
+      "rejected_windows": 40,
+      "unique_genres": 6,
+      "unique_motions": 14,
+      "dominant_genre": "WA",
+      "dominant_genre_share": 0.3277777777777778,
+      "dominant_motion": "gWA_sBM_cAll_d26_mWA5_ch02",
+      "dominant_motion_share": 0.14444444444444443,
+      "ambient_switch_candidates": 0,
+      "genre_counts": {
+        "HO": 22,
+        "PO": 17,
+        "JB": 30,
+        "WA": 59,
+        "BR": 42,
+        "JS": 10
+      },
+      "motion_counts": {
+        "gHO_sBM_cAll_d20_mHO5_ch10": 22,
+        "gPO_sBM_cAll_d12_mPO4_ch02": 23,
+        "gJB_sBM_cAll_d08_mJB0_ch02": 23,
+        "gJB_sBM_cAll_d08_mJB1_ch02": 6,
+        "gWA_sBM_cAll_d26_mWA5_ch02": 26,
+        "gJB_sBM_cAll_d08_mJB5_ch03": 6,
+        "gWA_sBM_cAll_d25_mWA3_ch02": 7,
+        "gWA_sBM_cAll_d26_mWA4_ch02": 15,
+        "gWA_sBM_cAll_d25_mWA1_ch02": 7,
+        "gPO_sBM_cAll_d10_mPO2_ch02": 1,
+        "gBR_sBM_cAll_d05_mBR1_ch01": 21,
+        "gBR_sBM_cAll_d04_mBR0_ch03": 4,
+        "gJS_sBM_cAll_d01_mJS3_ch04": 3,
+        "gBR_sBM_cAll_d06_mBR3_ch01": 16
+      },
+      "rejection_counts": {
+        "non_dance_or_ambient": 40
+      },
+      "files": {
+        "01_electronic_backbeat.mp3": {
+          "windows": 22,
+          "accepted": 22,
+          "top_genres": [
+            [
+              "HO",
+              22
+            ]
+          ],
+          "top_motions": [
+            [
+              "gHO_sBM_cAll_d20_mHO5_ch10",
+              22
+            ]
+          ],
+          "rejections": {}
+        },
+        "02_hiphop_hippety_hop.mp3": {
+          "windows": 22,
+          "accepted": 9,
+          "top_genres": [
+            [
+              "PO",
+              9
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              9
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 13
+          }
+        },
+        "03_jazz_bebop_for_joey.mp3": {
+          "windows": 22,
+          "accepted": 22,
+          "top_genres": [
+            [
+              "JB",
+              22
+            ]
+          ],
+          "top_motions": [
+            [
+              "gJB_sBM_cAll_d08_mJB0_ch02",
+              21
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB1_ch02",
+              1
+            ]
+          ],
+          "rejections": {}
+        },
+        "04_world_bollywood_groove.mp3": {
+          "windows": 22,
+          "accepted": 22,
+          "top_genres": [
+            [
+              "WA",
+              17
+            ],
+            [
+              "JB",
+              5
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              16
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB5_ch03",
+              6
+            ]
+          ],
+          "rejections": {}
+        },
+        "05_latin_cumbish.mp3": {
+          "windows": 22,
+          "accepted": 22,
+          "top_genres": [
+            [
+              "WA",
+              22
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA4_ch02",
+              15
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA3_ch02",
+              7
+            ]
+          ],
+          "rejections": {}
+        },
+        "06_upbeat_bar_brawl.mp3": {
+          "windows": 22,
+          "accepted": 22,
+          "top_genres": [
+            [
+              "WA",
+              20
+            ],
+            [
+              "JB",
+              2
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              10
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA1_ch02",
+              7
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB1_ch02",
+              5
+            ]
+          ],
+          "rejections": {}
+        },
+        "07_orchestral_battle_ready.mp3": {
+          "windows": 22,
+          "accepted": 22,
+          "top_genres": [
+            [
+              "BR",
+              20
+            ],
+            [
+              "PO",
+              1
+            ],
+            [
+              "JB",
+              1
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d05_mBR1_ch01",
+              17
+            ],
+            [
+              "gBR_sBM_cAll_d04_mBR0_ch03",
+              2
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB0_ch02",
+              2
+            ]
+          ],
+          "rejections": {}
+        },
+        "08_waltz_isolation_waltz.mp3": {
+          "windows": 22,
+          "accepted": 17,
+          "top_genres": [
+            [
+              "JS",
+              10
+            ],
+            [
+              "PO",
+              7
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              14
+            ],
+            [
+              "gJS_sBM_cAll_d01_mJS3_ch04",
+              3
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 5
+          }
+        },
+        "09_funk_funky_energy_loop.mp3": {
+          "windows": 22,
+          "accepted": 22,
+          "top_genres": [
+            [
+              "BR",
+              22
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d06_mBR3_ch01",
+              16
+            ],
+            [
+              "gBR_sBM_cAll_d05_mBR1_ch01",
+              4
+            ],
+            [
+              "gBR_sBM_cAll_d04_mBR0_ch03",
+              2
+            ]
+          ],
+          "rejections": {}
+        },
+        "10_ambient_alien_spaceship.mp3": {
+          "windows": 22,
+          "accepted": 0,
+          "top_genres": [],
+          "top_motions": [],
+          "rejections": {
+            "non_dance_or_ambient": 22
+          }
+        }
+      }
+    },
+    {
+      "catalog": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog\\catalog.json",
+      "window_seconds": 12.0,
+      "hop_seconds": 1.0,
+      "total_windows": 190,
+      "accepted_windows": 165,
+      "rejected_windows": 25,
+      "unique_genres": 6,
+      "unique_motions": 14,
+      "dominant_genre": "WA",
+      "dominant_genre_share": 0.3212121212121212,
+      "dominant_motion": "gWA_sBM_cAll_d26_mWA5_ch02",
+      "dominant_motion_share": 0.1696969696969697,
+      "ambient_switch_candidates": 0,
+      "genre_counts": {
+        "HO": 19,
+        "PO": 23,
+        "JB": 25,
+        "WA": 53,
+        "BR": 35,
+        "JS": 10
+      },
+      "motion_counts": {
+        "gHO_sBM_cAll_d20_mHO5_ch10": 19,
+        "gPO_sBM_cAll_d12_mPO4_ch02": 27,
+        "gJB_sBM_cAll_d08_mJB0_ch02": 22,
+        "gWA_sBM_cAll_d26_mWA5_ch02": 28,
+        "gJB_sBM_cAll_d08_mJB5_ch03": 4,
+        "gWA_sBM_cAll_d25_mWA3_ch02": 6,
+        "gWA_sBM_cAll_d26_mWA4_ch02": 13,
+        "gJB_sBM_cAll_d08_mJB1_ch02": 2,
+        "gWA_sBM_cAll_d25_mWA1_ch02": 4,
+        "gPO_sFM_cAll_d12_mPO1_ch16": 1,
+        "gBR_sBM_cAll_d05_mBR1_ch01": 15,
+        "gJS_sBM_cAll_d01_mJS3_ch04": 5,
+        "gBR_sBM_cAll_d04_mBR0_ch03": 5,
+        "gBR_sBM_cAll_d06_mBR3_ch01": 14
+      },
+      "rejection_counts": {
+        "non_dance_or_ambient": 25
+      },
+      "files": {
+        "01_electronic_backbeat.mp3": {
+          "windows": 19,
+          "accepted": 19,
+          "top_genres": [
+            [
+              "HO",
+              19
+            ]
+          ],
+          "top_motions": [
+            [
+              "gHO_sBM_cAll_d20_mHO5_ch10",
+              19
+            ]
+          ],
+          "rejections": {}
+        },
+        "02_hiphop_hippety_hop.mp3": {
+          "windows": 19,
+          "accepted": 15,
+          "top_genres": [
+            [
+              "PO",
+              15
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              15
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 4
+          }
+        },
+        "03_jazz_bebop_for_joey.mp3": {
+          "windows": 19,
+          "accepted": 19,
+          "top_genres": [
+            [
+              "JB",
+              19
+            ]
+          ],
+          "top_motions": [
+            [
+              "gJB_sBM_cAll_d08_mJB0_ch02",
+              19
+            ]
+          ],
+          "rejections": {}
+        },
+        "04_world_bollywood_groove.mp3": {
+          "windows": 19,
+          "accepted": 19,
+          "top_genres": [
+            [
+              "WA",
+              15
+            ],
+            [
+              "JB",
+              4
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              15
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB5_ch03",
+              4
+            ]
+          ],
+          "rejections": {}
+        },
+        "05_latin_cumbish.mp3": {
+          "windows": 19,
+          "accepted": 19,
+          "top_genres": [
+            [
+              "WA",
+              19
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA4_ch02",
+              13
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA3_ch02",
+              6
+            ]
+          ],
+          "rejections": {}
+        },
+        "06_upbeat_bar_brawl.mp3": {
+          "windows": 19,
+          "accepted": 19,
+          "top_genres": [
+            [
+              "WA",
+              19
+            ]
+          ],
+          "top_motions": [
+            [
+              "gWA_sBM_cAll_d26_mWA5_ch02",
+              13
+            ],
+            [
+              "gWA_sBM_cAll_d25_mWA1_ch02",
+              4
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB1_ch02",
+              2
+            ]
+          ],
+          "rejections": {}
+        },
+        "07_orchestral_battle_ready.mp3": {
+          "windows": 19,
+          "accepted": 19,
+          "top_genres": [
+            [
+              "BR",
+              16
+            ],
+            [
+              "JB",
+              2
+            ],
+            [
+              "PO",
+              1
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d05_mBR1_ch01",
+              15
+            ],
+            [
+              "gJB_sBM_cAll_d08_mJB0_ch02",
+              3
+            ],
+            [
+              "gPO_sFM_cAll_d12_mPO1_ch16",
+              1
+            ]
+          ],
+          "rejections": {}
+        },
+        "08_waltz_isolation_waltz.mp3": {
+          "windows": 19,
+          "accepted": 17,
+          "top_genres": [
+            [
+              "JS",
+              10
+            ],
+            [
+              "PO",
+              7
+            ]
+          ],
+          "top_motions": [
+            [
+              "gPO_sBM_cAll_d12_mPO4_ch02",
+              12
+            ],
+            [
+              "gJS_sBM_cAll_d01_mJS3_ch04",
+              5
+            ]
+          ],
+          "rejections": {
+            "non_dance_or_ambient": 2
+          }
+        },
+        "09_funk_funky_energy_loop.mp3": {
+          "windows": 19,
+          "accepted": 19,
+          "top_genres": [
+            [
+              "BR",
+              19
+            ]
+          ],
+          "top_motions": [
+            [
+              "gBR_sBM_cAll_d06_mBR3_ch01",
+              14
+            ],
+            [
+              "gBR_sBM_cAll_d04_mBR0_ch03",
+              5
+            ]
+          ],
+          "rejections": {}
+        },
+        "10_ambient_alien_spaceship.mp3": {
+          "windows": 19,
+          "accepted": 0,
+          "top_genres": [],
+          "top_motions": [],
+          "rejections": {
+            "non_dance_or_ambient": 19
+          }
+        }
+      }
+    }
+  ]
+}

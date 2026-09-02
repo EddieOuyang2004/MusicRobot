@@ -1,0 +1,125 @@
+<mxfile host="app.diagrams.net" modified="2026-08-30T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="humanoid-matcher" name="Humanoid Matcher 模型架构">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Humanoid Matcher：音乐驱动人形机器人实时动作检索与控制模型" style="text;html=1;align=center;verticalAlign=middle;fontSize=24;fontStyle=1;fontColor=#1F2937;" vertex="1" parent="1">
+          <mxGeometry x="240" y="18" width="1320" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="离线知识库构建 → 在线跨模态匹配 → 稳定动作切换 → 安全运动学输出" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontColor=#4B5563;" vertex="1" parent="1">
+          <mxGeometry x="390" y="58" width="1020" height="28" as="geometry" />
+        </mxCell>
+
+        <mxCell id="offline-bg" value="① 离线目录与运动资产构建" style="swimlane;html=1;startSize=36;rounded=1;arcSize=10;horizontal=1;fillColor=#EAF2F8;swimlaneFillColor=#F8FBFD;strokeColor=#5B8DB8;fontColor=#204A6B;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="95" width="1760" height="265" as="geometry" />
+        </mxCell>
+        <mxCell id="online-bg" value="② 在线音乐检索与动作决策（异步）" style="swimlane;html=1;startSize=36;rounded=1;arcSize=10;horizontal=1;fillColor=#F2ECF8;swimlaneFillColor=#FCFAFE;strokeColor=#8B6FAE;fontColor=#563D75;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="380" width="1760" height="315" as="geometry" />
+        </mxCell>
+        <mxCell id="control-bg" value="③ 节拍同步、连续切换与 G1 输出（实时控制循环）" style="swimlane;html=1;startSize=36;rounded=1;arcSize=10;horizontal=1;fillColor=#FDF1E6;swimlaneFillColor=#FFFCF8;strokeColor=#C8894A;fontColor=#7A431B;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="715" width="1760" height="325" as="geometry" />
+        </mxCell>
+
+        <mxCell id="o1" value="&lt;b&gt;AIST++ 同步数据&lt;/b&gt;&lt;br&gt;音乐音频&lt;br&gt;SMPL 动作序列" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D9EAF7;strokeColor=#5B8DB8;fontColor=#173B57;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="55" y="160" width="185" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="o2" value="&lt;b&gt;音频窗口与稳健归一化&lt;/b&gt;&lt;br&gt;16 kHz 单声道；去直流&lt;br&gt;6 s 窗 / 2 s 步长&lt;br&gt;95% 分位幅值归一化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DFF2E1;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="285" y="125" width="245" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="o3" value="&lt;b&gt;动作特征与可行性检查&lt;/b&gt;&lt;br&gt;速度谷关键姿态 / 密度 / 活跃度&lt;br&gt;MuJoCo 预检，仅保留通过动作" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DFF2E1;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="285" y="245" width="245" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="o4" value="&lt;b&gt;音频描述符 AudioDescriptor&lt;/b&gt;&lt;br&gt;嵌入 e：DSP（当前目录）/ 可选 EffNet&lt;br&gt;节奏-音色 r（24 维）/ 可选标签 p&lt;br&gt;BPM、节拍强度、onset、offbeat、flux" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E5F4EA;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="575" y="125" width="285" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="o5" value="&lt;b&gt;AIST++ → GMR → Unitree G1&lt;/b&gt;&lt;br&gt;SMPL 世界变换与坐标系转换&lt;br&gt;碰撞约束 IK；根位姿 + 29-DoF&lt;br&gt;连续性与碰撞复检" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E5F4EA;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="575" y="245" width="285" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="o6" value="&lt;b&gt;音乐-动作目录&lt;/b&gt;&lt;br&gt;catalog.json + catalog_features.npz&lt;br&gt;348 音频片段 / 60 首音乐 / 411 动作&lt;br&gt;标准化统计量、曲目-动作关联、关键姿态" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#E8E8EE;strokeColor=#6B7280;fontColor=#374151;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="935" y="150" width="310" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="o7" value="&lt;b&gt;Canonical GMR-G1 动作库&lt;/b&gt;&lt;br&gt;root_pos [N,3]&lt;br&gt;root_rot [N,4] (wxyz)&lt;br&gt;dof_pos [N,29] + dof_names" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#E8E8EE;strokeColor=#6B7280;fontColor=#374151;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="150" width="300" height="145" as="geometry" />
+        </mxCell>
+
+        <mxCell id="m1" value="&lt;b&gt;实时音频输入&lt;/b&gt;&lt;br&gt;麦克风 / 虚拟麦克风文件&lt;br&gt;启动校准与噪声门" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D9EAF7;strokeColor=#5B8DB8;fontColor=#173B57;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="55" y="470" width="190" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="m2" value="&lt;b&gt;RealtimeMusicAnalyzer&lt;/b&gt;&lt;br&gt;块级 RMS / onset / 频带 / 亮度&lt;br&gt;PLP 节拍、置信度、节拍对比度&lt;br&gt;生成 MusicFrame 事件流" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DFF2E1;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="285" y="430" width="235" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="m3" value="&lt;b&gt;滚动查询窗口&lt;/b&gt;&lt;br&gt;最近 6 s 音频&lt;br&gt;每 1 s 异步提交一次" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D9EAF7;strokeColor=#5B8DB8;fontColor=#173B57;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="285" y="575" width="235" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="m4" value="&lt;b&gt;查询特征提取&lt;/b&gt;&lt;br&gt;与离线同构的稳健归一化和描述符&lt;br&gt;e, r, p, BPM, activity&lt;br&gt;检索在线程池执行，不阻塞控制循环" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E5F4EA;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="565" y="450" width="255" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="m8" value="&lt;b&gt;FeatureState / Beat Events&lt;/b&gt;&lt;br&gt;平滑音乐特征 + accepted beat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E5F4EA;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="565" y="590" width="255" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="m5" value="&lt;b&gt;分层音乐-动作匹配&lt;/b&gt;&lt;br&gt;片段→曲目：Sₜ = .70Sₑ + .20Sᵣ + .10Sₚ&lt;br&gt;每首曲目取 Top-3 片段均值&lt;br&gt;动作：Sₘ = .50Stempo + .35Skey + .15Sactivity&lt;br&gt;&lt;b&gt;Sfinal = .55Smusic + .45Smotion&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E9DDF5;strokeColor=#8B6FAE;fontColor=#563D75;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="860" y="430" width="320" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="m6" value="&lt;b&gt;稳定选择策略&lt;/b&gt;&lt;br&gt;&lt;b&gt;相关性切换：&lt;/b&gt;领先当前 ≥ 0.08，连续 3 次胜出&lt;br&gt;&lt;b&gt;多样性轮换：&lt;/b&gt;最多保持 4 小节，在近优候选中按最近最少使用选择&lt;br&gt;仅在 4 个 accepted beats 的小节边界切换" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4E2C7;strokeColor=#C8894A;fontColor=#7A431B;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="420" width="255" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="m7" value="&lt;b&gt;异步动作就绪池与入口评分&lt;/b&gt;&lt;br&gt;预加载 / 接地 / 特征缓存&lt;br&gt;候选入口：关键姿态 ±3 帧&lt;br&gt;J = .45pose + .20velocity + .20contact&lt;br&gt;  + .10root + .05salience penalty&lt;br&gt;过渡时长受速度/加速度约束，并量化到半拍" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4E2C7;strokeColor=#C8894A;fontColor=#7A431B;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="420" width="235" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1" value="&lt;b&gt;AdaptiveMotionController&lt;/b&gt;&lt;br&gt;强拍筛选与节拍周期估计&lt;br&gt;相位误差渐进消化（不瞬移）&lt;br&gt;输出：phase / speed / amplitude / accent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4E2C7;strokeColor=#C8894A;fontColor=#7A431B;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="55" y="800" width="280" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="&lt;b&gt;当前 / 目标动作采样&lt;/b&gt;&lt;br&gt;OneShotPhaseTracker 避免循环接缝&lt;br&gt;GMR 轨迹插值：root 线性 + 四元数 SLERP&lt;br&gt;29 关节角线性插值&lt;br&gt;MusicPoseModulator（可选、默认 subtle）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E5F4EA;strokeColor=#63A46C;fontColor=#235C2D;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="385" y="775" width="300" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="&lt;b&gt;连续过渡与根轨迹管理&lt;/b&gt;&lt;br&gt;目标根位姿对齐当前根位姿&lt;br&gt;关节 + root position + root quaternion 平滑混合&lt;br&gt;RootMotionContinuity 跨循环/切换保持位移和朝向&lt;br&gt;到片段末端时强制无缝过渡或保持末帧" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F4E2C7;strokeColor=#C8894A;fontColor=#7A431B;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="735" y="775" width="320" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="&lt;b&gt;输出安全层&lt;/b&gt;&lt;br&gt;JointDynamicsLimiter&lt;br&gt;关节速度 / 加速度约束&lt;br&gt;运行时自碰撞检测与安全投影&lt;br&gt;碰撞修正后重置动力学状态" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8D7DA;strokeColor=#C75B64;fontColor=#7B2630;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1105" y="775" width="275" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" value="&lt;b&gt;MuJoCo G1 29-DoF 播放器&lt;/b&gt;&lt;br&gt;写入 free-joint 根位姿与 29 个铰链 qpos&lt;br&gt;mj_forward + Viewer 同步&lt;br&gt;&lt;i&gt;运动学预览；非力矩/平衡控制&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8D7DA;strokeColor=#C75B64;fontColor=#7B2630;fontSize=13;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1430" y="800" width="315" height="135" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="蓝：数据输入　绿：特征/采样　紫：匹配　橙：决策/控制　红：安全/执行" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontColor=#4B5563;" vertex="1" parent="1">
+          <mxGeometry x="535" y="1047" width="730" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="注：图中阈值与权重为当前代码默认值；无标签模型时，片段匹配权重按 0.70:0.20 重新归一化。" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontColor=#6B7280;" vertex="1" parent="1">
+          <mxGeometry x="385" y="1072" width="1030" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e-o1-o2" value="音频" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#5B8DB8;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="o1" target="o2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o1-o3" value="动作" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#5B8DB8;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="o1" target="o3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o2-o4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;endArrow=block;endFill=1;" edge="1" parent="1" source="o2" target="o4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o3-o5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;endArrow=block;endFill=1;" edge="1" parent="1" source="o3" target="o5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o4-o6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;endArrow=block;endFill=1;" edge="1" parent="1" source="o4" target="o6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o3-o6" value="MotionProfile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="o3" target="o6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o5-o7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;endArrow=block;endFill=1;" edge="1" parent="1" source="o5" target="o7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o5-o6" value="预检结果" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="o5" target="o6"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-m1-m2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#5B8DB8;endArrow=block;endFill=1;" edge="1" parent="1" source="m1" target="m2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m2-m3" value="音频缓冲" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#5B8DB8;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m2" target="m3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m2-m8" value="MusicFrame" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m2" target="m8"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m3-m4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#5B8DB8;endArrow=block;endFill=1;" edge="1" parent="1" source="m3" target="m4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m4-m5" value="query descriptor" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#8B6FAE;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m4" target="m5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o6-m5" value="标准化目录特征" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6B7280;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="o6" target="m5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m5-m6" value="Top-K motions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#8B6FAE;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m5" target="m6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m6-m7" value="pending / ready" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C8894A;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m6" target="m7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-o7-m7" value="GMR trajectories" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6B7280;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="o7" target="m7"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-m8-c1" value="observe" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m8" target="c1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-c1-m6" value="小节边界" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C8894A;dashed=1;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="c1" target="m6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-c1-c2" value="phase / features" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C8894A;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="c1" target="c2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m7-c2" value="sampler + entry phase" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C8894A;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m7" target="c2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-m8-c2" value="音乐调制特征" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#63A46C;dashed=1;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="m8" target="c2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-c2-c3" value="current + target frames" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C8894A;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="c2" target="c3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-c3-c4" value="RobotMotionFrame" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C75B64;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="c3" target="c4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-c4-c5" value="safe qpos targets" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C75B64;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="c4" target="c5"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

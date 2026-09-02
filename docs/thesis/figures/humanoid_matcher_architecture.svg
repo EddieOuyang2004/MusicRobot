@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Humanoid Matcher 音乐驱动人形机器人实时动作检索与控制模型</title>
+  <desc id="desc">展示离线目录构建、在线音乐动作匹配、稳定切换、节拍同步和 Unitree G1 MuJoCo 输出的系统架构。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5b8db8"/></marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#63a46c"/></marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8b6fae"/></marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c8894a"/></marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c75b64"/></marker>
+    <style>
+      text{font-family:"Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;fill:#263238}
+      .title{font-size:25px;font-weight:700}.subtitle{font-size:14px;fill:#4b5563}.band-title{font-size:17px;font-weight:700}
+      .node rect{rx:10;ry:10;stroke-width:1.5}.node text{font-size:13px}.node .head{font-weight:700;font-size:14px}
+      .blue rect{fill:#d9eaf7;stroke:#5b8db8}.green rect{fill:#e5f4ea;stroke:#63a46c}.purple rect{fill:#e9ddf5;stroke:#8b6fae}.orange rect{fill:#f4e2c7;stroke:#c8894a}.red rect{fill:#f8d7da;stroke:#c75b64}.store rect{fill:#e8e8ee;stroke:#6b7280}
+      .edge{fill:none;stroke-width:2}.edge-label{font-size:11px;fill:#4b5563}.note{font-size:12px;fill:#6b7280}
+    </style>
+  </defs>
+  <rect width="1800" height="1100" fill="#ffffff"/>
+  <text x="900" y="45" text-anchor="middle" class="title">Humanoid Matcher：音乐驱动人形机器人实时动作检索与控制模型</text>
+  <text x="900" y="75" text-anchor="middle" class="subtitle">离线知识库构建 → 在线跨模态匹配 → 稳定动作切换 → 安全运动学输出</text>
+
+  <rect x="20" y="95" width="1760" height="265" rx="16" fill="#f8fbfd" stroke="#5b8db8" stroke-width="1.5"/>
+  <path d="M20 131H1780" stroke="#5b8db8"/>
+  <text x="38" y="120" class="band-title" fill="#204a6b">① 离线目录与运动资产构建</text>
+  <rect x="20" y="380" width="1760" height="315" rx="16" fill="#fcfafe" stroke="#8b6fae" stroke-width="1.5"/>
+  <path d="M20 416H1780" stroke="#8b6fae"/>
+  <text x="38" y="405" class="band-title" fill="#563d75">② 在线音乐检索与动作决策（异步）</text>
+  <rect x="20" y="715" width="1760" height="325" rx="16" fill="#fffcf8" stroke="#c8894a" stroke-width="1.5"/>
+  <path d="M20 751H1780" stroke="#c8894a"/>
+  <text x="38" y="740" class="band-title" fill="#7a431b">③ 节拍同步、连续切换与 G1 输出（实时控制循环）</text>
+
+  <!-- edges: offline -->
+  <path class="edge" d="M240 198H285" stroke="#5b8db8" marker-end="url(#arrow-blue)"/><text x="251" y="191" class="edge-label">音频</text>
+  <path class="edge" d="M240 232H263V290H285" stroke="#5b8db8" marker-end="url(#arrow-blue)"/><text x="247" y="278" class="edge-label">动作</text>
+  <path class="edge" d="M530 177H575" stroke="#63a46c" marker-end="url(#arrow-green)"/>
+  <path class="edge" d="M530 290H575" stroke="#63a46c" marker-end="url(#arrow-green)"/>
+  <path class="edge" d="M860 177H935" stroke="#63a46c" marker-end="url(#arrow-green)"/>
+  <path class="edge" d="M530 315H890V260H935" stroke="#63a46c" marker-end="url(#arrow-green)"/><text x="690" y="307" class="edge-label">MotionProfile</text>
+  <path class="edge" d="M860 290H900V280H935" stroke="#63a46c" marker-end="url(#arrow-green)"/>
+  <path class="edge" d="M860 290H1340" stroke="#63a46c" marker-end="url(#arrow-green)"/>
+
+  <!-- edges: online -->
+  <path class="edge" d="M245 520H285" stroke="#5b8db8" marker-end="url(#arrow-blue)"/>
+  <path class="edge" d="M403 555V575" stroke="#5b8db8" marker-end="url(#arrow-blue)"/>
+  <path class="edge" d="M520 616H565" stroke="#5b8db8" marker-end="url(#arrow-blue)"/>
+  <path class="edge" d="M520 518H542V623H565" stroke="#63a46c" marker-end="url(#arrow-green)"/>
+  <path class="edge" d="M820 510H860" stroke="#8b6fae" marker-end="url(#arrow-purple)"/>
+  <path class="edge" d="M1090 295V385H1020V430" stroke="#6b7280" marker-end="url(#arrow-purple)"/><text x="1098" y="372" class="edge-label">目录特征</text>
+  <path class="edge" d="M1180 520H1220" stroke="#8b6fae" marker-end="url(#arrow-purple)"/>
+  <path class="edge" d="M1475 520H1510" stroke="#c8894a" marker-end="url(#arrow-orange)"/>
+  <path class="edge" d="M1490 295V360H1655V420" stroke="#6b7280" marker-end="url(#arrow-purple)"/><text x="1510" y="351" class="edge-label">GMR trajectories</text>
+
+  <!-- edges: control -->
+  <path class="edge" d="M650 656V690H195V800" stroke="#63a46c" marker-end="url(#arrow-green)"/><text x="400" y="684" class="edge-label">MusicFrame.observe()</text>
+  <path class="edge" d="M335 867H385" stroke="#c8894a" marker-end="url(#arrow-orange)"/>
+  <path class="edge" d="M1625 620V690H535V775" stroke="#c8894a" marker-end="url(#arrow-orange)"/><text x="1180" y="684" class="edge-label">sampler + entry phase</text>
+  <path class="edge" d="M685 867H735" stroke="#c8894a" marker-end="url(#arrow-orange)"/>
+  <path class="edge" d="M1055 867H1105" stroke="#c75b64" marker-end="url(#arrow-red)"/>
+  <path class="edge" d="M1380 867H1430" stroke="#c75b64" marker-end="url(#arrow-red)"/>
+  <path class="edge" d="M195 800V680H1348V620" stroke="#c8894a" stroke-dasharray="7 6" marker-end="url(#arrow-orange)"/><text x="1080" y="674" class="edge-label">每 4 个 accepted beats：小节切换边界</text>
+
+  <!-- offline nodes -->
+  <g class="node blue"><rect x="55" y="160" width="185" height="105"/><text x="147" y="190" text-anchor="middle"><tspan class="head" x="147">AIST++ 同步数据</tspan><tspan x="147" dy="24">音乐音频</tspan><tspan x="147" dy="20">SMPL 动作序列</tspan></text></g>
+  <g class="node green"><rect x="285" y="125" width="245" height="105"/><text x="407" y="151" text-anchor="middle"><tspan class="head" x="407">音频窗口与稳健归一化</tspan><tspan x="407" dy="23">16 kHz；去直流</tspan><tspan x="407" dy="19">6 s 窗 / 2 s 步长</tspan><tspan x="407" dy="19">95% 分位幅值归一化</tspan></text></g>
+  <g class="node green"><rect x="285" y="245" width="245" height="90"/><text x="407" y="271" text-anchor="middle"><tspan class="head" x="407">动作特征与可行性检查</tspan><tspan x="407" dy="23">速度谷关键姿态 / 密度 / 活跃度</tspan><tspan x="407" dy="19">MuJoCo 预检，仅保留通过动作</tspan></text></g>
+  <g class="node green"><rect x="575" y="125" width="285" height="105"/><text x="717" y="149" text-anchor="middle"><tspan class="head" x="717">音频描述符 AudioDescriptor</tspan><tspan x="717" dy="22">嵌入 e：DSP / 可选 EffNet</tspan><tspan x="717" dy="19">节奏-音色 r（24维）/ 可选标签 p</tspan><tspan x="717" dy="19">BPM、节拍、onset、offbeat、flux</tspan></text></g>
+  <g class="node green"><rect x="575" y="245" width="285" height="90"/><text x="717" y="270" text-anchor="middle"><tspan class="head" x="717">AIST++ → GMR → Unitree G1</tspan><tspan x="717" dy="22">SMPL 世界变换 / 碰撞约束 IK</tspan><tspan x="717" dy="19">根位姿 + 29-DoF；连续性复检</tspan></text></g>
+  <g class="node store"><rect x="935" y="150" width="310" height="145" rx="20"/><text x="1090" y="177" text-anchor="middle"><tspan class="head" x="1090">音乐-动作目录</tspan><tspan x="1090" dy="24">catalog.json + catalog_features.npz</tspan><tspan x="1090" dy="20">348 片段 / 60 首音乐 / 411 动作</tspan><tspan x="1090" dy="20">标准化统计量、曲目-动作关联</tspan><tspan x="1090" dy="20">MotionProfile 与关键姿态</tspan></text></g>
+  <g class="node store"><rect x="1340" y="150" width="300" height="145" rx="20"/><text x="1490" y="177" text-anchor="middle"><tspan class="head" x="1490">Canonical GMR-G1 动作库</tspan><tspan x="1490" dy="25">root_pos [N,3]</tspan><tspan x="1490" dy="20">root_rot [N,4] (wxyz)</tspan><tspan x="1490" dy="20">dof_pos [N,29]</tspan><tspan x="1490" dy="20">dof_names</tspan></text></g>
+
+  <!-- online nodes -->
+  <g class="node blue"><rect x="55" y="470" width="190" height="100"/><text x="150" y="499" text-anchor="middle"><tspan class="head" x="150">实时音频输入</tspan><tspan x="150" dy="24">麦克风 / 虚拟麦克风</tspan><tspan x="150" dy="20">启动校准与噪声门</tspan></text></g>
+  <g class="node green"><rect x="285" y="430" width="235" height="125"/><text x="402" y="455" text-anchor="middle"><tspan class="head" x="402">RealtimeMusicAnalyzer</tspan><tspan x="402" dy="23">RMS / onset / 频带 / 亮度</tspan><tspan x="402" dy="19">PLP 节拍、置信度、对比度</tspan><tspan x="402" dy="19">MusicFrame 事件流</tspan></text></g>
+  <g class="node blue"><rect x="285" y="575" width="235" height="82"/><text x="402" y="602" text-anchor="middle"><tspan class="head" x="402">滚动查询窗口</tspan><tspan x="402" dy="23">最近 6 s；每 1 s 异步提交</tspan></text></g>
+  <g class="node green"><rect x="565" y="450" width="255" height="120"/><text x="692" y="477" text-anchor="middle"><tspan class="head" x="692">查询特征提取</tspan><tspan x="692" dy="23">与离线同构的 AudioDescriptor</tspan><tspan x="692" dy="19">e, r, p, BPM, activity</tspan><tspan x="692" dy="19">线程池执行，不阻塞控制循环</tspan></text></g>
+  <g class="node green"><rect x="565" y="590" width="255" height="66"/><text x="692" y="615" text-anchor="middle"><tspan class="head" x="692">FeatureState / Beat Events</tspan><tspan x="692" dy="21">平滑特征 + accepted beat</tspan></text></g>
+  <g class="node purple"><rect x="860" y="430" width="320" height="185"/><text x="1020" y="456" text-anchor="middle"><tspan class="head" x="1020">分层音乐-动作匹配</tspan><tspan x="1020" dy="24">Sₜ = .70Sₑ + .20Sᵣ + .10Sₚ</tspan><tspan x="1020" dy="20">每首曲目取 Top-3 片段均值</tspan><tspan x="1020" dy="20">Sₘ = .50Sₜₑₘₚₒ + .35Sₖₑᵧ + .15Sₐ꜀ₜ</tspan><tspan x="1020" dy="22" font-weight="700">Sfinal = .55Smusic + .45Smotion</tspan></text></g>
+  <g class="node orange"><rect x="1220" y="420" width="255" height="200"/><text x="1347" y="446" text-anchor="middle"><tspan class="head" x="1347">稳定选择策略</tspan><tspan x="1347" dy="24">相关性：领先 ≥0.08</tspan><tspan x="1347" dy="19">连续 3 次胜出</tspan><tspan x="1347" dy="23">多样性：最多保持 4 小节</tspan><tspan x="1347" dy="19">近优候选中按 LRU 选择</tspan><tspan x="1347" dy="23">仅在 4 拍小节边界切换</tspan></text></g>
+  <g class="node orange"><rect x="1510" y="420" width="235" height="200"/><text x="1627" y="445" text-anchor="middle"><tspan class="head" x="1627">动作就绪池与入口评分</tspan><tspan x="1627" dy="23">预加载 / 接地 / 特征缓存</tspan><tspan x="1627" dy="19">关键姿态 ±3 帧</tspan><tspan x="1627" dy="22">J=.45pose+.20velocity</tspan><tspan x="1627" dy="19">+.20contact+.10root</tspan><tspan x="1627" dy="19">+.05salience penalty</tspan><tspan x="1627" dy="22">过渡时长量化到半拍</tspan></text></g>
+
+  <!-- control nodes -->
+  <g class="node orange"><rect x="55" y="800" width="280" height="135"/><text x="195" y="827" text-anchor="middle"><tspan class="head" x="195">AdaptiveMotionController</tspan><tspan x="195" dy="24">强拍筛选与节拍周期估计</tspan><tspan x="195" dy="20">相位误差渐进消化（不瞬移）</tspan><tspan x="195" dy="20">phase / speed / amplitude / accent</tspan></text></g>
+  <g class="node green"><rect x="385" y="775" width="300" height="185"/><text x="535" y="802" text-anchor="middle"><tspan class="head" x="535">当前 / 目标动作采样</tspan><tspan x="535" dy="24">OneShotPhaseTracker 避免循环接缝</tspan><tspan x="535" dy="20">root 线性 + quaternion SLERP</tspan><tspan x="535" dy="20">29 关节角线性插值</tspan><tspan x="535" dy="20">MusicPoseModulator（默认 subtle）</tspan></text></g>
+  <g class="node orange"><rect x="735" y="775" width="320" height="185"/><text x="895" y="802" text-anchor="middle"><tspan class="head" x="895">连续过渡与根轨迹管理</tspan><tspan x="895" dy="24">目标根位姿对齐当前根位姿</tspan><tspan x="895" dy="20">关节、根位置、四元数平滑混合</tspan><tspan x="895" dy="20">RootMotionContinuity 跨循环/切换</tspan><tspan x="895" dy="20">末端强制过渡或保持末帧</tspan></text></g>
+  <g class="node red"><rect x="1105" y="775" width="275" height="185"/><text x="1242" y="802" text-anchor="middle"><tspan class="head" x="1242">输出安全层</tspan><tspan x="1242" dy="25">JointDynamicsLimiter</tspan><tspan x="1242" dy="20">关节速度 / 加速度约束</tspan><tspan x="1242" dy="20">运行时自碰撞检测与安全投影</tspan><tspan x="1242" dy="20">碰撞修正后重置动力学状态</tspan></text></g>
+  <g class="node red"><rect x="1430" y="800" width="315" height="135"/><text x="1587" y="827" text-anchor="middle"><tspan class="head" x="1587">MuJoCo G1 29-DoF 播放器</tspan><tspan x="1587" dy="24">写入根位姿与 29 个铰链 qpos</tspan><tspan x="1587" dy="20">mj_forward + Viewer 同步</tspan><tspan x="1587" dy="20" font-style="italic">运动学预览；非力矩/平衡控制</tspan></text></g>
+
+  <text x="900" y="1065" text-anchor="middle" class="note">蓝：数据输入　绿：特征/采样　紫：匹配　橙：决策/控制　红：安全/执行</text>
+  <text x="900" y="1088" text-anchor="middle" class="note">注：阈值与权重为当前代码默认值；无标签模型时，片段匹配权重按 0.70:0.20 重新归一化。</text>
+</svg>

@@ -1,0 +1,53 @@
+{
+  "protocol_version": 1,
+  "description": "Pre-registered Humanoid Matcher objective evaluation protocol.",
+  "seeds": [0, 1, 2, 3, 4],
+  "control_rate_hz": 120.0,
+  "match_window_seconds": 6.0,
+  "match_interval_seconds": 1.0,
+  "literature": {
+    "clips_per_genre": 4,
+    "clip_seconds": 20.0,
+    "evaluation_fps": 60.0,
+    "bas_sigma_frames": 3.0
+  },
+  "quality_constraints": {
+    "diversity_max_mean_score_loss_fraction": 0.05,
+    "beat_sync_max_deadline_miss_increase": 0.01
+  },
+  "realtime_constraints": {
+    "query_p95_ms": 1000.0,
+    "control_work_p99_ms": 8.3333333333,
+    "deadline_miss_ratio": 0.01,
+    "completed_query_slot_rate": 0.99,
+    "busy_submission_rate": 0.01,
+    "ready_pool_underruns": 0,
+    "preparation_hold_last_events": 0,
+    "max_joint_speed_rad_s": 16.0,
+    "max_joint_acceleration_rad_s2": 2000.0,
+    "joint_limit_violations": 0,
+    "self_collision_violations": 0
+  },
+  "cc0_labels": {
+    "01_electronic_backbeat": {"expected_genres": ["HO", "BR"], "reject": false},
+    "02_hiphop_hippety_hop": {"expected_genres": ["MH", "LH"], "reject": false},
+    "03_jazz_bebop_for_joey": {"expected_genres": ["JB", "JS"], "reject": false},
+    "04_world_bollywood_groove": {"expected_genres": ["WA"], "reject": false},
+    "05_latin_cumbish": {"expected_genres": ["WA", "LO"], "reject": false},
+    "06_upbeat_bar_brawl": {"expected_genres": ["BR", "PO"], "reject": false},
+    "07_orchestral_battle_ready": {"expected_genres": ["JB"], "reject": false},
+    "08_waltz_isolation_waltz": {"expected_genres": ["JB"], "reject": false},
+    "09_funk_funky_energy_loop": {"expected_genres": ["LO", "PO", "WA"], "reject": false},
+    "10_ambient_alien_spaceship": {"expected_genres": [], "reject": true}
+  },
+  "ablations": {
+    "full": [],
+    "legacy_retrieval": ["--match-policy", "legacy"],
+    "no_motion_compatibility": ["--diagnostic-disable-motion-compatibility"],
+    "instant_top1": ["--switch-required-wins", "1", "--switch-score-margin", "0", "--diagnostic-instant-top1"],
+    "no_diversity": ["--switch-max-hold-bars", "1000000", "--switch-diversity-top-k", "1"],
+    "authored_timing": ["--motion-timing", "authored"],
+    "fixed_entry_simple_transition": ["--diagnostic-fixed-entry-transition"],
+    "no_output_limiter": ["--diagnostic-disable-output-limiter"]
+  }
+}

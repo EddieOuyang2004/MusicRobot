@@ -183,6 +183,7 @@ def write_timing_report(
     scheduler: RealtimeLoopScheduler,
     analyzer: RealtimeMusicAnalyzer | None,
     player: "MujocoHumanoidPlayer",
+    extra: dict[str, Any] | None = None,
 ) -> None:
     if path is None:
         return
@@ -192,6 +193,30 @@ def write_timing_report(
             "collision_checks": player.collision_check_count,
             "collision_projections": player.collision_projection_count,
             "collision_anchor_recoveries": player.collision_anchor_recovery_count,
+        }
+    )
+    viewer_samples_ms = np.asarray(player.viewer_render_seconds, dtype=np.float64) * 1_000.0
+    report.update(
+        {
+            "viewer_render_samples": int(viewer_samples_ms.size),
+            "viewer_render_ms_p50": (
+                float(np.percentile(viewer_samples_ms, 50.0))
+                if viewer_samples_ms.size
+                else 0.0
+            ),
+            "viewer_render_ms_p95": (
+                float(np.percentile(viewer_samples_ms, 95.0))
+                if viewer_samples_ms.size
+                else 0.0
+            ),
+            "viewer_render_ms_p99": (
+                float(np.percentile(viewer_samples_ms, 99.0))
+                if viewer_samples_ms.size
+                else 0.0
+            ),
+            "viewer_render_ms_max": (
+                float(np.max(viewer_samples_ms)) if viewer_samples_ms.size else 0.0
+            ),
         }
     )
     if analyzer is not None:
@@ -205,6 +230,8 @@ def write_timing_report(
                 "plp_max_ms": analyzer.analysis_max_latency_sec * 1_000.0,
             }
         )
+    if extra:
+        report.update(extra)
     report_path = path if path.is_absolute() else ROOT / path
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -1040,15 +1067,35 @@ class MujocoHumanoidPlayer:
             sorted(expanded_collision_pairs), dtype=np.int32
         ).reshape((-1, 2))
         self.collision_scratch = mujoco.MjData(self.model)
+        self.left_foot_support_body_id = mujoco.mj_name2id(
+            self.model,
+            mujoco.mjtObj.mjOBJ_BODY,
+            "left_ankle_roll_link",
+        )
+        self.right_foot_support_body_id = mujoco.mj_name2id(
+            self.model,
+            mujoco.mjtObj.mjOBJ_BODY,
+            "right_ankle_roll_link",
+        )
         support_bodies = {
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "left_ankle_roll_link"),
-            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "right_ankle_roll_link"),
+            self.left_foot_support_body_id,
+            self.right_foot_support_body_id,
         }
         self.foot_support_geom_ids = tuple(
             geom_id
             for geom_id in range(self.model.ngeom)
             if int(self.model.geom_bodyid[geom_id]) in support_bodies
             and int(self.model.geom_type[geom_id]) == int(mujoco.mjtGeom.mjGEOM_SPHERE)
+        )
+        self.left_foot_support_geom_ids = tuple(
+            geom_id
+            for geom_id in self.foot_support_geom_ids
+            if int(self.model.geom_bodyid[geom_id]) == self.left_foot_support_body_id
+        )
+        self.right_foot_support_geom_ids = tuple(
+            geom_id
+            for geom_id in self.foot_support_geom_ids
+            if int(self.model.geom_bodyid[geom_id]) == self.right_foot_support_body_id
         )
         self.viewer = None
         self.viewer_data: mujoco.MjData | None = None
@@ -1058,6 +1105,7 @@ class MujocoHumanoidPlayer:
         self.viewer_snapshot_lock = threading.Lock()
         self.viewer_qpos_snapshot: np.ndarray | None = None
         self.viewer_time_snapshot = 0.0
+        self.viewer_render_seconds: list[float] = []
 
     @property
     def actuator_names(self) -> set[str]:
@@ -1109,6 +1157,7 @@ class MujocoHumanoidPlayer:
         period = 1.0 / self.viewer_rate_hz
         next_sync = time.perf_counter()
         while not self.viewer_stop.is_set() and viewer.is_running():
+            render_started = time.perf_counter()
             with self.viewer_snapshot_lock:
                 snapshot = (
                     None
@@ -1121,6 +1170,9 @@ class MujocoHumanoidPlayer:
                 viewer_data.time = snapshot_time
                 mujoco.mj_forward(self.model, viewer_data)
             viewer.sync()
+            self.viewer_render_seconds.append(
+                max(time.perf_counter() - render_started, 0.0)
+            )
             next_sync += period
             delay = next_sync - time.perf_counter()
             if delay <= 0.0:
@@ -1282,10 +1334,23 @@ class MujocoHumanoidPlayer:
             for geom_id in self.foot_support_geom_ids
         )
 
+    def foot_support_height(
+        self,
+        geom_ids: tuple[int, ...],
+        data: mujoco.MjData | None = None,
+    ) -> float:
+        target = self.data if data is None else data
+        return min(
+            float(target.geom_xpos[geom_id, 2] - self.model.geom_size[geom_id, 0])
+            for geom_id in geom_ids
+        )
+
     def ground_sampler(
         self,
         sampler: object,
         pose_adapter: UnitreeG1DanceAdapter | UnitreeG1JointPoseAdapter | None,
+        *,
+        cooperative_yield: bool = False,
     ) -> float:
         if not hasattr(sampler, "ground_offset_z") or not hasattr(sampler, "frames"):
             return 0.0
@@ -1301,19 +1366,45 @@ class MujocoHumanoidPlayer:
         features = FeatureState()
         frame_count = len(getattr(sampler, "frames"))
         minimum = math.inf
+        support_heights = np.empty((frame_count, 2), dtype=np.float64)
+        adapted_joint_frames: list[dict[str, float]] = []
         for frame_index in range(frame_count):
             frame = sampler.sample_frame(frame_index / frame_count, 1.0, 0.0, features)
             joints = frame.joint_positions
             if pose_adapter is not None:
                 joints = pose_adapter.adapt_pose(joints, features)
+            adapted_joint_frames.append(
+                {name: float(value) for name, value in joints.items()}
+            )
             self._write_frame(scratch, frame.with_joint_positions(joints), count_limits=False)
             mujoco.mj_forward(self.model, scratch)
-            minimum = min(minimum, self.support_height(scratch))
+            left_height = self.foot_support_height(self.left_foot_support_geom_ids, scratch)
+            right_height = self.foot_support_height(self.right_foot_support_geom_ids, scratch)
+            support_heights[frame_index] = (left_height, right_height)
+            minimum = min(minimum, left_height, right_height)
+            if cooperative_yield:
+                # Preparation is intentionally lower priority than the control
+                # loop. Yielding here prevents a long Python/MuJoCo scan from
+                # monopolising the interpreter on large clips.
+                time.sleep(0.001)
         if not math.isfinite(minimum):
             raise ValueError("Could not compute a finite foot support height for the motion.")
         offset = -minimum
         setattr(sampler, "ground_offset_z", offset)
         setattr(sampler, "is_grounded", True)
+        grounded_heights = support_heights + offset
+        fps = max(float(getattr(sampler, "fps", 60.0)), 1e-6)
+        vertical_speed = np.zeros_like(grounded_heights)
+        if frame_count > 1:
+            vertical_speed[1:] = np.diff(grounded_heights, axis=0) * fps
+            vertical_speed[0] = vertical_speed[1]
+        foot_contacts = (
+            (grounded_heights <= 0.015)
+            & (np.abs(vertical_speed) <= 0.20)
+        )
+        setattr(sampler, "foot_support_heights", grounded_heights)
+        setattr(sampler, "foot_contacts", foot_contacts)
+        setattr(sampler, "adapted_joint_frames", tuple(adapted_joint_frames))
         print(f"Grounded {sampler_source_id(sampler)} with constant root Z offset {offset:+.6f} m.")
         return offset
 

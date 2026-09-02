@@ -979,6 +979,7 @@ class AdaptiveMotionController:
         beat_contrast_weight: float = 0.5,
         phase_correction_tau: float = 0.25,
         max_speed_change_per_sec: float = 2.0,
+        sync_to_beats: bool = True,
     ) -> None:
         self.authored_cycle_duration = max(authored_cycle_duration, 1e-6)
         self.authored_phase_rate = 1.0 / max(authored_cycle_duration, 1e-6)
@@ -1000,6 +1001,7 @@ class AdaptiveMotionController:
         self.beat_contrast_weight = float(np.clip(beat_contrast_weight, 0.0, 1.0))
         self.phase_correction_tau = max(float(phase_correction_tau), 1e-6)
         self.max_speed_change_per_sec = max(float(max_speed_change_per_sec), 0.0)
+        self.sync_to_beats = bool(sync_to_beats)
         self.keypoint_intervals = self._keypoint_intervals()
         self.min_accepted_beat_interval = self._min_accepted_beat_interval()
 
@@ -1126,28 +1128,44 @@ class AdaptiveMotionController:
             return False
 
         self.last_beat_wall = frame.timestamp
-        expected_phase = self._expected_beat_phase()
-        beat_alignment_error = wrap_phase_error(expected_phase - self.phase)
-        correction_source = selection_score if self.beat_selection_mode == "adaptive" else confidence
-        correction_gain = 1.0 if self.beat_index == 0 else 0.25 + 0.35 * correction_source
-        self.phase_correction_remaining = wrap_phase_error(
-            self.phase_correction_remaining + correction_gain * beat_alignment_error
-        )
+        if self.sync_to_beats:
+            expected_phase = self._expected_beat_phase()
+            beat_alignment_error = wrap_phase_error(expected_phase - self.phase)
+            correction_source = (
+                selection_score
+                if self.beat_selection_mode == "adaptive"
+                else confidence
+            )
+            correction_gain = (
+                1.0 if self.beat_index == 0 else 0.25 + 0.35 * correction_source
+            )
+            self.phase_correction_remaining = wrap_phase_error(
+                self.phase_correction_remaining
+                + correction_gain * beat_alignment_error
+            )
         self.beat_index += 1
 
-        if self.beat_selection_mode == "adaptive" and previous_beat_wall is not None:
+        if previous_beat_wall is not None:
             accepted_interval = frame.timestamp - previous_beat_wall
             self.last_accepted_interval = accepted_interval
+        if (
+            self.sync_to_beats
+            and self.beat_selection_mode == "adaptive"
+            and previous_beat_wall is not None
+        ):
             phase_gap = target_interval / self.authored_cycle_duration
             unclamped_rate = phase_gap / max(accepted_interval, 1e-6)
             min_rate = self.authored_phase_rate * self.speed_min
             max_rate = self.authored_phase_rate * self.speed_max
             self.target_phase_rate = float(np.clip(unclamped_rate, min_rate, max_rate))
-        elif frame.beat_period is not None:
+        elif self.sync_to_beats and frame.beat_period is not None:
             unclamped_rate = 1.0 / max(frame.beat_period * self.beats_per_cycle, 1e-6)
             min_rate = self.authored_phase_rate * self.speed_min
             max_rate = self.authored_phase_rate * self.speed_max
             self.target_phase_rate = float(np.clip(unclamped_rate, min_rate, max_rate))
+        elif not self.sync_to_beats:
+            self.target_phase_rate = self.authored_phase_rate
+            self.phase_correction_remaining = 0.0
 
         self.accent_started_wall = frame.timestamp
         accent_score = selection_score if self.beat_selection_mode == "adaptive" else confidence
@@ -1219,6 +1237,22 @@ class AdaptiveMotionController:
                 self.candidate_scores.clear()
 
         alpha = 1.0 - math.exp(-dt / self.smoothing_tau)
+        if not self.sync_to_beats:
+            self.phase_rate = self.authored_phase_rate
+            self.effective_phase_rate = self.authored_phase_rate
+            self.target_phase_rate = self.authored_phase_rate
+            self.phase_correction_remaining = 0.0
+            self.amplitude_scale += alpha * (
+                self.target_amplitude_scale - self.amplitude_scale
+            )
+            self.phase = (self.phase + self.authored_phase_rate * dt) % 1.0
+            return (
+                self.phase,
+                self.amplitude_scale,
+                self._accent(now_wall),
+                self.last_brightness,
+            )
+
         self.phase_rate += alpha * (self.target_phase_rate - self.phase_rate)
         minimum_rate = self.authored_phase_rate * self.speed_min
         maximum_rate = self.authored_phase_rate * self.speed_max

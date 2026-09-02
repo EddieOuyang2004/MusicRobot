@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "sample_rate_hz": 16000,
+  "streams": [
+    {
+      "id": "tempo_jump",
+      "path": "tempo_jump_90_to_150.wav",
+      "duration_seconds": 40.0,
+      "changes": [
+        {
+          "time_seconds": 20.0,
+          "from_bpm": 90,
+          "to_bpm": 150
+        }
+      ]
+    },
+    {
+      "id": "genre_jump",
+      "path": "genre_jump_aistpp.wav",
+      "duration_seconds": 39.0,
+      "changes": [
+        7.75,
+        15.5,
+        23.25,
+        31.0
+      ]
+    },
+    {
+      "id": "silence_recovery",
+      "path": "silence_recovery.wav",
+      "duration_seconds": 40.0,
+      "changes": [
+        {
+          "time_seconds": 12.0,
+          "state": "silence"
+        },
+        {
+          "time_seconds": 20.0,
+          "state": "music"
+        }
+      ]
+    }
+  ]
+}

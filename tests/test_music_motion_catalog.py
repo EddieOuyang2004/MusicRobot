@@ -30,6 +30,7 @@ from music_motion_catalog import (
     MotionSelectionPolicy,
     MusicCatalog,
     MusicMotionMatcher,
+    OnnxEffnetBackend,
     TrackMatch,
     _representative_audio_variants,
     robust_audio_normalize,
@@ -100,6 +101,38 @@ def match_result(*motions: MotionMatch) -> MatchResult:
 
 
 class MusicMotionCatalogTests(unittest.TestCase):
+    def test_effnet_frontend_uses_power_spectrum(self) -> None:
+        audio = np.ones(8_000, dtype=np.float32)
+        fake_spectrum = np.full((33, 257), 2.0, dtype=np.float32)
+        with (
+            patch.object(catalog_module.np.fft, "rfft", return_value=fake_spectrum),
+            patch.object(
+                catalog_module.librosa.filters,
+                "mel",
+                return_value=np.ones((96, 257), dtype=np.float32),
+            ),
+        ):
+            patches = OnnxEffnetBackend.patches(audio, 16_000)
+
+        expected = np.log10(1.0 + 10_000.0 * (257.0 * 4.0))
+        np.testing.assert_allclose(patches[0, :33], expected, rtol=1e-6)
+        np.testing.assert_allclose(patches[0, 33:], 0.0)
+
+    def test_discogs_tags_produce_aist_style_priors(self) -> None:
+        labels = (
+            "Jazz---Bebop",
+            "Latin---Cumbia",
+            "Electronic---Techno",
+        )
+        priors = MusicMotionMatcher._tag_genre_priors(
+            labels,
+            np.asarray([0.9, 0.8, 0.7], dtype=np.float32),
+        )
+
+        self.assertGreater(priors["JS"], priors.get("PO", 0.0))
+        self.assertGreater(priors["WA"], priors.get("LO", 0.0))
+        self.assertAlmostEqual(0.7, priors["HO"], places=6)
+
     def test_effnet_extraction_skips_dsp_and_hpss_feature_work(self) -> None:
         class FakeEffnetBackend:
             output_dimension = 3
@@ -266,6 +299,57 @@ class MusicMotionCatalogTests(unittest.TestCase):
 
         self.assertEqual(["passed"], [item.motion_id for item in result.motions])
 
+    def test_weak_music_requires_two_consecutive_windows_by_default(self) -> None:
+        metadata = {
+            "segments": [{"music_id": "BR0", "genre": "BR"}],
+            "tracks": {
+                "BR0": {
+                    "music_id": "BR0",
+                    "genre": "BR",
+                    "motion_ids": ["passed"],
+                }
+            },
+            "motions": {"passed": motion_profile("passed", True).to_dict()},
+            "motion_stats": {"velocity_median": 1.0, "velocity_scale": 0.2},
+            "extractor": {
+                "tag_model": {"labels": ["Non-Music---Field Recording"]}
+            },
+        }
+        arrays = {
+            "embeddings": np.asarray([[1.0, 0.0]], dtype=np.float32),
+            "rhythm_timbre": np.asarray([[1.0, 0.0]], dtype=np.float32),
+            "tags": np.asarray([[1.0]], dtype=np.float32),
+            "embedding_mean": np.asarray([0.0, 0.0], dtype=np.float32),
+            "embedding_std": np.asarray([1.0, 1.0], dtype=np.float32),
+            "rhythm_mean": np.asarray([0.0, 0.0], dtype=np.float32),
+            "rhythm_std": np.asarray([1.0, 1.0], dtype=np.float32),
+        }
+        catalog = MusicCatalog(Path("catalog.json"), metadata, arrays)
+        matcher = MusicMotionMatcher(catalog, weak_music_threshold=0.17)
+        weak_descriptor = replace(
+            descriptor((1.0, 0.0), (1.0, 0.0)),
+            tag_probabilities=np.asarray([0.20], dtype=np.float32),
+        )
+
+        first = matcher.match(weak_descriptor)
+        second = matcher.match(weak_descriptor)
+
+        self.assertTrue(first.accepted)
+        self.assertEqual("", first.rejection_reason)
+        self.assertFalse(second.accepted)
+        self.assertEqual("non_dance_or_ambient", second.rejection_reason)
+
+    def test_weak_music_streak_resets_below_threshold(self) -> None:
+        matcher = MusicMotionMatcher.__new__(MusicMotionMatcher)
+        matcher.weak_music_threshold = 0.17
+        matcher.weak_music_consecutive_windows = 2
+        matcher._weak_music_streak = 0
+
+        self.assertFalse(matcher._weak_music_is_persistent(0.20))
+        self.assertFalse(matcher._weak_music_is_persistent(0.16))
+        self.assertFalse(matcher._weak_music_is_persistent(0.20))
+        self.assertTrue(matcher._weak_music_is_persistent(0.20))
+
     def test_candidate_requires_consecutive_wins_and_margin(self) -> None:
         stabilizer = CandidateStabilizer(required_wins=3, margin=0.08)
         result = MatchResult(
@@ -352,6 +436,29 @@ class MusicMotionCatalogTests(unittest.TestCase):
         selector.record_played("fourth")
         self.assertEqual("first", selector.select("fourth").motion_id)
 
+    def test_diversity_selector_prefers_a_fresh_visual_cluster(self) -> None:
+        selector = DiversityCandidateSelector(
+            required_wins=1,
+            recent_history=3,
+            motion_clusters={
+                "current": "energetic",
+                "similar": "energetic",
+                "different": "grounded",
+            },
+        )
+        selector.record_played("current")
+        selector.observe(
+            match_result(
+                motion_match("current", 0.90),
+                motion_match("similar", 0.89),
+                motion_match("different", 0.88),
+            )
+        )
+
+        selected = selector.select("current")
+        self.assertEqual("different", selected.motion_id)
+        self.assertEqual("grounded", selected.cluster_id)
+
     def test_diversity_selector_holds_when_only_current_is_eligible(self) -> None:
         selector = DiversityCandidateSelector(required_wins=1)
         selector.observe(match_result(motion_match("current", 0.90)))
@@ -401,6 +508,23 @@ class MusicMotionCatalogTests(unittest.TestCase):
         self.assertEqual("new", pending.motion_id)
         self.assertEqual("relevance", pending.reason)
         self.assertEqual(pending, policy.on_bar_boundary())
+
+    def test_rejected_music_clears_a_pending_switch(self) -> None:
+        policy = MotionSelectionPolicy(
+            current_motion_id="current",
+            required_wins=1,
+        )
+        accepted = match_result(motion_match("new", 0.90))
+        self.assertIsNotNone(policy.observe(accepted))
+
+        rejected = replace(
+            accepted,
+            motions=(),
+            accepted=False,
+            rejection_reason="non_dance_or_ambient",
+        )
+        self.assertIsNone(policy.observe(rejected))
+        self.assertIsNone(policy.pending)
 
     def test_diversity_can_become_ready_on_the_hold_limit_boundary(self) -> None:
         policy = MotionSelectionPolicy(
@@ -473,6 +597,39 @@ class MusicMotionCatalogTests(unittest.TestCase):
         self.assertEqual(2, controller.beat_index)
         self.assertEqual(12.0, controller.last_beat_wall)
         self.assertEqual([0.4, 0.6, 0.8], list(controller.candidate_scores))
+
+    def test_authored_motion_switch_resets_inherited_speed_to_one(self) -> None:
+        args = Namespace(
+            smoothing_tau=0.1,
+            speed_min=0.5,
+            speed_max=2.0,
+            amp_min=0.3,
+            amp_max=1.0,
+            accent_duration=0.1,
+            tempo_timeout=1.0,
+            beat_confidence_threshold=0.4,
+            beat_keypoint_interval_ratio=1.0,
+            beat_selection_mode="adaptive",
+            beat_contrast_weight=0.5,
+            motion_timing="authored",
+        )
+        source_profile = motion_profile("source", True)
+        target_profile = motion_profile("target", True)
+        previous = make_controller(args, source_profile)
+        previous.effective_phase_rate = previous.authored_phase_rate * 1.6
+
+        controller = make_controller(
+            args,
+            target_profile,
+            previous=previous,
+            entry_phase=0.5,
+        )
+
+        self.assertFalse(controller.sync_to_beats)
+        self.assertEqual(1.0, controller.speed_multiplier)
+        self.assertEqual(controller.authored_phase_rate, controller.phase_rate)
+        self.assertEqual(controller.authored_phase_rate, controller.target_phase_rate)
+        self.assertEqual(0.0, controller.phase_correction_remaining)
 
     def test_catalog_reuses_aistpp_keypoint_detector(self) -> None:
         self.assertEqual(

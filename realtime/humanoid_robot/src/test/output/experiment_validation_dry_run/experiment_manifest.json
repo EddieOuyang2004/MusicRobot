@@ -1,0 +1,44 @@
+{
+  "generated_utc": "2026-09-01T18:15:54.488864+00:00",
+  "git_commit": "3933debd8b2f4e3699e977752ec5cf350509c5d3",
+  "git_dirty": true,
+  "git_status": "M realtime/humanoid_robot/README.md\n M realtime/humanoid_robot/data/music_catalog/catalog.json\n M realtime/humanoid_robot/data/music_catalog/catalog_features.npz\n M realtime/humanoid_robot/src/music_motion_catalog.py\n M realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py\n M realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py\n M realtime/humanoid_robot/src/robot_motion.py\n M realtime/humanoid_robot/src/test/README.md\n M realtime/robot_arm/src/realtime_music_adaptive_player.py\n M tests/test_adaptive_motion_controller.py\n M tests/test_music_motion_catalog.py\n?? docs/\n?? realtime/humanoid_robot/src/test/benchmark_cc0_matcher.py\n?? realtime/humanoid_robot/src/test/build_matcher_negative_set.py\n?? realtime/humanoid_robot/src/test/humanoid_matcher_experiment.schema.json\n?? realtime/humanoid_robot/src/test/humanoid_matcher_experiment_metrics.py\n?? realtime/humanoid_robot/src/test/humanoid_matcher_experiment_protocol.json\n?? realtime/humanoid_robot/src/test/output/cc0_matcher_benchmark.json\n?? realtime/humanoid_robot/src/test/output/cc0_matcher_set/\n?? realtime/humanoid_robot/src/test/output/cc0_matcher_set_authored/\n?? realtime/humanoid_robot/src/test/output/diagnostic_gPO_sBM_cAll_d12_mPO4_ch01_no_collision.pkl\n?? realtime/humanoid_robot/src/test/output/experiment_e2e_smoke/\n?? realtime/humanoid_robot/src/test/output/experiment_offline_smoke/\n?? realtime/humanoid_robot/src/test/output/experiment_smoke_dry_run/\n?? realtime/humanoid_robot/src/test/run_humanoid_matcher_experiments.py\n?? tests/test_humanoid_matcher_experiments.py\n?? tests/test_humanoid_motion_switching.py",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python": "3.11.14",
+  "processor": "Intel64 Family 6 Model 151 Stepping 2, GenuineIntel",
+  "logical_cpu_count": 20,
+  "gpu": "NVIDIA GeForce RTX 3080, 10240 MiB, 591.86",
+  "packages": {
+    "numpy": "1.26.4",
+    "librosa": "0.10.2.post1",
+    "onnxruntime": "1.28.0",
+    "mujoco": "3.10.0",
+    "scipy": "1.11.4"
+  },
+  "onnxruntime_providers": [],
+  "catalog": {
+    "path": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog\\catalog.json",
+    "sha256": "896fdddd9e5b3dc9d27e78f6c895cc6e85b0236388fca3a498c1212f91547407",
+    "arrays_sha256": "193cc4fc3549db7e2c5a496a5cd2eac2d5533359a420d4fe59f7eca743cfd367"
+  },
+  "models": {
+    "embedding_model": {
+      "path": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\models\\discogs-effnet-bsdynamic-1.onnx",
+      "exists": true,
+      "sha256": "a280825b334797cf677939db8cd5762c0392aedd0ca6415dbc1cd083f045e43c"
+    },
+    "tag_model": {
+      "path": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\models\\discogs-effnet-bsdynamic-1.onnx",
+      "exists": true,
+      "sha256": "a280825b334797cf677939db8cd5762c0392aedd0ca6415dbc1cd083f045e43c"
+    }
+  },
+  "protocol": {
+    "path": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\humanoid_matcher_experiment_protocol.json",
+    "sha256": "6495cfb9759a4cf35a650709a29b1268509c0ab632634d925729989a7b156836"
+  },
+  "output_schema": {
+    "path": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\humanoid_matcher_experiment.schema.json",
+    "sha256": "c900b1dab943756e1257cb27ad46edf3cb92054190599bb87216581269c35506"
+  }
+}

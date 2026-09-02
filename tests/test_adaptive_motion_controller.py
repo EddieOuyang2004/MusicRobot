@@ -94,6 +94,7 @@ def make_adaptive_controller(
     phases: tuple[float, ...] = (0.0, 0.25, 0.5, 0.75),
     speed_min: float = 0.5,
     speed_max: float = 2.0,
+    sync_to_beats: bool = True,
 ) -> AdaptiveMotionController:
     return AdaptiveMotionController(
         authored_cycle_duration=duration,
@@ -111,10 +112,40 @@ def make_adaptive_controller(
         beat_keypoint_interval_ratio=1.0,
         beat_selection_mode="adaptive",
         beat_contrast_weight=0.5,
+        sync_to_beats=sync_to_beats,
     )
 
 
 class AdaptiveMotionControllerBeatFilterTests(unittest.TestCase):
+    @unittest.skipIf(AdaptiveMotionController is None, _IMPORT_SKIP_REASON)
+    def test_authored_timing_accepts_beats_and_holds_exact_original_speed(self) -> None:
+        controller = make_adaptive_controller(
+            duration=4.0,
+            phases=(0.2, 0.45, 0.7, 0.95),
+            sync_to_beats=False,
+        )
+        controller.update(0.0)
+
+        for timestamp, period in ((1.0, 0.1), (2.0, 0.8), (3.0, 0.2)):
+            self.assertTrue(
+                controller.observe(
+                    make_frame(timestamp, 0.9, contrast=0.9, beat_period=period)
+                )
+            )
+            controller.target_phase_rate = controller.authored_phase_rate * 2.0
+            controller.phase_correction_remaining = 0.4
+            controller.update(timestamp)
+            self.assertEqual(1.0, controller.speed_multiplier)
+            self.assertEqual(
+                controller.authored_phase_rate,
+                controller.target_phase_rate,
+            )
+            self.assertEqual(0.0, controller.phase_correction_remaining)
+
+        self.assertEqual(3, controller.beat_index)
+        self.assertAlmostEqual(0.75, controller.phase)
+        self.assertAlmostEqual(1.0, controller.last_accepted_interval)
+
     @unittest.skipIf(AdaptiveMotionController is None, _IMPORT_SKIP_REASON)
     def test_beat_alignment_is_slewed_without_phase_snap_and_stays_speed_bounded(self) -> None:
         controller = make_adaptive_controller(

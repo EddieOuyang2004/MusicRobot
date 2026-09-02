@@ -1,0 +1,12 @@
+limit,observed,passed,run,safety_metric
+1000.0,,False,acceptance,query_p95_ms
+8.3333333333,,False,acceptance,control_work_p99_ms
+0.01,,False,acceptance,deadline_miss_ratio
+0.99,,False,acceptance,completed_query_slot_rate
+0.01,,False,acceptance,busy_submission_rate
+0.0,,False,acceptance,ready_pool_underruns
+0.0,,False,acceptance,preparation_hold_last_events
+16.0,,False,acceptance,max_joint_speed_rad_s
+2000.0,,False,acceptance,max_joint_acceleration_rad_s2
+0.0,,False,acceptance,joint_limit_violations
+0.0,,False,acceptance,self_collision_violations
