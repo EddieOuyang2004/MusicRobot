@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1190" height="960" viewBox="0 0 1190 960">
+<title>State Ownership and Asynchronous Execution</title>
+<desc>Six logical-owner swimlanes show background retrieval and preparation while the foreground continues playback and output, followed by a prepared switch and atomic handover.</desc>
+<rect x="0" y="0" width="1190" height="960" rx="0" fill="#FFFFFF" stroke="#FFFFFF"/>
+<rect x="40" y="80" width="540" height="29" rx="8" fill="#EAF1F8" stroke="#CFDCE9"/>
+<text x="310" y="100" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">AUDIO INGEST AND BACKGROUND EXECUTORS</text>
+<rect x="610" y="80" width="540" height="29" rx="8" fill="#EAF5F1" stroke="#CADFD8"/>
+<text x="880" y="100" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">FOREGROUND LOOP: THREE LOGICAL OWNERS</text>
+<rect x="33" y="116" width="174" height="804" rx="8" fill="#F8FAFC" stroke="#E1E7EB"/>
+<rect x="40" y="124" width="160" height="97" rx="8" fill="#EAF1F8" stroke="#32679B"/>
+<text x="120" y="145" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Audio source</text>
+<text x="120" y="166" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Rolling buffer</text>
+<text x="120" y="183" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Audio / feature frames</text>
+<polyline points="120,225 120,910" fill="none" stroke="#C3CED6" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="223" y="116" width="174" height="804" rx="8" fill="#F8FAFC" stroke="#E1E7EB"/>
+<rect x="230" y="124" width="160" height="97" rx="8" fill="#EAF1F8" stroke="#32679B"/>
+<text x="310" y="145" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Retrieval worker</text>
+<text x="310" y="166" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">In-flight Future</text>
+<text x="310" y="183" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Completed ranking</text>
+<text x="310" y="200" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Rejection status</text>
+<polyline points="310,225 310,910" fill="none" stroke="#C3CED6" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="413" y="116" width="174" height="804" rx="8" fill="#F8FAFC" stroke="#E1E7EB"/>
+<rect x="420" y="124" width="160" height="97" rx="8" fill="#EAF1F8" stroke="#32679B"/>
+<text x="500" y="145" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Preparation pool</text>
+<text x="500" y="166" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Load / prepare Futures</text>
+<text x="500" y="183" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Ready cache</text>
+<text x="500" y="200" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Failed candidate IDs</text>
+<polyline points="500,225 500,910" fill="none" stroke="#C3CED6" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="603" y="116" width="174" height="804" rx="8" fill="#F7FAF8" stroke="#E1E7EB"/>
+<rect x="610" y="124" width="160" height="97" rx="8" fill="#EDF5F1" stroke="#247B78"/>
+<text x="690" y="145" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Selection policy</text>
+<text x="690" y="166" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Evidence / pending ID</text>
+<text x="690" y="183" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Hold and recency</text>
+<text x="690" y="200" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Selection reason</text>
+<polyline points="690,225 690,910" fill="none" stroke="#C3CED6" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="793" y="116" width="174" height="804" rx="8" fill="#F7FAF8" stroke="#E1E7EB"/>
+<rect x="800" y="124" width="160" height="97" rx="8" fill="#EDF5F1" stroke="#247B78"/>
+<text x="880" y="145" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Playback / transition</text>
+<text x="880" y="166" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Phase / beat history</text>
+<text x="880" y="183" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Active + target state</text>
+<text x="880" y="200" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Blend progress</text>
+<polyline points="880,225 880,910" fill="none" stroke="#C3CED6" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="983" y="116" width="174" height="804" rx="8" fill="#F7FAF8" stroke="#E1E7EB"/>
+<rect x="990" y="124" width="160" height="97" rx="8" fill="#EDF5F1" stroke="#A36A24"/>
+<text x="1070" y="145" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#A36A24">Output layer</text>
+<text x="1070" y="166" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Last emitted pose</text>
+<text x="1070" y="183" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Limiter state</text>
+<text x="1070" y="200" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Collision correction</text>
+<polyline points="1070,225 1070,910" fill="none" stroke="#C3CED6" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="800" y="239" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="261" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Advance active motion</text>
+<text x="880" y="280" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Beat / phase update</text>
+<rect x="990" y="239" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="1070" y="261" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#A36A24">Condition and emit</text>
+<text x="1070" y="280" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Update limiter state</text>
+<polyline points="960,266 990,266" fill="none" stroke="#A36A24" stroke-width="1.5"/>
+<polygon points="990,266 983.0,263.0 983.0,269.0" fill="#A36A24"/>
+<rect x="800" y="321" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="343" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Advance active motion</text>
+<text x="880" y="362" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Beat / phase update</text>
+<rect x="990" y="321" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="1070" y="343" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#A36A24">Condition and emit</text>
+<text x="1070" y="362" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Update limiter state</text>
+<polyline points="960,348 990,348" fill="none" stroke="#A36A24" stroke-width="1.5"/>
+<polygon points="990,348 983.0,345.0 983.0,351.0" fill="#A36A24"/>
+<rect x="800" y="403" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="425" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Advance active motion</text>
+<text x="880" y="444" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Beat / phase update</text>
+<rect x="990" y="403" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="1070" y="425" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#A36A24">Condition and emit</text>
+<text x="1070" y="444" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Update limiter state</text>
+<polyline points="960,430 990,430" fill="none" stroke="#A36A24" stroke-width="1.5"/>
+<polygon points="990,430 983.0,427.0 983.0,433.0" fill="#A36A24"/>
+<rect x="800" y="485" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="507" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Advance active motion</text>
+<text x="880" y="526" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Beat / phase update</text>
+<rect x="990" y="485" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="1070" y="507" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#A36A24">Condition and emit</text>
+<text x="1070" y="526" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Update limiter state</text>
+<polyline points="960,512 990,512" fill="none" stroke="#A36A24" stroke-width="1.5"/>
+<polygon points="990,512 983.0,509.0 983.0,515.0" fill="#A36A24"/>
+<rect x="40" y="239" width="160" height="54" rx="8" fill="#FFFFFF" stroke="#32679B"/>
+<text x="120" y="261" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Audio snapshot</text>
+<text x="120" y="280" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Copy recent window</text>
+<polyline points="200,266 230,266" fill="none" stroke="#32679B" stroke-width="1.5"/>
+<polygon points="230,266 223.0,263.0 223.0,269.0" fill="#32679B"/>
+<rect x="230" y="239" width="160" height="84" rx="8" fill="#FFFFFF" stroke="#32679B"/>
+<text x="310" y="261" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Submit if idle</text>
+<text x="310" y="280" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Extract query features</text>
+<text x="310" y="297" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Rank tracks / motions</text>
+<text x="310" y="340" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#32679B">Busy: skip submission</text>
+<rect x="230" y="354" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#32679B"/>
+<text x="310" y="376" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Future completed</text>
+<text x="310" y="395" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Ranking or rejection</text>
+<polyline points="390,382 610,382" fill="none" stroke="#32679B" stroke-width="1.5" stroke-dasharray="5 4"/>
+<polygon points="610,382 603.0,379.0 603.0,385.0" fill="#32679B"/>
+<text x="500" y="371" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#32679B">poll(): done only</text>
+<rect x="610" y="354" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="690" y="376" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Observe result</text>
+<text x="690" y="395" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Update selection state</text>
+<polyline points="690,410 690,430 500,430 500,450" fill="none" stroke="#32679B" stroke-width="1.5"/>
+<polygon points="500,450 503.0,443.0 497.0,443.0" fill="#32679B"/>
+<text x="595" y="421" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="middle" fill="#32679B">Ranked candidate IDs</text>
+<rect x="420" y="450" width="160" height="78" rx="8" fill="#FFFFFF" stroke="#32679B"/>
+<text x="500" y="472" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Prepare candidates</text>
+<text x="500" y="491" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Load, ground, adapt</text>
+<text x="500" y="508" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Build entry features</text>
+<rect x="420" y="554" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#32679B"/>
+<text x="500" y="576" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Publish readiness</text>
+<text x="500" y="595" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Ready or failed IDs</text>
+<polyline points="580,582 610,582" fill="none" stroke="#32679B" stroke-width="1.5" stroke-dasharray="5 4"/>
+<polygon points="610,582 603.0,579.0 603.0,585.0" fill="#32679B"/>
+<rect x="610" y="554" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="690" y="576" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Eligible selection</text>
+<text x="690" y="595" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Policy + ready candidate</text>
+<rect x="800" y="554" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="576" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Accepted beat</text>
+<text x="880" y="595" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Eligible switch boundary</text>
+<polyline points="690,610 690,699 800,699" fill="none" stroke="#247B78" stroke-width="1.5"/>
+<polygon points="800,699 793.0,696.0 793.0,702.0" fill="#247B78"/>
+<text x="695" y="648" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="start" fill="#247B78">Selection intent</text>
+<polyline points="880,610 880,662" fill="none" stroke="#247B78" stroke-width="1.5"/>
+<polygon points="880,662 883.0,655.0 877.0,655.0" fill="#247B78"/>
+<text x="890" y="643" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="start" fill="#247B78">Timing gate</text>
+<rect x="800" y="662" width="160" height="74" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="684" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Commit prepared plan</text>
+<text x="880" y="703" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Entry pose + duration</text>
+<text x="880" y="720" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Current plan / generation</text>
+<rect x="420" y="630" width="160" height="74" rx="8" fill="#FFFFFF" stroke="#32679B"/>
+<text x="500" y="652" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#32679B">Background entry score</text>
+<text x="500" y="671" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Ready set + state snapshot</text>
+<text x="500" y="688" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Generation-tagged plan</text>
+<polyline points="500,610 500,630" fill="none" stroke="#32679B" stroke-width="1.5"/>
+<polygon points="500,630 503.0,623.0 497.0,623.0" fill="#32679B"/>
+<polyline points="500,704 500,730 800,730" fill="none" stroke="#32679B" stroke-width="1.5" stroke-dasharray="5 4"/>
+<polygon points="800,730 793.0,727.0 793.0,733.0" fill="#32679B"/>
+<text x="545" y="749" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="start" fill="#32679B">Completed plan; reject stale generation</text>
+<rect x="800" y="760" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="782" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Blend source / target</text>
+<text x="880" y="801" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Root alignment + phase</text>
+<rect x="990" y="760" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="1070" y="782" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#A36A24">Condition and emit</text>
+<text x="1070" y="801" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Limits + optional collision</text>
+<polyline points="960,788 990,788" fill="none" stroke="#A36A24" stroke-width="1.5"/>
+<polygon points="990,788 983.0,785.0 983.0,791.0" fill="#A36A24"/>
+<rect x="800" y="844" width="160" height="70" rx="8" fill="#FFFFFF" stroke="#247B78"/>
+<text x="880" y="866" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#247B78">Atomic handover</text>
+<text x="880" y="885" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Target becomes active</text>
+<text x="880" y="902" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Sampler, phase, root, ID</text>
+<rect x="990" y="844" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="1070" y="866" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#A36A24">Continue output</text>
+<text x="1070" y="885" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" fill="#203348">Preserve limiter history</text>
+<polyline points="960,872 990,872" fill="none" stroke="#A36A24" stroke-width="1.5"/>
+<polygon points="990,872 983.0,869.0 983.0,875.0" fill="#A36A24"/>
+<polyline points="880,736 880,760" fill="none" stroke="#247B78" stroke-width="1.5"/>
+<polygon points="880,760 883.0,753.0 877.0,753.0" fill="#247B78"/>
+<polyline points="880,816 880,844" fill="none" stroke="#247B78" stroke-width="1.5"/>
+<polygon points="880,844 883.0,837.0 877.0,837.0" fill="#247B78"/>
+</svg>

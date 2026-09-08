@@ -1,0 +1,808 @@
+% Chapter 5 can be included from a larger thesis with \input or \include.
+% This chapter uses only citation keys already present in references.bib.
+% No Chapter 5 reference entries were added to references.bib.
+
+\chapter{Real-Time Music--Motion Matching and Continuous Control}
+\label{chap:realtime_matching_control}
+
+\section{Chapter Overview}
+\label{sec:ch5_overview}
+
+Chapter~\ref{chap:offline_catalogue} constructed a catalogue in which every
+audio reference has a consistent descriptor and every selectable dance has a
+preflight-passed Unitree G1 trajectory. This chapter develops the online method
+that uses this catalogue. The method receives an audio stream, retrieves
+musically related references, ranks their associated motions, accumulates
+evidence for a stable selection, and connects the selected trajectory to the
+currently playing one. At the same time, a causal beat controller adjusts
+motion phase without discontinuously jumping between poses.
+
+The proposed method is retrieval-based rather than generative. It cannot create
+an unseen choreography, but it offers three practical advantages for the
+present humanoid system. First, the source of every commanded pose is known.
+Second, expensive retargeting and preflight are completed before live use.
+Third, retrieval, selection, timing, and transition errors can be measured
+separately. These properties complement recent work on expressive audio-driven
+humanoid locomotion and streaming character generation, which demonstrates the
+importance of musical responsiveness but also highlights the difficulty of
+causal control \cite{li2026you,ji2026discoforcing}.
+
+The online method is organised around three different decisions:
+
+\begin{enumerate}[label=(\arabic*)]
+    \item \emph{what} music and motion are supported by the recent audio.
+    \item \emph{when} the evidence is stable enough to authorise a switch.
+    \item \emph{how} the current and selected robot trajectories can be joined
+          without a pose, velocity, contact, or root discontinuity.
+\end{enumerate}
+
+
+
+\section{Online Problem Formulation}
+\label{sec:ch5_problem}
+
+Let $x_{0:t}$ denote audio observed up to current time $t$, and let
+$\mathcal{M}=\{M_i\}_{i=1}^{N}$ be the finite catalogue of robot-ready
+motions. Each $M_i$ is associated with source music $u_i$, an authored tempo,
+an activity profile, key-pose phases, foot-contact states, and a G1 trajectory.
+The online system produces a piecewise trajectory
+$\widehat{M}(t)$ and its continuous phase $\phi(t)$ using only $x_{0:t}$:
+
+\begin{equation}
+    \bigl(\widehat{M}(t),\phi(t)\bigr)
+    =\mathcal{F}\!\left(x_{0:t},\mathcal{M},\mathcal{H}_{t}\right),
+    \label{eq:ch5_causal_mapping}
+\end{equation}
+
+where $\mathcal{H}_{t}$ contains the current motion, recent rankings, accepted
+beats, played-motion history, prepared candidates, and controller state. The
+history term makes explicit that selection is stateful. Applying a memoryless
+nearest-neighbour rule independently to every window would make
+$\widehat{M}(t)$ oscillate when several catalogue items have similar scores.
+
+The method optimises no single end-to-end objective at runtime. Instead, it
+uses a sequence of constrained local objectives:
+
+\begin{equation}
+\begin{aligned}
+    &\text{audio retrieval:} &&\max s_{\mathrm{track}},\\
+    &\text{motion ranking:}  &&\max s_{\mathrm{final}},\\
+    &\text{entry search:}    &&\min C_{\mathrm{entry}},\\
+    &\text{playback:}        &&\min |e_{\phi}|\quad
+       \text{subject to phase-rate and output constraints}.
+\end{aligned}
+    \label{eq:ch5_local_objectives}
+\end{equation}
+
+This factorisation reflects the available evidence. Audio descriptors can
+indicate semantic and rhythmic compatibility, but they cannot determine the
+instantaneous joint configuration at which a switch is smooth. Conversely,
+joint-space entry cost cannot decide whether a dance is appropriate for the
+music.
+
+\subsection{Dual-timescale causal processing}
+\label{subsec:ch5_dual_timescale}
+
+The same audio stream is processed at two timescales. A six-second rolling
+waveform supplies the context required by the catalogue extractor. A retrieval
+attempt is made once per second when the previous attempt has completed. In
+parallel, a short-block analyser emits activity, onset, spectral, and beat
+events used for phase control and subtle pose modulation. The retrieval view
+therefore estimates musical identity and compatibility, whereas the event view
+estimates local timing.
+
+Both paths are causal. No sample later than the current audio position is used.
+This is stricter than merely playing an offline model incrementally, a
+distinction emphasised in real-time diffusion control
+\cite{ji2026discoforcing}. The longer retrieval window does introduce an
+observation delay at startup and after a musical change. This delay is explicit
+and can be measured. It is not hidden by using future context.
+
+Feature extraction and catalogue search run in a single background worker. If
+that worker is occupied, the next submission opportunity is skipped. Requests
+are not accumulated in a queue. Thus the live controller consumes the newest
+completed evidence instead of processing an increasing backlog of stale audio
+windows. Completed rankings are passed to the bounded candidate-preparation
+subsystem described in Section~\ref{subsec:ch5_commitment_readiness}.
+
+\section{Hierarchical Music-to-Motion Retrieval}
+\label{sec:ch5_hierarchical_retrieval}
+
+\subsection{Query standardisation and segment similarity}
+\label{subsec:ch5_segment_similarity}
+
+For every query window, the online extractor produces the same three vectors
+as the offline pipeline: a learned embedding $\mathbf{e}_q$, a rhythm--timbre
+vector $\mathbf{r}_q$, and style activations $\mathbf{g}_q$. The embedding is
+derived from the same Discogs EffNet model used to construct the catalogue
+\cite{alonso2022music}. Model identity and feature dimensions are checked at
+startup. A mismatch is treated as an error.
+
+Learned and rhythm vectors are standardised using the catalogue statistics and
+then normalised to unit length. For feature family $f\in\{e,r\}$,
+
+\begin{equation}
+    \overline{\mathbf{f}}_q=
+    \frac{(\mathbf{f}_q-\boldsymbol{\mu}_f)
+          /\max(\boldsymbol{\sigma}_f,\epsilon)}
+         {\left\|(\mathbf{f}_q-\boldsymbol{\mu}_f)
+          /\max(\boldsymbol{\sigma}_f,\epsilon)\right\|_2}.
+    \label{eq:ch5_query_standardisation}
+\end{equation}
+
+Style activations are unit-normalised without z-standardisation because their
+coordinates have a direct label meaning. Cosine similarity is mapped into
+$[0,1]$:
+
+\begin{equation}
+    s_f(q,n)=\frac{1+\overline{\mathbf{f}}_q^{\mathsf{T}}
+        \overline{\mathbf{f}}_n}{2}.
+    \label{eq:ch5_mapped_cosine}
+\end{equation}
+
+For catalogue segment $n$, the fused score is
+
+\begin{equation}
+    s_{\mathrm{seg}}(q,n)
+    =0.70s_e(q,n)+0.20s_r(q,n)+0.10s_g(q,n).
+    \label{eq:ch5_segment_fusion}
+\end{equation}
+
+The learned representation supplies the main semantic neighbourhood, while
+explicit rhythm prevents two stylistically similar but rhythmically dissimilar
+passages from being treated as identical. Style activations have the smallest
+weight because they are useful priors but are too coarse to determine a track
+on their own. If style-vector dimensions are unavailable, the remaining
+weights are renormalised to $0.70/0.90$ and $0.20/0.90$. Missing evidence is
+not interpreted as zero similarity.
+
+\subsection{Track pooling and genre-first restriction}
+\label{subsec:ch5_track_pooling}
+
+A track normally contributes several overlapping catalogue segments. Using its
+single best segment is sensitive to accidental local agreement, whereas an
+average over the entire track penalises longer recordings and music with
+legitimate internal variation. Let
+$s_{u,(1)}\geq s_{u,(2)}\geq\cdots$ be the ordered segment scores belonging to
+track $u$. The track score is the mean of at most the three highest values:
+
+\begin{equation}
+    s_{\mathrm{track}}(q,u)
+    =\frac{1}{K_u}\sum_{k=1}^{K_u}s_{u,(k)},
+    \qquad K_u=\min(3,N_u).
+    \label{eq:ch5_track_pooling}
+\end{equation}
+
+Tracks are next grouped by their AIST++ genre code. An initial genre score is
+the same top-three mean over tracks in that genre. Discogs labels are also
+mapped to broad AIST++ families. For example, hip-hop labels support the
+middle- and low-hip-hop families, while house and techno labels support the
+house family. These mappings are deliberately broad priors rather than a claim
+that Discogs and AIST++ define identical taxonomies.
+
+When the largest mapped tag prior is at least $0.08$, the final genre score is
+
+\begin{equation}
+    s_{\mathrm{genre}}(h)
+    =0.35\,\widetilde{s}_{\mathrm{track\mbox{-}genre}}(h)
+     +0.65\,\widetilde{p}_{\mathrm{tag}}(h),
+    \label{eq:ch5_genre_prior}
+\end{equation}
+
+where both terms are normalised within the current query. The default
+style-first policy admits the highest-scoring family. It also admits the second
+family when the genre-score margin is no more than $0.025$. All later motion
+ranking is restricted to admitted families and to tracks among the retrieved
+set. This hierarchy reduces an important failure mode of flat retrieval. A
+small acoustic advantage from an unrelated genre cannot be compensated later
+by a mechanically convenient motion.
+
+\subsection{Abstention and match confidence}
+\label{subsec:ch5_abstention}
+
+The system is allowed to abstain. It computes a negative-style score as the
+largest activation among non-music, ambient, drone, field-recording, noise, and
+related tags. If this value is at least $0.17$ for two consecutive retrieval
+windows, the query is rejected as non-dance or ambient material. Persistence
+prevents one uncertain tag activation from cancelling a valid dance selection.
+A query is also rejected when the beat-quality value defined in
+Equation~\ref{eq:beat_quality} is below $0.35$.
+
+For diagnostics, confidence combines beat quality $q_b$ and the leading genre
+margin $\Delta_h$:
+
+\begin{equation}
+    c_{\mathrm{match}}
+    =\operatorname{clip}_{[0,1]}\!\left(
+       0.55q_b+0.45\operatorname{clip}_{[0,1]}
+       \left(\frac{\Delta_h}{0.10}\right)
+      \right).
+    \label{eq:ch5_match_confidence}
+\end{equation}
+
+This confidence value explains the strength of the evidence but does not
+override the explicit rejection rules. When a result is rejected, no new
+motion evidence is accumulated and the current motion remains active. Therefore, the
+system fails by holding a known trajectory.
+
+\subsection{Motion-specific compatibility}
+\label{subsec:ch5_motion_compatibility}
+
+Music retrieval identifies relevant recordings, but each recording can be
+associated with several dances that differ in speed, event density, and
+activity. A second ranking stage evaluates the motion itself. Only motions
+whose offline preflight passed and whose music and genre survived the preceding
+stage are considered.
+
+Tempo compatibility handles half-time and double-time ambiguity. For query BPM
+$b_q$ and the source tempo $b_i$ of motion $M_i$, the candidate playback ratios
+are
+
+\begin{equation}
+    \mathcal{R}_i=
+    \left\{\frac{b_q}{b_i},\frac{b_q}{2b_i},
+                  \frac{2b_q}{b_i}\right\}.
+    \label{eq:ch5_tempo_ratios}
+\end{equation}
+
+Only ratios in $[0.55,1.60]$ are retained. The valid ratio closest to one in
+log space is selected, and its compatibility is
+
+\begin{equation}
+    s_{\mathrm{tempo}}(i)
+    =\exp\!\left[-\frac{1}{2}
+      \left(\frac{\log r_i}{0.28}\right)^2\right].
+    \label{eq:ch5_tempo_score}
+\end{equation}
+
+If no ratio is feasible, the motion is excluded. If reliable tempo is absent,
+the implementation assigns a deliberately weak score of $0.25$ at authored
+speed.
+
+Rhythmic compatibility compares the audio event rate with the motion key-pose
+rate. The query and motion rates are
+
+\begin{equation}
+    \rho_q=0.70\frac{b_q}{60}+0.30d_o,
+    \qquad
+    \rho_i=r_i d_{k,i},
+    \label{eq:ch5_event_rates}
+\end{equation}
+
+where $d_o$ is onset density and $d_{k,i}$ is confidence-weighted key-pose
+density. Their scale-symmetric agreement and the motion regularity term are
+
+\begin{align}
+    s_{\mathrm{density}}(i)
+      &=\exp\!\left[-\frac{1}{2}
+        \left(\frac{|\log(\rho_i/\rho_q)|}{0.65}\right)^2\right],\\
+    s_{\mathrm{key}}(i)
+      &=0.80s_{\mathrm{density}}(i)
+        +0.20\exp\!\left[-\min(c_{v,i},2)\right].
+    \label{eq:ch5_keypoint_score}
+\end{align}
+
+When either rate is effectively zero, $s_{\mathrm{key}}=0.25$. This avoids an
+undefined logarithm while preserving the uncertainty penalty.
+
+Motion activity is obtained from the catalogue-relative 90th-percentile
+velocity. With catalogue median $\mu_v$ and robust scale $\sigma_v$,
+
+\begin{equation}
+    a_i=\frac{1}{1+\exp[-(v_{90,i}-\mu_v)/\sigma_v]},
+    \qquad
+    s_{\mathrm{activity}}(i)=1-|a_q-a_i|,
+    \label{eq:ch5_activity_score}
+\end{equation}
+
+where $a_q$ is the audio activity from
+Equation~\ref{eq:audio_activity}. The complete motion and final scores are
+
+\begin{align}
+    s_{\mathrm{motion}}(i)
+      &=0.50s_{\mathrm{tempo}}(i)
+        +0.35s_{\mathrm{key}}(i)
+        +0.15s_{\mathrm{activity}}(i),\\
+    s_{\mathrm{final}}(i)
+      &=0.65s_{\mathrm{track}}(u_i)
+        +0.35s_{\mathrm{motion}}(i).
+    \label{eq:ch5_final_motion_score}
+\end{align}
+
+Music evidence remains dominant, but the motion-specific term prevents a
+semantically similar track from authorising choreography that would require
+extreme time scaling or has incompatible event density. All component values
+are retained for evaluation and ablation.
+
+\section{Stable Selection and Candidate Readiness}
+\label{sec:ch5_stable_selection}
+
+\subsection{Relevance hysteresis}
+\label{subsec:ch5_relevance_hysteresis}
+
+Let $i_t^{*}$ be the leading motion at retrieval update $t$, and let $i_c$ be
+the currently playing motion. A relevance switch is armed only when
+
+\begin{equation}
+    i_t^{*}\neq i_c,
+    \qquad
+    s_{\mathrm{final}}(i_t^{*})
+       \geq s_{\mathrm{final}}(i_c)+0.08,
+    \label{eq:ch5_relevance_margin}
+\end{equation}
+
+for three consecutive completed retrievals with the same $i_t^{*}$. If the
+leader changes, the current motion becomes best, the score margin disappears,
+or the match is rejected, the streak is reset. A successful streak creates a
+\emph{pending relevance selection} It does not immediately alter playback.
+
+This hysteresis is important because overlapping audio windows are strongly
+correlated. Three wins should not be interpreted as three independent
+statistical observations. They are instead a temporal persistence rule that
+filters short score inversions while giving sustained evidence a bounded path
+to a switch.
+
+\subsection{Diversity under a relevance constraint}
+\label{subsec:ch5_diversity_selection}
+
+A stable musical passage can keep the same motion at rank one for a long time.
+To avoid visible repetition, diversity is handled by a second policy. It
+considers the latest top five motions and retains only candidates satisfying
+
+\begin{equation}
+\begin{aligned}
+    s_{\mathrm{final}}(i)&\geq s_{\mathrm{final}}(i^{*})-0.05,\\
+    s_{\mathrm{music}}(i)&\geq s_{\mathrm{music}}(i^{*})-0.08.
+\end{aligned}
+    \label{eq:ch5_diversity_eligibility}
+\end{equation}
+
+The candidate must remain eligible for the same three-update streak. After the
+current motion has been held for four accepted-beat bars, the selector first
+prefers a motion cluster absent from the three-item recent history, then an
+unseen motion identifier, and finally the least recently played eligible item.
+The score constraints are applied before recency, so variation cannot introduce
+an arbitrarily poor match.
+
+Relevance and diversity selections record different reasons. A relevance
+selection can be committed at the next valid boundary as soon as it is ready.
+A diversity selection is committed only after the maximum hold has actually
+been reached. This distinction allows a genuine musical change to take
+priority over a cosmetic rotation.
+
+\subsection{Accepted-beat commitment and prepared candidates}
+\label{subsec:ch5_commitment_readiness}
+
+The switch clock counts accepted alignment beats rather than raw detector
+peaks. Every four accepted beats defines a bar boundary. A pending selection
+becomes eligible for commitment at this boundary, ensuring that switching and
+phase control share one rhythmic interpretation. The logical state progression
+is
+
+\begin{equation}
+    \texttt{current}\rightarrow\texttt{evidence}
+    \rightarrow\texttt{pending}\rightarrow\texttt{prepared}
+    \rightarrow\texttt{transitioning}\rightarrow\texttt{current}.
+    \label{eq:ch5_selection_states}
+\end{equation}
+
+Whenever a ranking arrives, the pending motion and other high-ranked motions
+are submitted to a bounded preparation pool. Preparation includes canonical
+trajectory loading, grounding in the playback model, joint-name adaptation,
+and construction of the entry features used in
+Section~\ref{sec:ch5_entry_optimisation}. As a bar boundary approaches, ready
+candidates are scored against an estimate of the source phase expected at that
+boundary.
+
+The pending identifier remains the preferred choice whenever it is fully
+prepared. Entry cost chooses the best phase within that motion. It does not
+silently replace a musically preferred motion with a less relevant one. If the
+preferred motion is not ready, a different ranked and prepared candidate may be
+used as an explicit fallback. If no evidence-backed candidate is ready, the
+system continues the current trajectory. File I/O and grounding are never
+performed synchronously merely to meet a boundary.
+
+\section{Causal Beat and Phase Control}
+\label{sec:ch5_beat_phase_control}
+
+\subsection{Activity gate and beat candidates}
+\label{subsec:ch5_beat_candidates}
+
+Microphone startup includes a short calibration from which the 90th percentile
+of RMS and onset change estimates the local noise floor. Subsequent audio is
+active only when its RMS exceeds both a fixed floor and a multiple of the
+calibrated floor. A short release interval prevents the activity state from
+chattering near the threshold. When audio is inactive, beat history is reset
+and motion amplitude returns gradually towards zero.
+
+Beat candidates are produced from a rolling-window predominant-local-pulse
+analysis, while block-level onset and loudness histories supply local event
+contrast. Dynamic beat tracking and event salience are established tools for
+relating musical time to control \cite{ellis2007beat}. In the present method,
+each candidate has pulse confidence $c_p$ and recent-event contrast $c_x$. Its
+selection score is
+
+\begin{equation}
+    c_b=(1-w_x)c_p+w_xc_x,
+    \qquad w_x=0.5.
+    \label{eq:ch5_beat_selection_score}
+\end{equation}
+
+Candidates below the hard confidence threshold $c_p<0.35$ are rejected before
+they can influence phase or the bar counter.
+
+\subsection{Motion-aware beat acceptance}
+\label{subsec:ch5_beat_acceptance}
+
+Dense music may contain subdivisions faster than the current dance can travel
+between authored key poses. The controller therefore derives an admissible
+time interval from the next key-pose gap $T_k$ and the playback-speed limits:
+
+\begin{equation}
+    T_{\min}=\eta\frac{T_k}{r_{\max}},
+    \qquad
+    T_{\max}=\frac{T_k}{r_{\min}},
+    \label{eq:ch5_beat_time_window}
+\end{equation}
+
+where $\eta$ is the key-point interval ratio and is one in the current matcher
+configuration. A beat earlier than $T_{\min}$ after the previous accepted beat
+is rejected. When the detector itself proposes periods shorter than this
+feasible interval, recent candidate scores define an adaptive quantile
+threshold. Weak subdivisions are rejected early in the admissible window. The
+threshold falls as elapsed time approaches $T_{\max}$. At the deadline, an
+eligible beat is accepted so that the controller cannot wait indefinitely for
+an ideal accent.
+
+This policy treats beat detection and beat use as different problems. The
+analyser may report all plausible pulses, but only events compatible with the
+motion's next authored interval become control targets. Beat-synchronised dance
+methods likewise demonstrate that temporal correspondence must be represented
+explicitly rather than inferred from visual plausibility alone
+\cite{huang2024beat}.
+
+\subsection{Target rate and gradual phase correction}
+\label{subsec:ch5_phase_correction}
+
+For accepted beat index $k$, the controller selects the corresponding authored
+key-pose phase $\phi_k^{*}$. The wrapped phase error is
+
+\begin{equation}
+    e_{\phi}=\operatorname{wrap}_{[-1/2,1/2)}
+             \left(\phi_k^{*}-\phi\right).
+    \label{eq:ch5_phase_error}
+\end{equation}
+
+The first accepted beat uses the full error as a correction request. Later
+events use gain $0.25+0.35c_b$, so a high-quality beat creates a stronger but
+still gradual correction. In adaptive mode, if $\Delta\phi_k$ is the authored
+phase gap and $\Delta t_k$ is the last accepted-beat interval, the target phase
+rate is
+
+\begin{equation}
+    \omega^{*}=
+    \operatorname{clip}_{[r_{\min}\omega_a,r_{\max}\omega_a]}
+    \left(\frac{\Delta\phi_k}{\Delta t_k}\right),
+    \label{eq:ch5_target_phase_rate}
+\end{equation}
+
+where $\omega_a$ is the authored phase rate. The running base rate is
+exponentially smoothed towards $\omega^{*}$. Phase correction is not applied by
+assigning $\phi\leftarrow\phi_k^{*}$. Instead, the remaining correction $e_r$
+is consumed with time constant $\tau_p$:
+
+\begin{equation}
+    \Delta\phi_c=e_r\left(1-e^{-\Delta t/\tau_p}\right).
+    \label{eq:ch5_desired_phase_correction}
+\end{equation}
+
+The correction is clipped so that the effective phase rate remains within the
+same speed interval. Its change is also slew-limited. With the resulting
+$\omega_{\mathrm{eff}}$, phase evolves continuously as
+
+\begin{equation}
+    \phi_{t+1}=\operatorname{wrap}_{[0,1)}
+       \left(\phi_t+\omega_{\mathrm{eff}}\Delta t\right).
+    \label{eq:ch5_phase_update}
+\end{equation}
+
+This mechanism synchronises by temporarily accelerating or decelerating the
+authored motion, not by teleporting to a different frame. When beat evidence
+times out, the target rate returns to $\omega_a$. When a new motion controller
+is created, it inherits the previous tempo, amplitude, beat history, and
+effective-rate state, while its phase is initialised at the selected entry.
+Thus switching does not restart rhythmic estimation.
+
+\subsection{Bounded pose modulation}
+\label{subsec:ch5_pose_modulation}
+
+Timing adaptation preserves the selected trajectory as the primary source of
+movement. A secondary modulation layer adds small, zero-centred offsets from
+low-, mid-, and high-frequency energy, rhythm density, off-beat ratio, and beat
+accent. In the default subtle mode, the authored pose is not multiplied by a
+global amplitude. Instead, bounded offsets are applied mainly to the waist,
+shoulders, wrists, and knees. For example, high-frequency activity produces a
+small alternating wrist and shoulder detail, while low-frequency energy
+produces a small knee component.
+
+This layer is intentionally secondary. It improves immediate responsiveness
+between slower retrieval updates without changing motion identity or root
+trajectory. Because it can create poses not present in the offline artefact,
+its result still passes through the output conditioning described in
+Section~\ref{sec:ch5_output_conditioning}.
+
+\section{Transition-Entry Optimisation}
+\label{sec:ch5_entry_optimisation}
+
+\subsection{Entry candidates and state features}
+\label{subsec:ch5_entry_candidates}
+
+Motion matching and motion-graph methods establish the value of comparing
+state features at possible transition points
+\cite{kovar2023motion,holden2020learned}. The present method uses this principle
+only after music has supplied a small candidate set. For each target key pose,
+the search includes its central frame and up to three frames on either side.
+The neighbouring candidates receive linearly decreasing salience. This local
+expansion can find a materially closer robot configuration without turning the
+entry search into an unconstrained scan over the whole clip.
+
+At each candidate, the cached state contains named joint positions and
+velocities, joint ranges, grounded root position, root tilt after removing yaw,
+root linear velocity, root angular speed, and binary left/right foot contacts.
+Only joint names shared by source, target, and the output-limits table are used.
+The current source phase is mapped to its nearest source frame.
+
+\subsection{Normalised entry cost}
+\label{subsec:ch5_entry_cost}
+
+For source frame $s$ and target candidate $j$, joint-pose and velocity costs are
+
+\begin{align}
+    C_q(j)&=\sqrt{\frac{1}{D}\sum_{d=1}^{D}
+      \left(\frac{q_{j,d}-q_{s,d}}{R_d}\right)^2},\\
+    C_v(j)&=\sqrt{\frac{1}{D}\sum_{d=1}^{D}
+      \left(\frac{\dot q_{j,d}-\dot q_{s,d}}
+      {v_d^{\max}}\right)^2},
+    \label{eq:ch5_pose_velocity_costs}
+\end{align}
+
+where $R_d$ is the model joint range and $v_d^{\max}$ is the configured speed
+limit. Contact cost is the fraction of the two feet whose support states differ:
+
+\begin{equation}
+    C_c(j)=\frac{1}{2}\sum_{f\in\{L,R\}}
+       \mathbf{1}\!\left[c_{j,f}\neq c_{s,f}\right].
+    \label{eq:ch5_contact_cost}
+\end{equation}
+
+Root cost averages four separately normalised disagreements:
+
+\begin{equation}
+\begin{split}
+    C_r(j)=\frac{1}{4}\bigg(&
+       \frac{|z_j-z_s|}{0.15}
+       +\frac{|\theta_j-\theta_s|}{0.35}
+       +\frac{\|\dot{\mathbf{p}}_j-
+                    \dot{\mathbf{p}}_s\|_2}{3.0}\\
+       &+\frac{|\omega_{r,j}-\omega_{r,s}|}{4\pi}\bigg),
+\end{split}
+    \label{eq:ch5_root_cost}
+\end{equation}
+
+where $\theta$ is non-yaw root tilt. The key-pose term
+$C_m(j)=1-s_j$ favours a salient velocity valley. The total entry cost is
+
+\begin{equation}
+    C_{\mathrm{entry}}(j)
+      =0.45C_q(j)+0.20C_v(j)+0.20C_c(j)
+       +0.10C_r(j)+0.05C_m(j).
+    \label{eq:ch5_entry_total}
+\end{equation}
+
+Pose mismatch receives the largest weight because it is the most immediately
+visible discontinuity. Velocity and contact distinguish frames that have a
+similar pose but incompatible movement or support. Root state and musical
+salience refine the decision without overriding a severe whole-body mismatch.
+
+\subsection{Feasibility and transition duration}
+\label{subsec:ch5_entry_feasibility}
+
+An entry with low instantaneous cost can still be unsuitable if it occurs near
+the end of a one-shot target. The conservative remaining playback time is
+
+\begin{equation}
+    T_{\mathrm{remain}}(j)
+      =\frac{(1-\phi_j)T_i}{r_{\max}}.
+    \label{eq:ch5_remaining_time}
+\end{equation}
+
+It must cover both the transition and at least one remaining bar under the
+default configuration. The unquantised transition lower bound is derived from
+joint displacement and the same dynamics limits used by the output layer:
+
+\begin{equation}
+    T_{\mathrm{raw}}(j)=\max_d\left(
+       \frac{1.5|q_{j,d}-q_{s,d}|}{v_d^{\max}},
+       \sqrt{\frac{6|q_{j,d}-q_{s,d}|}{a_d^{\max}}}
+    \right).
+    \label{eq:ch5_transition_lower_bound}
+\end{equation}
+
+After enforcing a minimum, the duration is rounded upward to a half-beat
+multiple:
+
+\begin{equation}
+    T_{\mathrm{tr}}(j)=
+    \operatorname{clip}_{[0.35,1.20]}
+    \left(
+      \left\lceil\frac{\max(0.35,T_{\mathrm{raw}}(j))}{T_b/2}\right\rceil
+      \frac{T_b}{2}
+    \right).
+    \label{eq:ch5_transition_quantisation}
+\end{equation}
+
+The candidate is eligible when
+$T_{\mathrm{remain}}\geq T_{\mathrm{tr}}+T_{\mathrm{bar}}$. Candidates whose
+raw requirement exceeds the maximum transition duration are avoided whenever
+a feasible alternative exists. Eligible candidates are ordered first by total
+cost, then by salience cost, remaining duration, and phase. If none leaves the
+required duration, the earliest key-pose candidate is used as a controlled
+fallback. This fallback is recorded. It is not presented as an optimal entry.
+
+\section{Continuous Transition and Root Motion}
+\label{sec:ch5_continuous_transition}
+
+\subsection{Target-root alignment}
+\label{subsec:ch5_root_alignment}
+
+Catalogue trajectories use clip-local roots. Before a target is blended, its
+entry root is aligned to the current world state in horizontal position and
+yaw. Let $(\mathbf{p}_s,R_s)$ be the target clip's entry root and
+$(\mathbf{p}_c,R_c)$ the current root. With $Y(R)$ denoting the yaw-only
+component,
+
+\begin{equation}
+    A=Y(R_c)Y(R_s)^{-1}.
+    \label{eq:ch5_yaw_alignment}
+\end{equation}
+
+For every target frame $(\mathbf{p},R)$, the aligned horizontal root and
+orientation are
+
+\begin{align}
+    \mathbf{p}'_{xy}
+       &=\mathbf{p}_{c,xy}+
+          \left[A(\mathbf{p}-\mathbf{p}_s)\right]_{xy},\\
+    R'&=AR.
+    \label{eq:ch5_root_alignment_transform}
+\end{align}
+
+The grounded vertical coordinate and the target roll and pitch are preserved.
+The same rigid transform is retained throughout the transition, so target
+displacement is preserved rather than repeatedly forcing its root onto the
+source.
+
+\subsection{Smooth pose and orientation blending}
+\label{subsec:ch5_transition_blending}
+
+For elapsed transition fraction $u\in[0,1]$, the blend weight is the cubic
+smoothstep
+
+\begin{equation}
+    h(u)=3u^2-2u^3.
+    \label{eq:ch5_smoothstep}
+\end{equation}
+
+Joint positions and root translation use linear interpolation with $h(u)$,
+
+\begin{equation}
+    \mathbf{q}(u)=(1-h(u))\mathbf{q}_c(u)
+                   +h(u)\mathbf{q}_n(u),
+    \label{eq:ch5_joint_blend}
+\end{equation}
+
+while root orientation uses shortest-path quaternion spherical interpolation.
+Both the old and new motion controllers continue to advance during the blend.
+Consequently, the transition connects two moving trajectories rather than
+freezing their entry frames.
+
+After blending, a persistent root-continuity transform maps the active
+clip-local displacement into one world trajectory. On a source change, the
+world anchor becomes the last emitted world root and the new clip origin
+becomes its current raw root. In continuous mode,
+
+\begin{equation}
+    \mathbf{p}_{w,xy}(t)
+      =\mathbf{a}_{xy}
+       +\left[A_a(\mathbf{p}(t)-\mathbf{p}_0)\right]_{xy},
+    \label{eq:ch5_world_root_continuity}
+\end{equation}
+
+where $\mathbf{a}$ and $A_a$ are the stored world anchor. This prevents each
+new catalogue clip from returning the robot to the dataset origin.
+
+\subsection{One-shot completion and state transfer}
+\label{subsec:ch5_atomic_transition}
+
+The catalogue motions are treated as one-shot trajectories. Phase is clamped
+before it can sample the implicit last-to-first interpolation used by generic
+preview samplers. When a clip approaches its end, a prepared transition can be
+started even if no regular bar switch is ready. Its blend progress is coupled
+to the remaining source phase so that the old trajectory is fully released
+before the terminal pose stalls. If no prepared, ranked candidate exists, the
+last pose is held. An optional very small stationary breathing signal can avoid
+a perfectly frozen appearance without moving the root.
+
+At blend completion, the target sampler, phase controller, phase tracker, root
+references, and motion identifier are committed together. Only after this transfer does, the selection policy reset its held-bar count and record
+the new item in recency history. This avoids a mixed frame in which, for
+example, the new identifier is paired with the old controller state.
+
+\section{Output Conditioning}
+\label{sec:ch5_output_conditioning}
+
+\subsection{Stateful joint dynamics limits}
+\label{subsec:ch5_joint_limiter}
+
+Entry optimisation and smoothstep blending reduce discontinuity, but music
+modulation and two simultaneously moving clips can still produce an excessive
+joint target increment. A stateful limiter therefore operates on the final
+joint target $q_d$. For every joint $d$, the emitted velocity and acceleration
+must satisfy
+
+\begin{equation}
+    |\dot q_d|\leq v_d^{\max},
+    \qquad
+    |\dot q_d-\dot q_d^{-}|\leq a_d^{\max}\Delta t.
+    \label{eq:ch5_output_constraints}
+\end{equation}
+
+The limiter computes the velocity needed to approach $q_d$, clips it by speed,
+and then clips its change around the previous emitted velocity. When a target
+stops, a braking-distance test begins deceleration early enough to avoid
+overshoot. If the target can be reached within both limits, it is snapped only
+to the feasible target rather than passing beyond it. Per-joint limits may be
+loaded from a validated table. Otherwise configured defaults are
+used. Limiter activation, requested speed, emitted speed, and emitted
+acceleration are retained as diagnostics.
+
+\subsection{Collision policy and state consistency}
+\label{subsec:ch5_runtime_collision}
+
+Offline preflight covers each canonical trajectory, but it cannot certify every
+pose created by online blending or modulation. The runtime supports collision
+checking for modified poses or for every pose. When enabled, collision handling
+is applied after the joint limiter because it must inspect the pose that would
+otherwise be emitted. If it changes that pose, the limiter is reset to the
+actual collision-resolved output. Without this reset, the next update would
+compute acceleration from a state that the robot never received.
+
+The current default runtime collision mode is disabled because full geometric
+checking has a nontrivial online cost. Experiments that claim online collision
+protection must therefore enable and report the selected policy explicitly.
+Regardless of this runtime option, all source motions have passed the offline
+preflight described in Chapter~\ref{chap:offline_catalogue}. The resulting pose
+is finally written by joint name into the G1 MuJoCo model for kinematic state
+evaluation \cite{todorov2012mujoco}.
+
+\section{Method Observability and Failure Behaviour}
+\label{sec:ch5_observability}
+
+The online trace follows the processing boundaries established above.
+Retrieval records acceptance, rejection reason, genre, score margins, component
+scores, BPM, and leading tags. Selection and preparation record pending reason,
+recent cluster, ready candidates, load failures, and explicit fallback use.
+Control and transition records contain accepted-beat time, phase rate, remaining
+phase correction, entry-cost components, transition duration, blend progress,
+root deltas, limiter intervention, and collision override.
+
+These fields distinguish failures that can look alike in the final animation.
+For example, a late accent can be attributed to beat rejection, phase-rate
+saturation, transition blending, or the joint limiter. Repetition can be
+attributed to weak retrieval evidence, rejection, readiness, or the diversity
+clock. The associated fallback is always conservative: the system skips stale
+work, excludes failed candidates, and otherwise retains the last valid active
+state. It never responds to failure with an arbitrary catalogue item or
+synchronous retargeting. The trace supplies the intermediate measurements used
+by the experiments in the next chapter.
+

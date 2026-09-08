@@ -16,6 +16,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 import realtime_music_humanoid_dancer as dancer
+import realtime_music_humanoid_matcher as matcher
 from robot_motion import RobotMotionFrame
 
 
@@ -31,7 +32,7 @@ class RealtimeLoopSchedulerTests(unittest.TestCase):
         self.assertAlmostEqual(0.006, sleep.call_args.args[0])
         self.assertEqual(0, scheduler.deadline_misses)
 
-    def test_late_frame_skips_deadlines_without_sleeping_or_catching_up(self) -> None:
+    def test_late_frame_restarts_release_clock_without_catching_up(self) -> None:
         scheduler = dancer.RealtimeLoopScheduler(100.0, enabled=True)
         scheduler.next_deadline = 10.0
         with (
@@ -39,9 +40,39 @@ class RealtimeLoopSchedulerTests(unittest.TestCase):
             patch.object(dancer.time, "sleep") as sleep,
         ):
             scheduler.wait(10.02)
-        sleep.assert_not_called()
+        sleep.assert_called_once_with(0.01)
         self.assertEqual(1, scheduler.deadline_misses)
-        self.assertAlmostEqual(10.04, scheduler.next_deadline)
+        self.assertEqual(3, scheduler.skipped_periods)
+        self.assertAlmostEqual(10.045, scheduler.next_deadline)
+
+    def test_records_actual_output_intervals(self) -> None:
+        scheduler = dancer.RealtimeLoopScheduler(120.0, enabled=True)
+        self.assertAlmostEqual(1.0 / 120.0, scheduler.record_output(10.0))
+        self.assertAlmostEqual(0.012, scheduler.time_since_last_output(10.012))
+        self.assertAlmostEqual(0.012, scheduler.record_output(10.012))
+        summary = scheduler.summary()
+        self.assertAlmostEqual(12.0, summary["output_interval_ms_min"])
+        self.assertEqual(1, summary["output_interval_samples"])
+
+    def test_reset_statistics_preserves_absolute_deadline(self) -> None:
+        scheduler = dancer.RealtimeLoopScheduler(100.0, enabled=True)
+        scheduler.next_deadline = 12.5
+        scheduler.work_seconds.extend([0.001, 0.002])
+        scheduler.deadline_misses = 1
+        scheduler.iterations = 2
+        scheduler.reset_statistics()
+        self.assertEqual([], list(scheduler.work_seconds))
+        self.assertEqual(0, scheduler.deadline_misses)
+        self.assertEqual(0, scheduler.iterations)
+        self.assertEqual(12.5, scheduler.next_deadline)
+
+    def test_stage_timing_separates_cold_and_warm_samples(self) -> None:
+        result = matcher.control_stage_timing_summary(
+            {"pose_sampling": [0.003, 0.001, 0.002]}
+        )
+        self.assertAlmostEqual(3.0, result["control_pose_sampling_ms_cold_p99"])
+        self.assertAlmostEqual(2.0, result["control_pose_sampling_ms_warm_max"])
+        self.assertIn("control_pose_sampling_ms_p95", result)
 
 
 class ViewerDecouplingTests(unittest.TestCase):

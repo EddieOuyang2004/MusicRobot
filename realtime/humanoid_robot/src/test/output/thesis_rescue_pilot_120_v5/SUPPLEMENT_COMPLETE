@@ -1,0 +1,8 @@
+{
+  "identity": "1d9453f3c837d498f4da7930aac76fa570043d866d8e23fde0e1de15fff0802e",
+  "formal_runs": 21,
+  "pilot": true,
+  "control_rate_hz": 120.0,
+  "integrity_complete": true,
+  "performance_passed": "not implied; evaluate offline"
+}

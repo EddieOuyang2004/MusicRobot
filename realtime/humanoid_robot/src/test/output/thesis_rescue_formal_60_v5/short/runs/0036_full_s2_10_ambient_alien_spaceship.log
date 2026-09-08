@@ -1,0 +1,80 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sFM_cAll_d25_mWA0_ch01.pkl with constant root Z offset +0.882814 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\cc0_matcher_set\10_ambient_alien_spaceship.mp3 (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gWA_sFM_cAll_d25_mWA0_ch01
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0018/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=0.55x | amp=1.03 | rms/gate=0.0079/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.50 result=accepted | bright=0.04 | bands=0.49/0.50/0.00 | rhythm=0.09 | offbeat=0.00
+music | bpm=-- | speed=0.55x | amp=1.05 | rms/gate=0.0120/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.50 result=accepted | bright=0.04 | bands=0.49/0.51/0.00 | rhythm=0.03 | offbeat=0.00
+music | bpm=150.0 | speed=0.55x | amp=1.06 | rms/gate=0.0284/0.0020 | beat=1 accepted=1 conf=0.48 contrast=0.62 result=accepted | bright=0.04 | bands=0.44/0.55/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=96.2 | speed=0.55x | amp=1.06 | rms/gate=0.0447/0.0020 | beat=1 accepted=1 conf=0.44 contrast=0.50 result=accepted | bright=0.04 | bands=0.38/0.62/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=70.8 | speed=0.55x | amp=0.99 | rms/gate=0.0404/0.0020 | beat=1 accepted=1 conf=0.37 contrast=0.67 result=accepted | bright=0.04 | bands=0.53/0.46/0.00 | rhythm=0.00 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.96 | genre=PO:0.72 | bpm=113.6 | tracks=[JB5:0.70, JB3:0.66, JB1:0.66] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Musique Concrète]
+music | bpm=70.8 | speed=0.55x | amp=0.91 | rms/gate=0.0452/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.04 | bands=0.52/0.48/0.00 | rhythm=0.00 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.95 | genre=PO:0.71 | bpm=117.2 | tracks=[JB5:0.70, JB3:0.66, JB1:0.66] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Drone]
+music | bpm=70.8 | speed=0.55x | amp=1.05 | rms/gate=0.0628/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.04 | bands=0.55/0.45/0.00 | rhythm=0.00 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.92 | genre=PO:0.71 | bpm=117.2 | tracks=[JB5:0.72, JB1:0.67, JB3:0.67] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Drone]
+music | bpm=70.8 | speed=0.55x | amp=1.09 | rms/gate=0.0852/0.0020 | beat=1 accepted=1 conf=0.67 contrast=0.81 result=too-early | bright=0.04 | bands=0.52/0.48/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.95 | genre=PO:0.70 | bpm=133.9 | tracks=[JB5:0.72, JB1:0.67, JB3:0.67] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Drone]
+music | bpm=70.8 | speed=0.55x | amp=1.01 | rms/gate=0.0806/0.0020 | beat=1 accepted=1 conf=0.37 contrast=0.78 result=accepted | bright=0.05 | bands=0.41/0.59/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.94 | genre=PO:0.70 | bpm=129.3 | tracks=[JB5:0.73, JB1:0.68, JB3:0.67] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Drone]
+music | bpm=70.8 | speed=0.55x | amp=1.09 | rms/gate=0.1174/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.06 | bands=0.50/0.50/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.91 | genre=PO:0.71 | bpm=129.3 | tracks=[JB5:0.74, JB1:0.68, JB3:0.67] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Drone]
+music | bpm=48.1 | speed=0.55x | amp=1.15 | rms/gate=0.1418/0.0020 | beat=1 accepted=1 conf=0.41 contrast=0.80 result=accepted | bright=0.06 | bands=0.49/0.51/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.93 | genre=PO:0.71 | bpm=129.3 | tracks=[JB5:0.74, JB1:0.68, JB3:0.67] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Noise]
+music | bpm=45.2 | speed=0.55x | amp=1.02 | rms/gate=0.1812/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.73 result=accepted | bright=0.06 | bands=0.56/0.44/0.00 | rhythm=0.02 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.92 | genre=PO:0.71 | bpm=129.3 | tracks=[JB5:0.73, JB1:0.68, JB3:0.67] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Noise]
+music | bpm=45.2 | speed=0.55x | amp=0.97 | rms/gate=0.1344/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.07 | bands=0.41/0.59/0.00 | rhythm=0.02 | offbeat=0.99
+match | held:non_dance_or_ambient | confidence=0.94 | genre=PO:0.71 | bpm=125.0 | tracks=[JB5:0.72, JB1:0.67, JB3:0.66] | motion=-- | tags=[Electronic---Noise, Electronic---Experimental, Electronic---Power Electronics]
+music | bpm=45.2 | speed=0.55x | amp=1.00 | rms/gate=0.1765/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.06 | bands=0.45/0.55/0.00 | rhythm=0.02 | offbeat=1.00
+match | held:non_dance_or_ambient | confidence=0.97 | genre=PO:0.70 | bpm=121.0 | tracks=[JB5:0.70, JB3:0.65, JB1:0.65] | motion=-- | tags=[Electronic---Noise, Electronic---Power Electronics, Electronic---Experimental]
+music | bpm=45.2 | speed=0.55x | amp=1.08 | rms/gate=0.2100/0.0020 | beat=1 accepted=1 conf=0.65 contrast=0.88 result=accepted | bright=0.17 | bands=0.42/0.58/0.01 | rhythm=0.01 | offbeat=0.73
+match | held:non_dance_or_ambient | confidence=0.93 | genre=PO:0.70 | bpm=117.2 | tracks=[JB5:0.69, JB3:0.64, JB1:0.64] | motion=-- | tags=[Electronic---Noise, Electronic---Power Electronics, Electronic---Industrial]
+music | bpm=45.2 | speed=0.55x | amp=0.74 | rms/gate=0.0778/0.0020 | beat=1 accepted=1 conf=0.64 contrast=0.81 result=accepted | bright=0.16 | bands=0.38/0.61/0.00 | rhythm=0.02 | offbeat=0.87
+match | held:non_dance_or_ambient | confidence=0.94 | genre=PO:0.70 | bpm=117.2 | tracks=[JB5:0.68, JB3:0.65, JB1:0.64] | motion=-- | tags=[Electronic---Industrial, Electronic---Noise, Electronic---Power Electronics]
+music | bpm=83.3 | speed=0.55x | amp=0.59 | rms/gate=0.0439/0.0020 | beat=1 accepted=1 conf=0.66 contrast=0.40 result=accepted | bright=0.09 | bands=0.52/0.48/0.00 | rhythm=0.02 | offbeat=1.00
+match | held:non_dance_or_ambient | confidence=0.95 | genre=PO:0.70 | bpm=117.2 | tracks=[JB5:0.68, JB3:0.65, JB1:0.65] | motion=-- | tags=[Electronic---Industrial, Electronic---Noise, Electronic---Power Electronics]
+music | bpm=82.4 | speed=0.55x | amp=0.52 | rms/gate=0.0386/0.0020 | beat=1 accepted=0 conf=0.22 contrast=0.25 result=low-confidence | bright=0.05 | bands=0.64/0.36/0.00 | rhythm=0.03 | offbeat=1.00
+match | held:non_dance_or_ambient | confidence=0.92 | genre=PO:0.71 | bpm=121.0 | tracks=[JB5:0.69, JB1:0.66, JB3:0.65] | motion=-- | tags=[Electronic---Industrial, Electronic---Noise, Electronic---Power Electronics]
+music | bpm=83.3 | speed=0.55x | amp=0.48 | rms/gate=0.0280/0.0020 | beat=1 accepted=0 conf=0.26 contrast=0.18 result=low-confidence | bright=0.05 | bands=0.43/0.56/0.00 | rhythm=0.03 | offbeat=1.00
+match | held:non_dance_or_ambient | confidence=0.92 | genre=PO:0.72 | bpm=129.3 | tracks=[JB5:0.70, JB1:0.67, JB3:0.66] | motion=-- | tags=[Electronic---Industrial, Electronic---Noise, Electronic---Experimental]
+music | bpm=83.3 | speed=0.55x | amp=0.43 | rms/gate=0.0140/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=low-confidence | bright=0.05 | bands=0.47/0.52/0.00 | rhythm=0.04 | offbeat=1.00
+match | held:non_dance_or_ambient | confidence=0.88 | genre=PO:0.72 | bpm=129.3 | tracks=[JB5:0.72, JB1:0.68, JB3:0.66] | motion=-- | tags=[Electronic---Ambient, Electronic---Industrial, Electronic---Experimental]
+music | bpm=83.3 | speed=0.55x | amp=0.42 | rms/gate=0.0148/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=low-confidence | bright=0.05 | bands=0.58/0.41/0.00 | rhythm=0.05 | offbeat=1.00
+match | held:non_dance_or_ambient | confidence=0.87 | genre=PO:0.71 | bpm=129.3 | tracks=[JB5:0.73, JB1:0.68, JB3:0.67] | motion=-- | tags=[Electronic---Ambient, Electronic---Dark Ambient, Electronic---Industrial]
+music | bpm=83.3 | speed=0.55x | amp=0.42 | rms/gate=0.0161/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=low-confidence | bright=0.04 | bands=0.39/0.57/0.00 | rhythm=0.06 | offbeat=1.00
+match | held:non_dance_or_ambient | confidence=0.89 | genre=PO:0.72 | bpm=121.0 | tracks=[JB5:0.73, JB1:0.68, JB3:0.67] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Dark Ambient]
+music | bpm=83.3 | speed=0.55x | amp=0.40 | rms/gate=0.0144/0.0020 | beat=1 accepted=0 conf=0.28 contrast=0.12 result=low-confidence | bright=0.04 | bands=0.31/0.66/0.00 | rhythm=0.03 | offbeat=0.40
+match | held:non_dance_or_ambient | confidence=0.92 | genre=PO:0.72 | bpm=121.0 | tracks=[JB5:0.73, JB1:0.67, JB3:0.66] | motion=-- | tags=[Electronic---Dark Ambient, Electronic---Ambient, Electronic---Experimental]
+music | bpm=83.3 | speed=0.55x | amp=0.42 | rms/gate=0.0127/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=low-confidence | bright=0.04 | bands=0.32/0.66/0.00 | rhythm=0.02 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.91 | genre=PO:0.73 | bpm=125.0 | tracks=[JB5:0.72, JB1:0.67, JB3:0.66] | motion=-- | tags=[Electronic---Ambient, Electronic---Dark Ambient, Electronic---Experimental]
+music | bpm=83.3 | speed=0.55x | amp=0.43 | rms/gate=0.0153/0.0020 | beat=1 accepted=1 conf=0.40 contrast=0.24 result=accepted | bright=0.05 | bands=0.18/0.81/0.00 | rhythm=0.02 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.88 | genre=PO:0.71 | bpm=113.6 | tracks=[JB5:0.69, JB1:0.66, JB3:0.65] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Noise]
+music | bpm=83.3 | speed=0.55x | amp=0.54 | rms/gate=0.0422/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.07 | bands=0.36/0.63/0.00 | rhythm=0.00 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.89 | genre=PO:0.73 | bpm=121.0 | tracks=[JB5:0.73, JB1:0.69, JB3:0.66] | motion=-- | tags=[Electronic---Ambient, Electronic---Drone, Electronic---Experimental]
+music | bpm=83.3 | speed=0.55x | amp=0.98 | rms/gate=0.1171/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.79 result=accepted | bright=0.06 | bands=0.47/0.53/0.00 | rhythm=0.00 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.88 | genre=PO:0.73 | bpm=129.3 | tracks=[JB5:0.73, JB1:0.70, JB3:0.65] | motion=-- | tags=[Electronic---Ambient, Electronic---Drone, Electronic---Experimental]
+music | bpm=83.3 | speed=0.55x | amp=1.05 | rms/gate=0.1193/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.07 | bands=0.44/0.56/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.94 | genre=PO:0.72 | bpm=125.0 | tracks=[JB5:0.74, JB1:0.69, JB3:0.66] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Drone]
+music | bpm=83.3 | speed=0.55x | amp=1.05 | rms/gate=0.1755/0.0020 | beat=1 accepted=1 conf=0.67 contrast=0.71 result=accepted | bright=0.07 | bands=0.48/0.52/0.00 | rhythm=0.03 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.95 | genre=PO:0.72 | bpm=125.0 | tracks=[JB5:0.72, JB1:0.67, JB3:0.66] | motion=-- | tags=[Electronic---Noise, Electronic---Experimental, Electronic---Power Electronics]
+music | bpm=83.3 | speed=0.55x | amp=0.98 | rms/gate=0.1437/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.07 | bands=0.53/0.47/0.00 | rhythm=0.03 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.80 | genre=PO:0.71 | bpm=121.0 | tracks=[JB5:0.70, JB1:0.65, JB3:0.64] | motion=-- | tags=[Electronic---Noise, Electronic---Power Electronics, Electronic---Industrial]
+music | bpm=83.3 | speed=0.55x | amp=0.96 | rms/gate=0.1465/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.06 | bands=0.51/0.49/0.00 | rhythm=0.02 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.61 | genre=PO:0.71 | bpm=117.2 | tracks=[JB5:0.69, JB3:0.64, JB1:0.64] | motion=-- | tags=[Electronic---Noise, Electronic---Power Electronics, Electronic---Industrial]
+music | bpm=83.3 | speed=0.55x | amp=1.02 | rms/gate=0.1783/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=accepted | bright=0.07 | bands=0.56/0.44/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.88 | genre=PO:0.70 | bpm=121.0 | tracks=[JB5:0.68, JB3:0.64, JB1:0.63] | motion=-- | tags=[Electronic---Noise, Electronic---Power Electronics, Electronic---Industrial]
+music | bpm=83.3 | speed=0.55x | amp=1.00 | rms/gate=0.1358/0.0020 | beat=1 accepted=0 conf=0.32 contrast=0.62 result=low-confidence | bright=0.07 | bands=0.46/0.54/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.81 | genre=PO:0.69 | bpm=117.2 | tracks=[JB5:0.68, JB3:0.63, JB1:0.63] | motion=-- | tags=[Electronic---Industrial, Electronic---Power Electronics, Electronic---Noise]
+music | bpm=83.3 | speed=0.55x | amp=0.98 | rms/gate=0.1230/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=low-confidence | bright=0.06 | bands=0.59/0.41/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.66 | genre=PO:0.69 | bpm=121.0 | tracks=[JB5:0.67, JB1:0.63, JB3:0.63] | motion=-- | tags=[Electronic---Industrial, Electronic---Power Electronics, Electronic---Noise]
+music | bpm=83.3 | speed=0.55x | amp=1.00 | rms/gate=0.1289/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=low-confidence | bright=0.07 | bands=0.48/0.52/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.70 | genre=PO:0.69 | bpm=121.0 | tracks=[JB5:0.67, JB3:0.63, JB1:0.63] | motion=-- | tags=[Electronic---Industrial, Electronic---Power Electronics, Electronic---Noise]
+music | bpm=83.3 | speed=0.55x | amp=1.05 | rms/gate=0.1607/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=low-confidence | bright=0.10 | bands=0.42/0.58/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.52 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.68, JB3:0.64, JB1:0.63] | motion=-- | tags=[Electronic---Power Electronics, Electronic---Industrial, Electronic---Noise]
+music | bpm=83.3 | speed=0.55x | amp=0.75 | rms/gate=0.0812/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.44 result=accepted | bright=0.17 | bands=0.39/0.61/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.81 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.69, JB3:0.65, JB1:0.64] | motion=-- | tags=[Electronic---Industrial, Electronic---Power Electronics, Electronic---Noise]
+music | bpm=83.3 | speed=1.28x | amp=0.47 | rms/gate=0.0228/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.26 result=accepted | bright=0.14 | bands=0.56/0.43/0.00 | rhythm=0.01 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.93 | genre=PO:0.69 | bpm=125.0 | tracks=[JB5:0.69, JB3:0.65, JB1:0.65] | motion=-- | tags=[Electronic---Power Electronics, Electronic---Industrial, Electronic---Noise]

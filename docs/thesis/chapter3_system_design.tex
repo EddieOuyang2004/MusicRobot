@@ -1,4 +1,5 @@
 % Chapter 3 can be included from a larger thesis with \input or \include.
+% The parent document must load the graphicx package.
 % This chapter uses only citation keys already present in references.bib.
 
 \chapter{Overall System Design}
@@ -7,83 +8,36 @@
 \section{Chapter Overview}
 \label{sec:design_overview}
 
-This chapter presents the overall design of the Humanoid Matcher. The system
-receives a causal audio stream and produces a continuous sequence of poses for
-a 29-degree-of-freedom Unitree G1 model. Its purpose is not to synthesise a new
+This chapter presents the system-level design of the Humanoid Matcher. The
+system receives a causal audio stream and produces a continuous sequence of
+poses for a 29-degree-of-freedom Unitree G1 model. It does not synthesise a new
 dance from scratch. Instead, it retrieves music-related motions from a
-prevalidated catalogue, decides when a change is sufficiently justified,
-adapts motion timing to accepted musical beats, and connects successive
-trajectories without an abrupt change in pose or root motion.
+prevalidated catalogue, decides when a change is justified, adapts motion
+timing to musical events, and connects successive trajectories without an
+abrupt change in pose or root motion.
 
-The central architectural decision is to separate the problem into an offline
-preparation path and an online decision-and-playback path. Computationally
-expensive or non-causal operations, including human-to-robot retargeting,
-whole-clip key-pose analysis, catalogue normalisation, and trajectory preflight,
-are performed offline. The online path is limited to rolling-window audio
-analysis, catalogue search, stateful selection, candidate preparation,
-beat--phase control, transition planning, and constrained pose output. This
-division ensures that a motion can enter the live candidate set only after its
-source, representation, and target-robot validity have been established.
+The central architectural decision is to separate an offline preparation path
+from an online decision-and-playback path. Computationally expensive or
+non-causal operations, including human-to-robot retargeting, whole-clip motion
+analysis, catalogue normalisation, and trajectory preflight, are performed
+offline. The online path is limited to rolling-window audio analysis,
+catalogue search, stateful selection, candidate preparation, beat--phase
+control, transition planning, and constrained pose output. A motion can enter
+the live candidate set only after its source, representation, and target-robot
+validity have been established.
 
-The Humanoid Matcher is therefore a hybrid model rather than an end-to-end
-neural network. Its current catalogue uses a pretrained Discogs EffNet ONNX
-model for music embeddings and style activations, while explicit DSP features
-describe tempo, rhythm, spectral content, and activity. Deterministic scoring
-and state machines govern retrieval and switching. Retargeted G1 trajectories
-supply motion content, and a constrained controller governs timing and
-continuity. Each component has a narrow responsibility and produces diagnostic
-values that can be evaluated independently.
+The Humanoid Matcher is therefore a hybrid system rather than an end-to-end
+neural network. A pretrained music model supplies learned audio
+representations, explicit DSP features describe rhythm and activity,
+deterministic scoring ranks catalogue items, and state machines govern
+selection and switching. Retargeted G1 trajectories supply the motion content,
+while a constrained controller governs timing and continuity. Each component
+has a narrow responsibility and exposes diagnostic values that can be tested
+independently. Chapter~\ref{chap:offline_catalogue} specifies the offline data
+construction in detail, and Chapter~\ref{chap:realtime_matching_control}
+defines the online algorithms and their parameters.
 
-\section{Design Requirements and Principles}
-\label{sec:design_requirements}
 
-The literature review identified quality, causality, embodiment, and continuity
-as distinct concerns. These concerns are translated into six system-level
-requirements.
-
-\begin{description}
-    \item[Musical relevance.]
-    The selected motion should be associated with music that is similar in
-    content and style, while also being compatible with the observed tempo,
-    event density, and activity.
-
-    \item[Causal responsiveness.]
-    Online decisions may use only the audio accumulated up to the current time.
-    A change in music should influence the result after a bounded analysis and
-    decision delay, without relying on future samples. This follows the strict
-    distinction between streaming and offline audio-driven control emphasised
-    by DiscoForcing \cite{ji2026discoforcing}.
-
-    \item[Selection stability.]
-    Small changes in similarity scores must not cause rapid oscillation among
-    motions. Conversely, stability must not prevent a clearly more relevant
-    candidate from replacing the current action.
-
-    \item[Motion continuity.]
-    A switch should minimise disagreement in joint pose, joint velocity, foot
-    contact, root state, and motion phase. The world-frame trajectory should not
-    reset merely because the underlying source clip changes.
-
-    \item[Robot-ready provenance.]
-    Every selectable motion must have an identifiable AIST++ source, a
-    canonical GMR artefact, an explicit 29-joint order, and a recorded preflight
-    result. This requirement reflects the effect of retargeting quality on
-    humanoid motion tracking \cite{araujo2025retargeting}.
-
-    \item[Inspectable operation.]
-    The system should expose the evidence behind each decision: ranked tracks,
-    component motion scores, rejection reasons, selection state, entry cost,
-    transition state, and output-limit interventions.
-\end{description}
-
-Four design principles follow from these requirements. First, \emph{matching
-is hierarchical}: music retrieval and motion compatibility are evaluated at
-different levels. Second, \emph{selection is stateful}: the best result in one
-window is evidence, not an immediate command. Third, \emph{switching is a
-prepared transaction}: a target is not committed until its motion data,
-grounding, entry features, and transition plan are ready. Fourth,
-\emph{continuity is enforced after selection}: musical relevance cannot by
-itself guarantee a continuous robot state.
 
 \section{End-to-End Architecture}
 \label{sec:design_architecture}
@@ -95,35 +49,14 @@ pose after phase control, transition blending, and output checks.
 
 \begin{figure}[htbp]
     \centering
-    \fbox{\parbox{0.92\textwidth}{
-        \centering
-        \textbf{Offline knowledge-base construction}\\[0.25em]
-        AIST++ audio $\rightarrow$ robust descriptors and segment bank
-        \quad $\mid$ \quad
-        SMPL motion $\rightarrow$ key poses $\rightarrow$ GMR--G1 retargeting
-        $\rightarrow$ preflight
-    }}\\[0.45em]
-    $\Downarrow$\\[-0.1em]
-    \fbox{\parbox{0.92\textwidth}{
-        \centering
-        \textbf{Online perception and decision}\\[0.25em]
-        rolling audio $\rightarrow$ segment/track retrieval $\rightarrow$
-        motion compatibility $\rightarrow$ stable relevance or diversity
-        decision $\rightarrow$ accepted-beat commitment
-    }}\\[0.45em]
-    $\Downarrow$\\[-0.1em]
-    \fbox{\parbox{0.92\textwidth}{
-        \centering
-        \textbf{Prepared transition and humanoid output}\\[0.25em]
-        ready motion pool $\rightarrow$ key-pose entry search $\rightarrow$
-        beat--phase control $\rightarrow$ root-aligned blend $\rightarrow$
-        dynamics/collision conditioning $\rightarrow$ G1 pose
-    }}
-    \caption{Hierarchical music-to-motion matching and beat-synchronous
-    humanoid control. Offline processing creates a searchable collection of
-    audio descriptors and prevalidated G1 trajectories. Online processing
-    separates music retrieval, motion compatibility, switch acceptance,
-    transition planning, and constrained playback.}
+    \includegraphics[width=\textwidth]{figures/chapter3_end_to_end_architecture.pdf}
+    \caption{End-to-end architecture of the Humanoid Matcher. Offline
+    preparation joins audio descriptors, motion profiles, and prevalidated G1
+    trajectories in a frozen catalogue. Online retrieval and candidate
+    preparation supply completed results to beat-synchronous commitment and
+    continuous playback. Solid arrows show processing flow; dashed arrows
+    show catalogue dependencies and beat-event input. The MuJoCo endpoint is
+    a kinematic preview.}
     \label{fig:humanoid_matcher_architecture}
 \end{figure}
 
@@ -132,705 +65,186 @@ The main information flow is
 \begin{equation}
 \begin{split}
     \mathcal{A}_{\leq t}
-    &\longrightarrow
-    \mathbf{x}_t
-    \longrightarrow
-    \mathcal{T}_t
-    \longrightarrow
-    \mathcal{M}_t
-    \longrightarrow
-    d_t \\
-    &\longrightarrow
-    (i_t,\phi_t,T_t)
-    \longrightarrow
-    \mathbf{q}^{\mathrm{target}}_t
-    \longrightarrow
-    \mathbf{q}^{\mathrm{out}}_t,
+    &\longrightarrow \mathbf{x}_t
+    \longrightarrow \mathcal{T}_t
+    \longrightarrow \mathcal{M}_t
+    \longrightarrow d_t \\
+    &\longrightarrow (i_t,\phi_t,T_t)
+    \longrightarrow \mathbf{q}^{\mathrm{target}}_t
+    \longrightarrow \mathbf{q}^{\mathrm{out}}_t,
 \end{split}
 \label{eq:overall_information_flow}
 \end{equation}
 
-where $\mathbf{x}_t$ is the descriptor of the recent audio, $\mathcal{T}_t$ is
-the ranked track set, $\mathcal{M}_t$ is the ranked motion set, and $d_t$ is the
-stateful selection decision. A committed switch specifies a target motion
-$i_t$, an entry phase $\phi_t$, and a transition duration $T_t$.
-$\mathbf{q}^{\mathrm{target}}_t$ is the blended and music-timed target pose,
-whereas $\mathbf{q}^{\mathrm{out}}_t$ is the pose after joint-dynamics and
-collision handling.
-
-This notation makes two separations explicit. A ranked motion is not yet a
-switch decision, and a switch decision is not yet a safe output pose. These
-separations prevent three common failure modes: ranking jitter immediately
-changing the motion, an unloaded candidate stalling at the switch boundary,
-and a visually relevant candidate producing an unsafe discontinuity.
-
-The online architecture operates through concurrent workers. Audio descriptor
-extraction and retrieval run outside the main playback path. Candidate motion
-files are loaded by background workers, then grounded and converted into entry
-features by a preparation worker. Entry scoring can also be computed ahead of
-the next bar boundary. The foreground path consumes only completed results;
-it never waits synchronously for a long feature extraction or file load. The
-concurrency is not merely an optimisation. It is part of the correctness of
-the switch protocol because a selected motion must be ready before it can be
-used.
-
-\section{Offline Knowledge-Base Construction}
-\label{sec:design_offline_catalogue}
-
-\subsection{Source pairing and catalogue units}
-\label{subsec:design_source_pairing}
-
-The offline pipeline begins with AIST++, which provides paired music and SMPL
-dance sequences \cite{li2021ai}. Motion filenames encode dance genre,
-situation, dancer, music identifier, and choreography identifier. These fields
-are parsed rather than inferred from folder order, creating an explicit link
-between each motion and its corresponding music family.
-
-The catalogue distinguishes three units:
-
-\begin{description}
-    \item[Audio segment:] a fixed-duration analysis window represented by dense
-    audio arrays and scalar metadata.
-
-    \item[Music track:] an AIST++ music identifier that aggregates several
-    segments and may include recording variants from different situations.
-
-    \item[Motion profile:] one retargeted choreography linked to a music
-    identifier and described by key-pose, activity, duration, and preflight
-    metadata.
-\end{description}
-
-This separation is essential. Segment-level comparison provides local evidence
-for the current rolling window; track-level aggregation prevents a long track
-from winning merely because it contributes more segments; and motion-level
-ranking recognises that several choreographies associated with one track can
-have different speeds and movement densities.
-
-The current catalogue is built at 16~kHz using six-second windows with a
-two-second hop. It contains 348 audio segments derived from 70 representative
-audio variants, 60 music identifiers, and 411 preflight-passed motion profiles.
-Duplicate recordings are grouped using the music identifier, situation, and a
-hash of the audio prefix. The longest representative of each duplicate group is
-analysed. This avoids over-weighting repeated copies while preserving genuine
-variants.
-
-\subsection{Gain-robust audio description}
-\label{subsec:design_audio_description}
-
-Catalogue and query audio pass through the same feature extractor. This
-symmetry is a data-contract requirement: a query produced by a different
-normalisation rule, model revision, sample rate, or output dimension would not
-occupy the same feature space as the stored segments.
-
-Before retrieval features are computed, the waveform is made robust to input
-gain. The median is removed to suppress DC offset, and the samples are divided
-by the 95th percentile of absolute amplitude. The result is scaled and clipped:
-
-\begin{equation}
-    \tilde{a}_n
-    = \operatorname{clip}\!\left(
-        \frac{0.8(a_n-\operatorname{median}(\mathbf{a}))}
-             {P_{95}(|\mathbf{a}-\operatorname{median}(\mathbf{a})|)},
-        -1,1
-      \right).
-\label{eq:robust_audio_normalisation}
-\end{equation}
-
-Absolute RMS is intentionally excluded from retrieval similarity because
-speaker volume and microphone gain do not define musical identity. The raw RMS
-is retained for silence handling and low-amplitude pose modulation. Dynamic
-range is likewise recorded for diagnostics rather than used as a direct
-nearest-neighbour feature.
-
-The descriptor has three complementary parts. The first is a content embedding.
-The current catalogue uses a 1,280-dimensional Discogs EffNet representation,
-whose training family is related to metadata-supervised music representation
-learning \cite{alonso2022music}. The second is a 400-dimensional vector
-of explainable style activations produced by the same ONNX model. The third is
-a 24-dimensional rhythm--timbre vector constructed from log-tempo, beat
-strength, onset density, offbeat ratio, tempo stability, spectral flux,
-percussive ratio, low/mid/high band-energy ratios, selected MFCC means, and
-spectral-contrast means. The explicit vector supplements the learned embedding
-with quantities directly related to motion timing.
-
-The extractor identity, model hash, sidecar metadata hash, sample rate, window
-duration, and hop duration are stored in the catalogue. At runtime the model
-configuration is resolved from this metadata. This prevents a silent failure
-in which an apparently compatible model name produces features from a
-different checkpoint.
-
-\subsection{Motion profiling and salient-pose detection}
-\label{subsec:design_motion_profiling}
-
-Each AIST++ sequence is profiled before it becomes a motion candidate. A salient
-pose is defined as a prominent local minimum in a smoothed whole-body velocity
-curve. For standard AIST++ SMPL files, the velocity combines geodesic angular
-motion from the 24-joint rotation hierarchy with scale-corrected root
-translation. Velocity minima are used because dance accents commonly terminate
-or reverse at momentarily slow poses, making them natural targets for beat
-alignment and transition entry.
-
-The profile stores the phase and prominence score of each detected key pose,
-the unweighted and prominence-weighted key-pose density, the coefficient of
-variation of cyclic key-pose intervals, and median and 90th-percentile motion
-velocity. These summaries serve three different purposes. Key-pose density is
-used in rhythmic compatibility, interval variability measures regularity, and
-high-percentile velocity provides a robust activity estimate without being
-dominated by one extreme frame.
-
-For diversity control, each motion receives a visual cluster identifier based
-on genre, velocity tertile, key-pose-density tertile, and whether its interval
-variability lies above the catalogue median. The cluster is deliberately
-coarse. It is not used as a semantic ground truth; it only prevents the
-least-recently-used policy from repeatedly choosing visually similar motions.
-
-\subsection{SMPL-to-G1 retargeting and preflight}
-\label{subsec:design_retargeting_preflight}
-
-The human source is represented in SMPL local rotations and root translation
-\cite{loper2023smpl}. Offline preparation composes the complete SMPL kinematic
-hierarchy, converts coordinates from the source convention to MuJoCo's
-convention, and passes required world transforms to GMR. GMR produces a
-floating-base trajectory with 29 named G1 joint positions. Collision avoidance
-is enabled during retargeting for selected non-adjacent robot geometries.
-
-The resulting artefact is accepted only if it satisfies a strict representation
-contract. It must identify the AIST++ source and its hash, use the canonical
-SMPL-direct pipeline, record the exact GMR revision, state the root quaternion
-order, contain the complete named G1 joint set, and match the source frame rate.
-This provenance prevents legacy BVH conversions, ambiguous quaternion arrays,
-or unnamed joint columns from being loaded merely because their files have the
-expected extension.
-
-Preflight then evaluates properties that are inexpensive to verify offline but
-dangerous to discover during a live switch. It checks finite values, joint
-ranges, joint and root velocity spikes, root angular continuity, floor
-penetration, collision-avoidance provenance, and the absence of actuator
-commands during kinematic playback. Only profiles whose final canonical GMR
-trajectory passes preflight are written into the selectable motion dictionary.
-Rejected motions and reasons are written separately so that failure is visible
-rather than silently reducing the dataset.
-
-\subsection{Catalogue storage contract}
-\label{subsec:design_catalogue_contract}
-
-The catalogue uses two coordinated files. A JSON document stores schema
-version, extractor identity, counts, track relationships, motion profiles,
-segment metadata, and catalogue-wide statistics. A compressed NumPy archive
-stores the dense embedding, rhythm--timbre, and tag matrices together with
-their normalisation statistics. JSON keeps provenance and decisions readable;
-the binary archive avoids the size and parsing cost of serialising large arrays
-as text.
-
-For each feature family $\mathbf{x}$, the offline builder stores its mean
-$\boldsymbol{\mu}$ and standard deviation $\boldsymbol{\sigma}$. Catalogue and
-query vectors are standardised and unit-normalised consistently:
-
-\begin{equation}
-    \mathbf{z}
-    = \frac{(\mathbf{x}-\boldsymbol{\mu})/
-      \max(\boldsymbol{\sigma},\epsilon)}
-      {\left\lVert(\mathbf{x}-\boldsymbol{\mu})/
-      \max(\boldsymbol{\sigma},\epsilon)\right\rVert_2}.
-\label{eq:catalogue_standardisation}
-\end{equation}
-
-Version checks occur when the catalogue is loaded. This makes the artefact a
-versioned interface between offline preparation and online control, rather
-than an informal cache whose meaning depends on the current source code.
-
-\section{Online Music-to-Motion Matching}
-\label{sec:design_online_matching}
-
-\subsection{Dual-timescale online audio processing}
-\label{subsec:design_dual_timescale}
-
-The online audio path maintains two views of the same input. A six-second
-rolling waveform supplies stable context for retrieval. By default, a new
-retrieval task may be submitted once per second if the previous task has
-finished. In parallel, the low-level analyser emits causal music frames
-containing activity, beat, onset, confidence, contrast, and spectral features.
-These events update motion timing and subtle pose modulation.
-
-The two paths are intentionally decoupled. A beat event should not launch a
-full catalogue search, and a new retrieval result should not instantaneously
-reset phase. Retrieval is a slower judgement about musical identity and motion
-suitability; event analysis is a faster judgement about when a salient motion
-state should occur. Both consume only recent or current audio, but their
-different decision horizons reduce sensitivity to noise.
-
-The retrieval worker owns one background task. If a task is still running, a
-new submission is skipped rather than queued. This coalescing policy prevents
-the controller from processing stale windows after the music has already
-advanced. The newest completed result is more useful than a backlog of old
-results.
-
-\subsection{Segment and track retrieval}
-\label{subsec:design_track_retrieval}
-
-Let $s_e$, $s_r$, and $s_g$ denote cosine similarities for the embedding,
-rhythm--timbre vector, and style-tag vector after the relevant normalisation.
-Cosine values are mapped from $[-1,1]$ into $[0,1]$. When style tags are
-available, the segment score is
-
-\begin{equation}
-    s_{\mathrm{seg}}
-    = 0.70s_e + 0.20s_r + 0.10s_g.
-\label{eq:segment_similarity}
-\end{equation}
-
-If tag dimensions are unavailable, the embedding and rhythm weights are
-renormalised instead of treating missing tags as negative evidence. The
-learned embedding therefore supplies most of the semantic neighbourhood, while
-the explicit vector retains a substantial rhythmic contribution.
-
-All catalogue segments are scored, but the final track score is not the maximum
-segment score. For track $u$ with ranked segment scores
-$s_{u,(1)}\geq s_{u,(2)}\geq\cdots$, the system uses
-
-\begin{equation}
-    s_{\mathrm{track}}(u)
-    = \frac{1}{K_u}\sum_{k=1}^{K_u}s_{u,(k)},
-    \qquad K_u=\min(3,N_u).
-\label{eq:track_top3_pooling}
-\end{equation}
-
-Top-three mean pooling is more robust than a single maximum, which may reflect
-an accidental local match, and fairer than averaging every segment, which can
-penalise a varied or longer track. Track results are then grouped by the ten
-AIST++ dance genres. Optional Discogs style activations provide priors over
-these genres. When the style evidence is sufficiently strong, the genre score
-combines normalised track evidence with the tag-derived prior. The highest
-genre is accepted, and a second genre is retained only when its margin is very
-small. Motion ranking is restricted to this accepted style family in the
-default style-first policy.
-
-The matcher can reject a window instead of forcing an answer. Beat quality is
-computed from beat strength, tempo stability, and onset density. A window with
-beat quality below 0.35 is rejected as weak rhythmic evidence. Ambient,
-non-music, drone, field-recording, and related negative tags are handled with a
-persistence rule so that one uncertain window does not immediately suppress
-dance. A rejected result clears relevance accumulation and causes the current
-motion to be held.
-
-\subsection{Motion compatibility ranking}
-\label{subsec:design_motion_ranking}
-
-Track retrieval answers which catalogue music resembles the query. It does not
-answer whether every linked choreography can be played appropriately. Motion
-ranking therefore considers only profiles that passed preflight and whose music
-identifier appears among the selected tracks and genres.
-
-Tempo compatibility accounts for half-time and double-time ambiguity. Given
-query tempo $b_q$ and the motion's source-music tempo $b_i$, the candidate speed
-ratios are
-
-\begin{equation}
-    \mathcal{R}_i
-    = \left\{\frac{b_q}{b_i},
-              \frac{b_q}{2b_i},
-              \frac{2b_q}{b_i}\right\}.
-\label{eq:tempo_ratio_candidates}
-\end{equation}
-
-Ratios outside the permitted playback-speed interval are discarded. Among the
-remaining values, the ratio nearest to authored speed in log space is selected.
-Its score is
-
-\begin{equation}
-    s_{\mathrm{tempo}}
-    = \exp\!\left[-\frac{1}{2}
-      \left(\frac{\log r_i}{0.28}\right)^2\right].
-\label{eq:tempo_compatibility}
-\end{equation}
-
-This design prevents a semantically similar track from selecting motion that
-would require excessive time scaling. Half-time and double-time alternatives
-handle the common octave ambiguity of beat estimators without allowing an
-unbounded speed search.
-
-Key-pose compatibility compares the query event rate with the weighted motion
-key-pose rate after speed adaptation. The query rate combines beat rate and
-onset density,
-
-\begin{equation}
-    \rho_q = 0.70\frac{b_q}{60}+0.30\rho_{\mathrm{onset}},
-    \qquad
-    \rho_i = r_i\rho_{\mathrm{key},i}.
-\end{equation}
-
-A Gaussian score in log-rate distance provides scale symmetry, and a smaller
-term rewards regular key-pose spacing. Activity compatibility maps the motion's
-90th-percentile velocity into a robust catalogue-relative activity value and
-compares it with audio activity derived from beat strength, onset density,
-spectral flux, and percussive ratio.
-
-The motion-specific score and final score are
-
-\begin{align}
-    s_{\mathrm{motion}}
-      &=0.50s_{\mathrm{tempo}}
-        +0.35s_{\mathrm{key}}
-        +0.15s_{\mathrm{activity}},
-        \label{eq:motion_compatibility_score}\\
-    s_{\mathrm{final}}
-      &=0.65s_{\mathrm{track}}
-        +0.35s_{\mathrm{motion}}.
-        \label{eq:final_motion_score}
-\end{align}
-
-The weighting expresses the intended hierarchy. Music relevance remains the
-dominant signal, but more than one third of the final score is reserved for
-whether the particular choreography fits the current timing and activity. The
-component scores are retained in the result rather than collapsed permanently,
-allowing later experiments to test each term.
-
-\section{Stable Selection and Candidate Readiness}
-\label{sec:design_selection_readiness}
-
-\subsection{Separating relevance from diversity}
-\label{subsec:design_relevance_diversity}
-
-The first-ranked motion in one result is not applied immediately. For a
-relevance-driven switch, a different motion must win three consecutive
-retrievals and exceed the current motion by a final-score margin of 0.08. If the
-candidate changes or the margin disappears, the accumulated evidence resets.
-This creates hysteresis around the current action while still permitting a
-clear musical change to take priority.
-
-Relevance and diversity are deliberately separate policies. Relevance answers
-whether the music supports replacing the current motion. Diversity answers
-whether a musically stable period has repeated one action for too long. By
-default, diversity becomes eligible after four held bars. It considers the top
-five candidates that remain within 0.05 of the best final score and 0.08 of the
-best music score for the required observation streak. It first prefers a visual
-cluster absent from recent history, then a recently unused motion identifier,
-and finally the least-recently-used eligible candidate.
-
-This separation prevents two opposite errors. Diversity cannot force a
-low-relevance motion merely to create variation, and strong relevance does not
-have to wait for the diversity timer. Each pending selection records its reason,
-which also makes experimental comparison possible.
-
-\subsection{Beat-defined commitment points}
-\label{subsec:design_commitment_points}
-
-A pending selection expresses intent but not timing. The system counts only
-\emph{accepted} alignment beats, not every raw beat detection. Every configured
-group of four accepted beats defines a bar boundary at which an eligible
-pending switch may be committed. This couples the switch to the same beat
-stream that governs motion phase and avoids a disagreement between scheduling
-and playback timing.
-
-The policy can therefore be described by the state sequence
+where $\mathbf{x}_t$ is the descriptor of the recent audio,
+$\mathcal{T}_t$ is the ranked track set, $\mathcal{M}_t$ is the ranked motion
+set, and $d_t$ is the stateful selection decision. A committed switch specifies
+a target motion $i_t$, an entry phase $\phi_t$, and a transition duration $T_t$.
+$\mathbf{q}^{\mathrm{target}}_t$ is the music-timed and, where necessary,
+blended target pose. $\mathbf{q}^{\mathrm{out}}_t$ is the pose after final
+output conditioning.
+
+The notation makes two boundaries explicit. A ranked motion is not yet a switch
+decision, and a switch decision is not yet a safe output pose. These boundaries
+prevent ranking jitter from changing the motion immediately, prevent an
+unloaded candidate from stalling the switch boundary, and prevent a relevant
+candidate from bypassing continuity and output checks.
+
+The online architecture uses bounded background workers. Audio feature
+extraction and retrieval run outside the foreground playback path. Candidate
+motions are loaded, grounded, and prepared before the next eligible commitment
+point. The foreground path consumes only completed results and never waits for
+retargeting, feature extraction, or file loading. Coalescing retrieval work and
+bounding candidate caches prevents stale evidence or speculative preparation
+from accumulating without limit.
+
+\section{Subsystem Boundaries and Contracts}
+\label{sec:design_subsystem_boundaries}
+
+\subsection{Offline preparation contract}
+\label{subsec:design_offline_contract}
+
+The offline subsystem converts paired AIST++ music and SMPL motion
+\cite{li2021ai,loper2023smpl} into three linked catalogue units: audio segments,
+music tracks, and motion profiles. Segments provide local evidence for a live
+query, tracks aggregate related segments without rewarding duplicated or long
+recordings, and motion profiles distinguish choreographies associated with the
+same music.
+
+Catalogue and query audio must use the same extractor identity, model revision,
+sample rate, window policy, and feature dimensions. Learned embedding and
+rhythm--timbre vectors are compared using statistics stored from the offline
+reference set. Style activations retain their label-coordinate meaning and are
+unit-normalised rather than z-standardised. This is a versioned interface, not
+an informal cache whose meaning depends on whichever code happens to load it.
+
+On the motion side, the offline path detects a small set of salient entry
+hypotheses, computes activity and regularity summaries, and retargets the human
+sequence into a canonical named-joint G1 trajectory. Provenance and kinematic
+preflight determine admission. Only a joined record whose audio, source motion,
+profile, retargeted artefact, and preflight result are all present is exposed to
+the online matcher. The feature definitions, retargeting procedure, validation
+thresholds, and current catalogue statistics are given once in
+Chapter~\ref{chap:offline_catalogue}.
+
+\subsection{Online perception and selection contract}
+\label{subsec:design_online_contract}
+
+The online subsystem processes the same causal stream at two timescales. A
+longer rolling window supplies relatively stable evidence for music and motion
+retrieval, while short audio blocks supply activity, onset, and beat events for
+timing. 
+
+Retrieval is hierarchical. Segment comparison first supplies local musical
+evidence, which is pooled at track level and may be restricted by style and
+abstention rules. A second stage evaluates whether linked motions are compatible
+with the observed tempo, event density, and activity. The component scores are
+retained because music similarity and motion feasibility have different
+failure modes. Their equations, weights, thresholds, and missing-evidence rules
+are defined in Chapter~\ref{chap:realtime_matching_control} rather than repeated
+here.
+
+Selection adds temporal state to these rankings. Sustained evidence can create
+a pending relevance selection, whereas a separate bounded-hold policy may
+request diversity among similarly relevant motions. Both policies are subject
+to the same readiness and commitment rules. Rejected or weak audio clears new
+relevance accumulation and holds the active motion instead of forcing an
+arbitrary catalogue item.
+
+\subsection{Prepared switching and execution contract}
+\label{subsec:design_execution_contract}
+
+A pending identifier expresses intent but does not authorise immediate
+playback. Preparation loads and validates the canonical trajectory, grounds it
+in the playback model, adapts its named joints to the active model, and builds
+the state features required for entry evaluation. Accepted beats define the
+musical commitment points shared by selection and phase control. If the
+preferred item is not prepared, the system may use only another ranked and
+prepared candidate. Otherwise it continues or safely completes the current
+trajectory.
+
+The logical progression is
 
 \begin{equation}
     \texttt{current}
     \rightarrow \texttt{evidence}
     \rightarrow \texttt{pending}
-    \rightarrow \texttt{ready}
+    \rightarrow \texttt{prepared}
     \rightarrow \texttt{transitioning}
     \rightarrow \texttt{current}.
 \label{eq:switch_state_sequence}
 \end{equation}
 
-An audio rejection returns the relevance branch to \texttt{current}. A
-candidate-loading failure removes that candidate from the ready pool but does
-not corrupt the active motion. If the current one-shot clip approaches its end,
-the same prepared transition mechanism can start a forced-end switch instead
-of sampling across an unauthorised loop seam.
+At a valid commitment point, entry search compares the current state with a
+small neighbourhood around salient target poses. Pose, velocity, support,
+root-state, and musical-salience disagreement determine entry quality. The
+transition duration then reflects the required joint displacement, configured
+dynamics limits, remaining target duration, and musical timing. These
+calculations are online concerns and are specified in
+Chapter~\ref{chap:realtime_matching_control}.
 
-\subsection{Asynchronous preparation}
-\label{subsec:design_async_preparation}
+During playback, accepted beats modify motion speed and consume phase error
+gradually. They do not teleport the sampler to a different pose. Target root
+motion is aligned to the current world trajectory before blending. One-shot
+clips do not cross an implicit last-to-first seam, and completion transfers the
+sampler, phase controller, root references, and motion identifier atomically.
+The resulting pose passes through stateful joint limits. Runtime collision
+handling, when enabled, is applied to the pose that would otherwise be emitted
+and must update the limiter state if it changes that pose. Offline preflight
+does not by itself imply that this optional online collision policy is active.
 
-When a retrieval result arrives, the selection policy supplies an ordered set
-of motion identifiers for preloading. Preparation consists of four stages:
+\section{State Ownership and Failure Isolation}
+\label{sec:design_state_ownership}
 
-\begin{enumerate}
-    \item load and validate the canonical GMR sampler;
-    \item calculate its grounding offset in a headless G1 model;
-    \item adapt all frames into the actual model joint-name order; and
-    \item build cached entry features for pose, velocity, root, contact, and
-          key-pose candidates.
-\end{enumerate}
+The system assigns each form of state to one responsible component. The
+retriever owns the latest completed ranking and its rejection status. The
+selector owns evidence streaks, pending reason, held-bar state, and recency
+history. The preparation pool owns candidate readiness and load failures. Each
+motion controller owns phase, accepted-beat history, amplitude state, and rate
+limits. The transition controller owns source--target blending and transfers
+the new active state only at completion. Finally, the output layer owns the
+previous emitted joint state used by its dynamics limiter.
 
-Loading, preparation, and entry scoring use separate bounded workers. The
-ready cache is also bounded so that speculative candidates do not cause
-uncontrolled memory growth. As the next bar approaches, entry scores for ready
-candidates are computed using an estimate of the source phase at that boundary.
-At commitment time the preferred pending candidate is used if ready. If it is
-not ready, another evidence-backed candidate may be chosen according to entry
-quality; an arbitrary catalogue item is never inserted as a fallback.
+Figure~\ref{fig:state_ownership_swimlanes} illustrates a representative
+asynchronous switch. The foreground columns distinguish logical state owners
+within the same playback loop, rather than independent execution threads.
+Retrieval and preparation return completed results while active-motion sampling
+and output conditioning continue. Candidate readiness and an eligible musical
+boundary permit commitment; the active playback state changes at blend
+completion. Background entry scoring uses a generation check to discard plans
+invalidated by newer retrieval evidence.
 
-Startup follows the same readiness logic. The initial motion is sampled from
-the lower-activity portion of the preflight-passed catalogue and must be long
-enough to cover the rolling analysis window, consecutive retrieval evidence,
-maximum playback-speed consumption, and a preparation reserve. This gives the
-system time to obtain its first evidence-backed candidate. If no candidate is
-ready when a one-shot motion ends, the terminal pose is held with an optional
-small stationary breathing signal rather than wrapping to the first frame or
-blocking on file I/O.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/chapter3_state_ownership_swimlanes.pdf}
+    \caption{State ownership and asynchronous execution during a representative
+    prepared switch. Time progresses downward without implying measured task
+    durations. Solid arrows denote requests or control flow, and dashed
+    arrows denote completed-result handoffs. The selector, playback
+    controller, and output layer are logical owners coordinated by the
+    foreground loop. Normal prepared commitment is shown; terminal-motion
+    handling can initiate a prepared transition before clip completion.}
+    \label{fig:state_ownership_swimlanes}
+\end{figure}
 
-\section{Beat-Synchronous Motion Control}
-\label{sec:design_beat_control}
+This separation prevents a partial failure from corrupting the active motion.
+A busy retrieval worker skips a submission opportunity rather than building a
+backlog. A loading or grounding failure removes the affected candidate from the
+ready set. A rejected query leaves the current motion active. If a one-shot
+clip ends before another evidence-backed candidate is prepared, its terminal
+pose is held instead of wrapping through an unauthorised seam or blocking on
+file I/O.
 
-\subsection{Adaptive beat acceptance}
-\label{subsec:design_beat_acceptance}
+Diagnostics follow the same ownership boundaries. Retrieval exposes rankings
+and rejection reasons. Selection exposes evidence, pending reason, and
+readiness. Timing exposes accepted beats and remaining phase error. Transition
+planning exposes entry quality and blend progress, And output conditioning
+exposes limiter and collision interventions. Chapter~\ref{chap:realtime_matching_control}
+defines the concrete trace fields used by later experiments.
 
-The low-level analyser may detect rhythmic subdivisions faster than the motion
-can move from one authored key pose to the next. Treating every detection as an
-alignment target would demand excessive playback speed and make the controller
-follow weak subdivisions. The controller therefore assigns each candidate beat
-a causal selection score
-
-\begin{equation}
-    c_b=(1-w_c)c_{\mathrm{confidence}}+w_c c_{\mathrm{contrast}},
-\end{equation}
-
-where contrast measures the event relative to recent RMS and onset history. A
-hard confidence threshold rejects unreliable events. The shortest feasible
-accepted-beat interval is derived from the next authored key-pose interval and
-the maximum playback speed. When raw events arrive faster than this interval,
-the controller uses recent selection-score quantiles to reject weak events,
-while a deadline rule prevents indefinite waiting.
-
-This mechanism makes beat acceptance motion-aware. A dense musical passage may
-provide many beat candidates, but only the events that the current choreography
-can follow become phase targets and bar-count events. At normal rates, every
-confidence-qualified beat remains eligible.
-
-\subsection{Speed adaptation and gradual phase correction}
-\label{subsec:design_phase_correction}
-
-For accepted beats, the controller maps beat index to the next authored
-key-pose phase. The interval between accepted beats determines a target phase
-rate, clipped to the permitted speed range. Both the phase rate and live
-amplitude state are exponentially smoothed to avoid sudden changes.
-
-Crucially, the controller does not assign the desired key-pose phase directly
-on a beat. It stores the wrapped alignment error and consumes it gradually. Let
-$\omega_t$ be the smoothed phase rate, $e_t$ the remaining phase correction,
-and $\tau_p$ the correction time constant. The desired correction over an
-update interval $\Delta t$ is
-
-\begin{equation}
-    \Delta\phi_{\mathrm{corr}}
-    = e_t\left(1-\exp(-\Delta t/\tau_p)\right).
-\end{equation}
-
-The applied correction is clipped so that the effective phase rate stays
-within the playback-speed bounds. A further slew limit constrains the change
-of effective speed. The phase update is therefore continuous even when a beat
-arrives with a large phase error:
-
-\begin{equation}
-    \phi_{t+1}
-    = \operatorname{wrap}\!\left(
-        \phi_t+\Delta t\,\omega^{\mathrm{eff}}_t
-      \right).
-\label{eq:continuous_phase_update}
-\end{equation}
-
-This design distinguishes synchronisation from teleportation. Beat alignment
-is achieved by temporarily moving slightly faster or slower, not by jumping
-the source trajectory to a different pose. When beat evidence times out, the
-target rate returns to the authored value.
-
-\section{Continuous Motion Transition Design}
-\label{sec:design_transitions}
-
-\subsection{Entry-feature representation}
-\label{subsec:design_entry_features}
-
-Each prepared motion contains an entry-feature cache. Joint positions are
-stored in a common name-sorted order and velocities are estimated at the source
-frame rate. Joint ranges provide normalisation. Root features include position,
-tilt after yaw removal, linear velocity, and angular speed. A two-channel foot
-contact state represents left and right support.
-
-The target search is restricted to a small neighbourhood around salient
-key-pose phases. Specifically, the current implementation includes the key-pose
-frame and three adjacent frames on either side, with decreasing salience away
-from the centre. This restriction greatly reduces the search space while
-preserving limited freedom to find a mechanically smoother entry near a
-musically meaningful pose.
-
-\subsection{Entry cost and eligibility}
-\label{subsec:design_entry_cost}
-
-For source state $x_s$ and target candidate frame $x_i$, five normalised costs
-are calculated:
-
-\begin{description}
-    \item[$C_q$] root-mean-square joint-pose difference divided by joint range;
-    \item[$C_v$] root-mean-square joint-velocity difference divided by joint
-    speed limits;
-    \item[$C_c$] fraction of left/right contact states that disagree;
-    \item[$C_r$] mean disagreement in root height, tilt, linear velocity, and
-    angular speed; and
-    \item[$C_m$] inverse key-pose salience, so a more prominent pose receives a
-    smaller musical cost.
-\end{description}
-
-The total is
-
-\begin{equation}
-    C_{\mathrm{entry}}
-    =0.45C_q+0.20C_v+0.20C_c+0.10C_r+0.05C_m.
-\label{eq:entry_cost_chapter3}
-\end{equation}
-
-Pose receives the greatest weight because a large configuration mismatch is
-immediately visible. Velocity and contact receive equal secondary weight
-because they distinguish states that look similar in one frame but evolve
-differently. Root and salience refine the result without overriding severe
-joint disagreement.
-
-Cost alone does not determine eligibility. A target entry must leave enough
-authored time to cover the transition and a minimum remaining musical duration
-at maximum playback speed. Candidates whose required transition exceeds the
-configured maximum are avoided when a feasible alternative exists. If no
-candidate satisfies the remaining-time rule, the earliest key-pose candidate
-is retained as a controlled fallback rather than returning an undefined plan.
-
-\subsection{Transition duration and musical quantisation}
-\label{subsec:design_transition_duration}
-
-The duration is derived from the joint displacement and configured dynamics
-limits. For joint $j$ with displacement $|\Delta q_j|$, speed limit
-$v_j^{\max}$, and acceleration limit $a_j^{\max}$, the raw lower bound is
-
-\begin{equation}
-    T_{\mathrm{raw}}
-    =\max_j\left(
-        \frac{1.5|\Delta q_j|}{v_j^{\max}},
-        \sqrt{\frac{6|\Delta q_j|}{a_j^{\max}}}
-      \right).
-\label{eq:transition_duration_bound}
-\end{equation}
-
-After applying the minimum duration, the result is rounded upward to a
-half-beat multiple and clipped to the configured transition interval. The
-default interval is 0.35--1.20 seconds. This policy connects mechanical
-distance to blend time while maintaining a musically legible duration. A fixed
-blend duration would be too long for nearby poses and too short for distant
-ones.
-
-\subsection{Root alignment and transition completion}
-\label{subsec:design_root_alignment}
-
-Before blending, the target entry frame is aligned to the current source frame
-in world root position and yaw. The same rigid offset is then applied to the
-target trajectory, preserving its relative displacement. Joint positions and
-root translations are blended continuously, while root orientation uses
-quaternion interpolation. The blend result passes through a persistent root
-continuity layer so that changing source identifiers does not reset the robot
-to the catalogue origin.
-
-Source clips are treated as one-shot trajectories. The phase tracker clamps at
-the terminal frame and does not sample across the last-to-first seam unless a
-loop has been explicitly designed. If a transition starts because the source
-is about to end, blend progress is coupled to remaining source phase as well as
-elapsed time. This ensures that the old clip is fully released before its
-terminal state can stall the transition.
-
-On completion, the target sampler, controller, phase tracker, and root
-references become the new current state atomically. The selection policy then
-records the motion as played, clears relevance evidence, resets the held-bar
-count, and updates recency history. Treating completion as one atomic state
-change prevents a frame from combining identifiers and controllers from
-different motions.
-
-\section{Output Conditioning and Operational Diagnostics}
-\label{sec:design_output_diagnostics}
-
-The blended frame may receive bounded music-driven pose modulation, but the
-authored GMR joint scale and root trajectory remain the primary motion. A joint
-dynamics limiter then constrains inter-frame speed and acceleration according
-to per-joint limits or configured defaults. Runtime collision handling is
-applied after this limiter because blending and modulation can create poses
-that were not present in either preflight-passed source clip. If collision
-handling changes the pose, the limiter state is reset to the actual output so
-that the following update does not use an incorrect previous state.
-
-The conditioned pose is written by joint name to the Unitree G1 MuJoCo model.
-MuJoCo provides the articulated model and geometric state evaluation
-\cite{todorov2012mujoco}; in this project, the player writes the floating-base
-and hinge configuration and calls forward kinematics. The output is therefore
-a kinematic trajectory preview and geometric validation path, not a
-torque-controlled balance simulation. This fact is stated here because it
-determines the meaning of the output checks, not as a separate system-boundary
-section.
-
-Operational diagnostics are organised around decisions rather than raw debug
-messages. A trace records when a match is accepted or rejected, why a motion is
-pending, whether a switch is relevance- or diversity-driven, which entry phase
-was selected, the five entry-cost components, transition duration, phase-error
-remainder, root discontinuity, limiter activity, collision overrides, and
-candidate-readiness timings. Aggregate reports retain retrieval latency,
-deadline behaviour, accepted-beat error, output speed and acceleration, cache
-underruns, forced fallbacks, and hold-last events.
-
-This observability supports the later experiments in two ways. First, it maps
-each research question to measurable internal behaviour rather than relying
-only on final animation videos. Second, it distinguishes causes that can look
-similar visually. For example, a delayed key pose may result from beat
-rejection, phase-rate saturation, transition blending, or the final dynamics
-limiter; the trace exposes which mechanism was active.
-
-\section{Design Rationale and Key Development Priorities}
-\label{sec:design_rationale}
-
-The completed architecture concentrates development effort on the interfaces
-where independent components can otherwise invalidate one another.
-
-The first priority is \emph{catalogue consistency}. Offline and online audio
-must share extractor identity and normalisation, and stored G1 motions must
-share a canonical named-joint representation. Without these contracts, better
-ranking or blending cannot correct incomparable features or incorrectly ordered
-joints.
-
-The second priority is \emph{decision decomposition}. Track similarity, motion
-compatibility, stable evidence, switch scheduling, and entry selection answer
-different questions. Combining them into one nearest-neighbour score would
-make a high semantic match capable of bypassing speed feasibility or transition
-readiness. The hierarchy instead rejects invalid candidates early and preserves
-component-level explanations.
-
-The third priority is \emph{temporal continuity}. Accepted beats, not raw
-detections, define both phase targets and switch boundaries. Phase error is
-consumed gradually. Transitions use current state, target state, dynamics
-limits, and root alignment. These mechanisms work together: improving only
-pose blending would not resolve a phase jump or a world-root reset.
-
-The fourth priority is \emph{readiness under asynchronous work}. A candidate
-that ranks well but is not loaded cannot be considered executable at the next
-boundary. Background preparation, bounded caches, estimated-boundary entry
-scoring, and controlled fallback behaviour are therefore part of system design,
-not incidental performance tuning.
-
-Less influential implementation details are intentionally kept outside this
-chapter. Command-line option listings, environment installation, individual
-trace columns, file-download procedures, and historical alternatives do not
-change the system's conceptual organisation. They are documented in the
-project repository and can be referenced when reproducing experiments.
-
-\section{Chapter Summary}
-\label{sec:design_summary}
-
-This chapter presented the Humanoid Matcher as a two-path architecture. Offline
-processing converts paired AIST++ music and SMPL dance into a versioned
-knowledge base containing gain-robust audio descriptors, motion key-pose
-profiles, canonical GMR Unitree G1 trajectories, and preflight evidence. Online
-processing uses a rolling audio context and causal beat events to perform
-hierarchical track and motion ranking.
-
-The design does not immediately execute the highest-scoring result. Consecutive
-evidence and score hysteresis govern relevance changes, a separate bounded-hold
-policy supplies diversity, and accepted-beat bar boundaries determine
-commitment time. Candidates are loaded, grounded, and profiled asynchronously
-before use. State-aware entry search, dynamics-derived transition duration,
-root alignment, gradual phase correction, and final output conditioning then
-turn a catalogue decision into a continuous G1 target trajectory. The following
-two chapters describe offline catalogue construction and online matching and
-control in greater detail.
+The present output is a kinematic trajectory preview and geometric validation
+path in MuJoCo \cite{todorov2012mujoco}, not a torque-controlled balance
+simulation. Canonical retargeting, kinematic preflight, and optional online
+collision handling improve representation and geometric validity, but they do
+not prove dynamic trackability or hardware safety. Those claims require a
+separate controller and experimental evaluation.

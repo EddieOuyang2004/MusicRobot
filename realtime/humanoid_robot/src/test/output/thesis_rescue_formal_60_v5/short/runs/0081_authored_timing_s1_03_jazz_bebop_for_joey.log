@@ -1,0 +1,100 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d11_mPO1_ch09.pkl with constant root Z offset +0.918100 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\cc0_matcher_set\03_jazz_bebop_for_joey.mp3 (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gPO_sFM_cAll_d11_mPO1_ch09
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=0.63 | rms/gate=0.0239/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.50 result=accepted | bright=0.10 | bands=0.38/0.44/0.00 | rhythm=0.05 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=0.69 | rms/gate=0.0356/0.0020 | beat=1 accepted=0 conf=0.71 contrast=0.50 result=too-early | bright=0.14 | bands=0.35/0.65/0.00 | rhythm=0.09 | offbeat=0.00
+music | bpm=89.3 | speed=1.00x | amp=0.68 | rms/gate=0.0348/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.10 | bands=0.85/0.15/0.00 | rhythm=0.11 | offbeat=0.35
+music | bpm=89.3 | speed=1.00x | amp=0.61 | rms/gate=0.0501/0.0020 | beat=1 accepted=0 conf=0.90 contrast=0.20 result=too-early | bright=0.09 | bands=0.70/0.30/0.00 | rhythm=0.13 | offbeat=0.33
+music | bpm=89.3 | speed=1.00x | amp=0.56 | rms/gate=0.0465/0.0020 | beat=1 accepted=1 conf=0.43 contrast=0.21 result=too-early | bright=0.08 | bands=0.67/0.33/0.00 | rhythm=0.19 | offbeat=0.19
+music | bpm=89.3 | speed=1.00x | amp=0.48 | rms/gate=0.0128/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.31 result=accepted | bright=0.19 | bands=0.42/0.57/0.01 | rhythm=0.20 | offbeat=0.17
+match | accepted | confidence=0.75 | genre=JB:0.78 | bpm=87.2 | tracks=[JB5:0.64, JB0:0.62, JB3:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.70 | tags=[Jazz---Contemporary Jazz, Jazz---Modal, Jazz---Hard Bop]
+music | bpm=91.5 | speed=1.00x | amp=0.47 | rms/gate=0.0192/0.0020 | beat=1 accepted=0 conf=0.43 contrast=0.10 result=weak-overload-beat | bright=0.12 | bands=0.64/0.36/0.00 | rhythm=0.20 | offbeat=0.33
+match | accepted | confidence=0.83 | genre=JB:0.79 | bpm=89.3 | tracks=[JB5:0.63, JB3:0.60, JB0:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Contemporary Jazz]
+music | bpm=93.8 | speed=1.00x | amp=0.59 | rms/gate=0.1828/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.42 result=accepted | bright=0.11 | bands=0.51/0.48/0.00 | rhythm=0.24 | offbeat=0.54
+match | accepted | confidence=0.78 | genre=JB:0.80 | bpm=89.3 | tracks=[JB5:0.63, JB0:0.60, JB3:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.66 | tags=[Jazz---Hard Bop, Jazz---Post Bop, Jazz---Modal]
+Pending motion (relevance): gJB_sBM_cAll_d08_mJB0_ch02 score=0.657 music=0.604 held=1 bar(s) pool=[gJB_sBM_cAll_d08_mJB0_ch02:0.670/0.608, gJB_sBM_cAll_d07_mJB0_ch01:0.652/0.608, gJB_sBM_cAll_d07_mJB0_ch02:0.644/0.608, gJB_sBM_cAll_d08_mJB0_ch01:0.640/0.608]
+Switching (bar): gPO_sFM_cAll_d11_mPO1_ch09 -> gJB_sBM_cAll_d08_mJB0_ch02 entry=0.5772 blend=0.368s entry_score=0.084
+music | bpm=163.0 | speed=1.00x | amp=0.67 | rms/gate=0.0513/0.0020 | beat=1 accepted=1 conf=0.61 contrast=0.77 result=accepted | bright=0.08 | bands=0.80/0.20/0.00 | rhythm=0.47 | offbeat=0.26
+match | accepted | confidence=0.73 | genre=JB:0.79 | bpm=89.3 | tracks=[JB5:0.63, JB0:0.60, JB3:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+Motion switch complete: gJB_sBM_cAll_d08_mJB0_ch02 (GMR artifact)
+music | bpm=178.6 | speed=1.00x | amp=0.64 | rms/gate=0.0533/0.0020 | beat=1 accepted=1 conf=0.94 contrast=0.29 result=too-early | bright=0.10 | bands=0.85/0.15/0.00 | rhythm=0.52 | offbeat=0.01
+match | accepted | confidence=0.62 | genre=JB:0.77 | bpm=89.3 | tracks=[JB5:0.63, JB0:0.61, JB3:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.66 | tags=[Jazz---Hard Bop, Jazz---Contemporary Jazz, Jazz---Modal]
+music | bpm=178.6 | speed=1.00x | amp=0.76 | rms/gate=0.1391/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.79 result=accepted | bright=0.18 | bands=0.67/0.32/0.01 | rhythm=0.50 | offbeat=0.23
+match | accepted | confidence=0.68 | genre=JB:0.77 | bpm=89.3 | tracks=[JB5:0.63, JB3:0.60, JB0:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Contemporary Jazz]
+music | bpm=178.6 | speed=1.00x | amp=0.67 | rms/gate=0.0064/0.0020 | beat=1 accepted=1 conf=0.30 contrast=0.71 result=low-confidence | bright=0.22 | bands=0.44/0.54/0.02 | rhythm=0.47 | offbeat=0.26
+match | accepted | confidence=0.63 | genre=JB:0.77 | bpm=89.3 | tracks=[JB5:0.63, JB3:0.60, JB0:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Modal, Jazz---Contemporary Jazz, Jazz---Hard Bop]
+Switching (forced_end): gJB_sBM_cAll_d08_mJB0_ch02 -> gJB_sBM_cAll_d07_mJB0_ch02 entry=0.2490 blend=0.504s entry_score=0.147
+music | bpm=178.6 | speed=1.00x | amp=0.77 | rms/gate=0.1729/0.0020 | beat=1 accepted=1 conf=0.70 contrast=0.68 result=too-early | bright=0.13 | bands=0.39/0.61/0.00 | rhythm=0.43 | offbeat=0.32
+match | accepted | confidence=0.74 | genre=JB:0.78 | bpm=89.3 | tracks=[JB5:0.62, JB3:0.61, JB0:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Contemporary Jazz, Jazz---Modal, Jazz---Hard Bop]
+Motion switch complete: gJB_sBM_cAll_d07_mJB0_ch02 (GMR artifact)
+music | bpm=178.6 | speed=1.00x | amp=0.71 | rms/gate=0.2072/0.0020 | beat=1 accepted=1 conf=0.61 contrast=0.97 result=too-early | bright=0.13 | bands=0.68/0.31/0.00 | rhythm=0.44 | offbeat=0.40
+match | accepted | confidence=0.83 | genre=JB:0.78 | bpm=178.6 | tracks=[JB5:0.62, LO0:0.61, LO4:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Contemporary Jazz, Jazz---Modal, Jazz---Hard Bop]
+music | bpm=178.6 | speed=1.00x | amp=0.66 | rms/gate=0.1781/0.0020 | beat=1 accepted=0 conf=0.64 contrast=0.18 result=weak-overload-beat | bright=0.11 | bands=0.61/0.39/0.00 | rhythm=0.45 | offbeat=0.20
+match | accepted | confidence=0.90 | genre=JB:0.79 | bpm=178.6 | tracks=[LO0:0.61, JB3:0.61, JB5:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Contemporary Jazz, Jazz---Hard Bop, Jazz---Modal]
+music | bpm=187.5 | speed=1.00x | amp=0.79 | rms/gate=0.1383/0.0020 | beat=1 accepted=1 conf=0.84 contrast=0.18 result=too-early | bright=0.07 | bands=0.89/0.11/0.00 | rhythm=0.44 | offbeat=0.48
+match | accepted | confidence=0.89 | genre=JB:0.79 | bpm=178.6 | tracks=[LO4:0.62, JB3:0.61, JB5:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Contemporary Jazz, Jazz---Modal]
+music | bpm=187.5 | speed=1.00x | amp=0.54 | rms/gate=0.0127/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.06 result=too-early | bright=0.14 | bands=0.51/0.49/0.00 | rhythm=0.48 | offbeat=0.40
+match | accepted | confidence=0.87 | genre=JB:0.79 | bpm=178.6 | tracks=[JB3:0.62, LO4:0.61, JB5:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.63 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+music | bpm=187.5 | speed=1.00x | amp=0.68 | rms/gate=0.2259/0.0020 | beat=1 accepted=1 conf=0.27 contrast=0.50 result=low-confidence | bright=0.11 | bands=0.39/0.61/0.00 | rhythm=0.47 | offbeat=0.32
+match | accepted | confidence=0.90 | genre=JB:0.80 | bpm=178.6 | tracks=[JB3:0.63, JB5:0.62, JB1:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+music | bpm=150.0 | speed=1.00x | amp=0.83 | rms/gate=0.1087/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.82 result=accepted | bright=0.14 | bands=0.68/0.32/0.00 | rhythm=0.41 | offbeat=0.04
+match | accepted | confidence=0.87 | genre=JB:0.80 | bpm=178.6 | tracks=[JB3:0.62, JB5:0.61, LO4:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.63 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+music | bpm=133.9 | speed=1.00x | amp=0.80 | rms/gate=0.1553/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.59 result=too-early | bright=0.07 | bands=0.86/0.14/0.00 | rhythm=0.35 | offbeat=0.00
+match | accepted | confidence=0.90 | genre=JB:0.80 | bpm=178.6 | tracks=[JB3:0.62, JB5:0.61, JB1:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+music | bpm=178.6 | speed=1.00x | amp=0.76 | rms/gate=0.0993/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.56 result=weak-overload-beat | bright=0.14 | bands=0.71/0.29/0.00 | rhythm=0.34 | offbeat=0.15
+match | accepted | confidence=0.90 | genre=JB:0.80 | bpm=178.6 | tracks=[JB3:0.62, JB5:0.61, JB0:0.58] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.63 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+Switching (forced_end): gJB_sBM_cAll_d07_mJB0_ch02 -> gJB_sBM_cAll_d08_mJB0_ch02 entry=0.0946 blend=0.504s entry_score=0.122
+Motion switch complete: gJB_sBM_cAll_d08_mJB0_ch02 (GMR artifact)
+music | bpm=187.5 | speed=1.00x | amp=0.67 | rms/gate=0.0301/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.09 result=weak-overload-beat | bright=0.16 | bands=0.51/0.48/0.00 | rhythm=0.37 | offbeat=0.35
+match | accepted | confidence=0.90 | genre=JB:0.80 | bpm=178.6 | tracks=[JB3:0.62, JB5:0.61, JB1:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.63 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=187.5 | speed=1.00x | amp=0.72 | rms/gate=0.0578/0.0020 | beat=1 accepted=1 conf=0.66 contrast=0.85 result=accepted | bright=0.07 | bands=0.88/0.12/0.00 | rhythm=0.36 | offbeat=0.29
+match | accepted | confidence=0.89 | genre=JB:0.80 | bpm=178.6 | tracks=[JB3:0.61, JB5:0.60, LO4:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Post Bop]
+music | bpm=220.6 | speed=1.00x | amp=0.78 | rms/gate=0.1430/0.0020 | beat=1 accepted=1 conf=0.43 contrast=0.32 result=accepted | bright=0.11 | bands=0.79/0.21/0.00 | rhythm=0.36 | offbeat=0.06
+match | accepted | confidence=0.89 | genre=JB:0.80 | bpm=178.6 | tracks=[JB3:0.61, LO4:0.61, JB0:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Post Bop]
+music | bpm=220.6 | speed=1.00x | amp=0.58 | rms/gate=0.0199/0.0020 | beat=1 accepted=1 conf=0.83 contrast=0.21 result=too-early | bright=0.14 | bands=0.50/0.50/0.00 | rhythm=0.35 | offbeat=0.10
+match | accepted | confidence=0.91 | genre=JB:0.79 | bpm=117.2 | tracks=[JB3:0.61, LO4:0.60, JB5:0.60] | motion=gJB_sBM_cAll_d08_mJB1_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=197.4 | speed=1.00x | amp=0.51 | rms/gate=0.0125/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.68 result=accepted | bright=0.12 | bands=0.75/0.24/0.00 | rhythm=0.37 | offbeat=0.40
+match | accepted | confidence=0.91 | genre=JB:0.79 | bpm=121.0 | tracks=[JB3:0.61, LO4:0.61, JB5:0.60] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.65 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=178.6 | speed=1.00x | amp=0.60 | rms/gate=0.0540/0.0020 | beat=1 accepted=1 conf=0.83 contrast=0.56 result=too-early | bright=0.07 | bands=0.91/0.09/0.00 | rhythm=0.38 | offbeat=0.44
+match | accepted | confidence=0.89 | genre=JB:0.79 | bpm=117.2 | tracks=[JB3:0.61, LO4:0.60, JB5:0.60] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.64 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=178.6 | speed=1.00x | amp=0.73 | rms/gate=0.1033/0.0020 | beat=1 accepted=1 conf=0.95 contrast=0.79 result=accepted | bright=0.14 | bands=0.48/0.51/0.01 | rhythm=0.38 | offbeat=0.01
+match | accepted | confidence=0.87 | genre=JB:0.80 | bpm=138.9 | tracks=[JB3:0.62, JB5:0.61, LO4:0.60] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.65 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+Pending motion (relevance): gJB_sBM_cAll_d08_mJB5_ch03 score=0.655 music=0.608 held=2 bar(s) pool=[gJB_sBM_cAll_d08_mJB5_ch03:0.648/0.605, gJB_sBM_cAll_d08_mJB5_ch02:0.647/0.605, gJB_sBM_cAll_d09_mJB5_ch08:0.643/0.605]
+Switching (bar): gJB_sBM_cAll_d08_mJB0_ch02 -> gJB_sBM_cAll_d08_mJB5_ch03 entry=0.0701 blend=0.504s entry_score=0.159
+music | bpm=178.6 | speed=1.00x | amp=0.74 | rms/gate=0.0961/0.0020 | beat=1 accepted=1 conf=0.72 contrast=0.44 result=too-early | bright=0.11 | bands=0.64/0.36/0.00 | rhythm=0.37 | offbeat=0.15
+Motion switch complete: gJB_sBM_cAll_d08_mJB5_ch03 (GMR artifact)
+match | accepted | confidence=0.88 | genre=JB:0.80 | bpm=138.9 | tracks=[JB3:0.64, JB5:0.62, JB1:0.60] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.66 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=197.4 | speed=1.00x | amp=0.90 | rms/gate=0.1290/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.71 result=accepted | bright=0.08 | bands=0.78/0.21/0.00 | rhythm=0.37 | offbeat=0.51
+match | accepted | confidence=0.86 | genre=JB:0.80 | bpm=93.8 | tracks=[JB3:0.65, JB5:0.62, JB1:0.59] | motion=gJB_sBM_cAll_d09_mJB3_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=178.6 | speed=1.00x | amp=0.51 | rms/gate=0.0128/0.0020 | beat=1 accepted=1 conf=0.35 contrast=0.24 result=accepted | bright=0.12 | bands=0.55/0.45/0.00 | rhythm=0.39 | offbeat=0.46
+match | accepted | confidence=0.82 | genre=JB:0.80 | bpm=93.8 | tracks=[JB3:0.64, JB5:0.63, JB1:0.58] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=178.6 | speed=1.00x | amp=0.74 | rms/gate=0.1029/0.0020 | beat=1 accepted=1 conf=0.81 contrast=0.91 result=accepted | bright=0.09 | bands=0.73/0.27/0.00 | rhythm=0.42 | offbeat=0.20
+match | accepted | confidence=0.81 | genre=JB:0.80 | bpm=93.8 | tracks=[JB3:0.64, JB5:0.63, JB1:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+music | bpm=178.6 | speed=1.00x | amp=0.64 | rms/gate=0.0926/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.59 result=accepted | bright=0.12 | bands=0.52/0.48/0.00 | rhythm=0.41 | offbeat=0.00
+match | accepted | confidence=0.91 | genre=JB:0.81 | bpm=91.5 | tracks=[JB3:0.65, JB5:0.64, JB1:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+music | bpm=178.6 | speed=1.00x | amp=0.67 | rms/gate=0.0948/0.0020 | beat=1 accepted=1 conf=0.67 contrast=0.50 result=too-early | bright=0.11 | bands=0.68/0.32/0.00 | rhythm=0.37 | offbeat=0.00
+match | accepted | confidence=0.85 | genre=JB:0.81 | bpm=91.5 | tracks=[JB3:0.65, JB5:0.65, JB1:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]
+Pending motion (diversity): gJB_sBM_cAll_d09_mJB3_ch02 score=0.632 music=0.648 held=3 bar(s) pool=[gJB_sBM_cAll_d08_mJB0_ch02:0.647/0.583, gJB_sBM_cAll_d09_mJB3_ch02:0.632/0.648, gJB_sBM_cAll_d09_mJB3_ch01:0.628/0.648, gJB_sBM_cAll_d07_mJB3_ch02:0.630/0.648]
+Switching (forced_end): gJB_sBM_cAll_d08_mJB5_ch03 -> gJB_sBM_cAll_d09_mJB3_ch02 entry=0.0899 blend=0.504s entry_score=0.177
+music | bpm=178.6 | speed=1.00x | amp=0.64 | rms/gate=0.0608/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.76 result=accepted | bright=0.12 | bands=0.58/0.41/0.00 | rhythm=0.39 | offbeat=0.30
+Motion switch complete: gJB_sBM_cAll_d09_mJB3_ch02 (GMR artifact)
+match | accepted | confidence=0.90 | genre=JB:0.81 | bpm=178.6 | tracks=[JB3:0.64, JB5:0.64, JB0:0.62] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Bop]
+music | bpm=170.5 | speed=1.00x | amp=0.56 | rms/gate=0.0427/0.0020 | beat=1 accepted=1 conf=0.31 contrast=0.53 result=low-confidence | bright=0.06 | bands=0.80/0.20/0.00 | rhythm=0.40 | offbeat=0.34
+match | accepted | confidence=0.91 | genre=JB:0.81 | bpm=178.6 | tracks=[JB3:0.65, JB5:0.64, JB0:0.62] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=129.3 | speed=1.00x | amp=0.69 | rms/gate=0.0800/0.0020 | beat=1 accepted=1 conf=0.37 contrast=0.32 result=too-early | bright=0.12 | bands=0.50/0.50/0.00 | rhythm=0.45 | offbeat=0.44
+match | accepted | confidence=0.91 | genre=JB:0.81 | bpm=170.5 | tracks=[JB3:0.65, JB5:0.63, JB0:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.66 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]
+music | bpm=125.0 | speed=1.00x | amp=0.53 | rms/gate=0.0164/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.68 result=too-early | bright=0.16 | bands=0.33/0.67/0.00 | rhythm=0.40 | offbeat=0.49
+match | accepted | confidence=0.87 | genre=JB:0.80 | bpm=125.0 | tracks=[JB3:0.66, JB5:0.64, JB1:0.60] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.68 | tags=[Jazz---Hard Bop, Jazz---Bop, Jazz---Modal]Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d08_mJB0_ch02.pkl with constant root Z offset +1.006155 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d07_mJB0_ch01.pkl with constant root Z offset +1.954090 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d07_mJB0_ch02.pkl with constant root Z offset +0.873163 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d08_mJB1_ch02.pkl with constant root Z offset +1.005056 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d08_mJB5_ch03.pkl with constant root Z offset +1.011041 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d08_mJB5_ch02.pkl with constant root Z offset +1.601971 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d09_mJB3_ch02.pkl with constant root Z offset +0.847868 m.
+
+music | bpm=133.9 | speed=1.00x | amp=0.58 | rms/gate=0.0232/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.15 result=too-early | bright=0.08 | bands=0.63/0.37/0.00 | rhythm=0.34 | offbeat=0.43
+match | accepted | confidence=0.85 | genre=JB:0.80 | bpm=121.0 | tracks=[JB3:0.65, JB5:0.64, JB1:0.59] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.68 | tags=[Jazz---Hard Bop, Jazz---Modal, Jazz---Post Bop]

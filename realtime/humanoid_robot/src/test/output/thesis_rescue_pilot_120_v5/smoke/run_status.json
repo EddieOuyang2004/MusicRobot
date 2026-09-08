@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "suite": "supplement_smoke",
+  "expected_runs": 1,
+  "updated_utc": "2026-09-07T19:03:35.086879+00:00",
+  "runs": [
+    {
+      "condition": "full",
+      "condition_arguments": [
+        "--experiment-causal-file-input"
+      ],
+      "seed": 0,
+      "source_id": "aistpp_stitched_test",
+      "audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\test_audio\\aistpp_stitched_test.wav",
+      "ground_truth_motion_id": null,
+      "duration": 10.0,
+      "required_duration_seconds": 10.0,
+      "source_audio_duration_seconds": 39.0,
+      "original_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\test_audio\\aistpp_stitched_test.wav",
+      "audio_was_repeated": false,
+      "cohort_identity": "1d9453f3c837d498f4da7930aac76fa570043d866d8e23fde0e1de15fff0802e",
+      "prepared_audio_sha256": "890873a2b77905e90ed6455db78ab5550c3c3047ddeddf393463574c3b220f61",
+      "command": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\.venv\\Scripts\\python.exe C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\realtime_music_humanoid_matcher.py --catalog C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog\\catalog.json --audio-input C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\test_audio\\aistpp_stitched_test.wav --headless --realtime --max-seconds 10.0 --control-rate-hz 120.0 --runtime-collision-check always --match-window-seconds 6 --match-interval-seconds 1 --experiment-warmup-seconds 6 --initial-motion-seed 0 --trace-csv realtime\\humanoid_robot\\src\\test\\output\\thesis_rescue_pilot_120_v5\\smoke\\runs\\0000_full_s0_aistpp_stitched_test.csv --timing-report realtime\\humanoid_robot\\src\\test\\output\\thesis_rescue_pilot_120_v5\\smoke\\runs\\0000_full_s0_aistpp_stitched_test_timing.json --experiment-pose-npz realtime\\humanoid_robot\\src\\test\\output\\thesis_rescue_pilot_120_v5\\smoke\\runs\\0000_full_s0_aistpp_stitched_test_poses.npz --experiment-causal-file-input",
+      "trace": "realtime\\humanoid_robot\\src\\test\\output\\thesis_rescue_pilot_120_v5\\smoke\\runs\\0000_full_s0_aistpp_stitched_test.csv",
+      "timing": "realtime\\humanoid_robot\\src\\test\\output\\thesis_rescue_pilot_120_v5\\smoke\\runs\\0000_full_s0_aistpp_stitched_test_timing.json",
+      "log": "realtime\\humanoid_robot\\src\\test\\output\\thesis_rescue_pilot_120_v5\\smoke\\runs\\0000_full_s0_aistpp_stitched_test.log",
+      "pose": "realtime\\humanoid_robot\\src\\test\\output\\thesis_rescue_pilot_120_v5\\smoke\\runs\\0000_full_s0_aistpp_stitched_test_poses.npz",
+      "run_key": "0000_full_s0_aistpp_stitched_test",
+      "status": "completed",
+      "started_utc": "2026-09-07T19:03:10.990869+00:00",
+      "attempt": 1,
+      "returncode": 0,
+      "wall_seconds": 24.051840100000845,
+      "finished_utc": "2026-09-07T19:03:35.044153+00:00",
+      "artifact_sha256": {
+        "trace": "ba7e92fead9a458dcb2493aaa8f890fc4bc6a5f2b1e81e28181818d8b87c13b7",
+        "timing": "d64ea6c898a114d9919555585dfd9594b05583b7b51175fa8f6c726c40425014",
+        "pose": "9cb959508f379ce3d4178f0607d7a2b14152ac98b0f53ec8bfb4dec7d95bbf1c",
+        "log": "60380ed9978b3e2e39da3f2bcdd4e074fe94ba5d99c8e3aa1af81f1f0f90e8eb"
+      }
+    }
+  ],
+  "failures": [],
+  "attempt_history": []
+}

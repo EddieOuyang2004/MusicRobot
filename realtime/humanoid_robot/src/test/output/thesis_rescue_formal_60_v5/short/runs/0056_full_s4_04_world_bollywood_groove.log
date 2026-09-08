@@ -1,0 +1,101 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d11_mPO1_ch09.pkl with constant root Z offset +0.918100 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\cc0_matcher_set\04_world_bollywood_groove.mp3 (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gPO_sFM_cAll_d11_mPO1_ch09
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=0.68x | amp=0.95 | rms/gate=0.1477/0.0020 | beat=1 accepted=1 conf=0.61 contrast=0.50 result=accepted | bright=0.17 | bands=0.37/0.62/0.01 | rhythm=0.09 | offbeat=0.00
+music | bpm=-- | speed=0.90x | amp=0.98 | rms/gate=0.1943/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.20 | bands=0.28/0.70/0.02 | rhythm=0.09 | offbeat=0.00
+music | bpm=78.1 | speed=1.16x | amp=0.76 | rms/gate=0.0454/0.0020 | beat=1 accepted=1 conf=0.78 contrast=0.62 result=accepted | bright=0.13 | bands=0.69/0.31/0.00 | rhythm=0.07 | offbeat=0.00
+music | bpm=78.1 | speed=1.24x | amp=1.00 | rms/gate=0.1639/0.0020 | beat=1 accepted=0 conf=0.84 contrast=0.70 result=too-early | bright=0.16 | bands=0.48/0.51/0.01 | rhythm=0.08 | offbeat=0.00
+music | bpm=78.1 | speed=0.77x | amp=0.67 | rms/gate=0.0859/0.0020 | beat=1 accepted=1 conf=0.46 contrast=0.29 result=too-early | bright=0.24 | bands=0.07/0.91/0.02 | rhythm=0.08 | offbeat=0.00
+music | bpm=78.1 | speed=0.81x | amp=0.96 | rms/gate=0.1034/0.0020 | beat=1 accepted=1 conf=0.58 contrast=0.44 result=accepted | bright=0.21 | bands=0.60/0.38/0.02 | rhythm=0.07 | offbeat=0.00
+match | accepted | confidence=0.94 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.63, JB1:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Romani]
+music | bpm=79.8 | speed=0.81x | amp=0.99 | rms/gate=0.1757/0.0020 | beat=1 accepted=1 conf=0.31 contrast=0.75 result=low-confidence | bright=0.13 | bands=0.61/0.38/0.01 | rhythm=0.07 | offbeat=0.00
+match | accepted | confidence=0.94 | genre=WA:0.67 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Romani]
+music | bpm=81.5 | speed=0.97x | amp=0.88 | rms/gate=0.1488/0.0020 | beat=1 accepted=1 conf=0.40 contrast=0.32 result=accepted | bright=0.16 | bands=0.54/0.45/0.01 | rhythm=0.13 | offbeat=0.16
+match | accepted | confidence=0.93 | genre=WA:0.66 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Pop---Vocal]
+Pending motion (relevance): gWA_sBM_cAll_d26_mWA5_ch02 score=0.571 music=0.523 held=2 bar(s) pool=[gWA_sBM_cAll_d26_mWA5_ch02:0.572/0.523, gWA_sBM_cAll_d25_mWA1_ch02:0.554/0.492, gWA_sBM_cAll_d27_mWA5_ch02:0.552/0.523, gWA_sBM_cAll_d26_mWA5_ch01:0.546/0.523]
+music | bpm=79.8 | speed=0.70x | amp=0.78 | rms/gate=0.1577/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.46 result=accepted | bright=0.18 | bands=0.59/0.39/0.02 | rhythm=0.50 | offbeat=0.52
+match | accepted | confidence=0.95 | genre=WA:0.66 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Pop---Vocal, Folk, World, & Country---Romani]
+music | bpm=81.5 | speed=1.16x | amp=1.04 | rms/gate=0.1759/0.0020 | beat=1 accepted=1 conf=0.72 contrast=0.54 result=accepted | bright=0.13 | bands=0.62/0.38/0.00 | rhythm=0.49 | offbeat=0.50
+match | accepted | confidence=0.95 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.65, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Pop---Vocal, Folk, World, & Country---Éntekhno]
+Switching (bar): gPO_sFM_cAll_d11_mPO1_ch09 -> gWA_sBM_cAll_d26_mWA5_ch02 entry=0.1403 blend=0.368s entry_score=0.095
+Motion switch complete: gWA_sBM_cAll_d26_mWA5_ch02 (GMR artifact)
+music | bpm=81.5 | speed=1.04x | amp=0.65 | rms/gate=0.0861/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.47 result=none | bright=0.28 | bands=0.05/0.90/0.05 | rhythm=0.50 | offbeat=0.50
+match | accepted | confidence=0.92 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.65, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Folk, World, & Country---Éntekhno, Pop---Vocal]
+music | bpm=85.2 | speed=0.55x | amp=1.00 | rms/gate=0.1918/0.0020 | beat=1 accepted=1 conf=0.61 contrast=0.41 result=accepted | bright=0.27 | bands=0.42/0.53/0.05 | rhythm=0.49 | offbeat=0.60
+match | accepted | confidence=0.94 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.64, JB1:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Folk, World, & Country---Éntekhno, Latin---Tango]
+music | bpm=138.9 | speed=0.55x | amp=0.88 | rms/gate=0.1704/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.44 result=accepted | bright=0.13 | bands=0.68/0.31/0.00 | rhythm=0.44 | offbeat=0.55
+match | accepted | confidence=0.95 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.67, JB5:0.64, JB1:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Folk, World, & Country---Éntekhno, Folk, World, & Country---Romani]
+music | bpm=156.3 | speed=1.31x | amp=0.83 | rms/gate=0.1651/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.38 result=too-early | bright=0.18 | bands=0.36/0.63/0.01 | rhythm=0.42 | offbeat=0.07
+match | accepted | confidence=0.94 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.67, JB5:0.65, JB1:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Folk, World, & Country---Éntekhno, Folk, World, & Country---Laïkó]
+music | bpm=156.3 | speed=1.60x | amp=0.74 | rms/gate=0.2088/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.47 result=accepted | bright=0.17 | bands=0.44/0.55/0.01 | rhythm=0.40 | offbeat=0.17
+match | accepted | confidence=0.94 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.67, JB5:0.65, JB1:0.64] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Folk, World, & Country---Éntekhno, Latin---Tango]
+Switching (forced_end): gWA_sBM_cAll_d26_mWA5_ch02 -> gWA_sBM_cAll_d27_mWA5_ch02 entry=0.0701 blend=0.552s entry_score=0.224
+music | bpm=156.3 | speed=1.15x | amp=0.91 | rms/gate=0.1517/0.0020 | beat=1 accepted=1 conf=0.90 contrast=0.59 result=accepted | bright=0.13 | bands=0.65/0.34/0.01 | rhythm=0.38 | offbeat=0.17
+match | accepted | confidence=0.94 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.68, JB5:0.64, JB1:0.64] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Éntekhno]
+Motion switch complete: gWA_sBM_cAll_d27_mWA5_ch02 (GMR artifact)
+music | bpm=163.0 | speed=1.59x | amp=0.67 | rms/gate=0.0673/0.0020 | beat=1 accepted=1 conf=0.79 contrast=0.38 result=accepted | bright=0.24 | bands=0.03/0.95/0.02 | rhythm=0.41 | offbeat=0.21
+match | accepted | confidence=0.95 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.63, JB1:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Éntekhno]
+music | bpm=163.0 | speed=1.38x | amp=1.04 | rms/gate=0.1889/0.0020 | beat=1 accepted=1 conf=0.69 contrast=0.53 result=accepted | bright=0.18 | bands=0.42/0.56/0.02 | rhythm=0.44 | offbeat=0.44
+match | accepted | confidence=0.96 | genre=WA:0.66 | bpm=156.2 | tracks=[JB3:0.65, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Éntekhno]
+music | bpm=156.2 | speed=0.83x | amp=1.00 | rms/gate=0.1666/0.0020 | beat=1 accepted=1 conf=0.54 contrast=0.65 result=accepted | bright=0.16 | bands=0.48/0.51/0.01 | rhythm=0.45 | offbeat=0.48
+match | accepted | confidence=0.96 | genre=WA:0.66 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Éntekhno]
+music | bpm=163.0 | speed=1.33x | amp=0.90 | rms/gate=0.1490/0.0020 | beat=1 accepted=1 conf=0.46 contrast=0.44 result=accepted | bright=0.18 | bands=0.49/0.49/0.02 | rhythm=0.47 | offbeat=0.38
+match | accepted | confidence=0.95 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.63, JB1:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.58 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Éntekhno]
+Pending motion (diversity): gWA_sBM_cAll_d25_mWA1_ch02 score=0.549 music=0.487 held=3 bar(s) pool=[gWA_sBM_cAll_d26_mWA5_ch02:0.574/0.524, gWA_sBM_cAll_d26_mWA5_ch01:0.549/0.524, gWA_sBM_cAll_d25_mWA1_ch02:0.549/0.487]
+Switching (forced_end): gWA_sBM_cAll_d27_mWA5_ch02 -> gWA_sBM_cAll_d25_mWA1_ch02 entry=0.3991 blend=0.368s entry_score=0.136
+Motion switch complete: gWA_sBM_cAll_d25_mWA1_ch02 (GMR artifact)
+music | bpm=163.0 | speed=1.11x | amp=0.94 | rms/gate=0.1979/0.0020 | beat=1 accepted=1 conf=0.60 contrast=0.50 result=too-early | bright=0.23 | bands=0.46/0.49/0.05 | rhythm=0.49 | offbeat=0.31
+match | accepted | confidence=0.79 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.64, JB1:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.58 | tags=[Folk, World, & Country---Folk, Stage & Screen---Soundtrack, Folk, World, & Country---Romani]
+music | bpm=156.3 | speed=0.94x | amp=0.95 | rms/gate=0.1338/0.0020 | beat=1 accepted=1 conf=0.64 contrast=0.62 result=accepted | bright=0.17 | bands=0.42/0.57/0.01 | rhythm=0.49 | offbeat=0.18
+match | accepted | confidence=0.96 | genre=WA:0.66 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.64, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Stage & Screen---Soundtrack]
+music | bpm=170.5 | speed=0.88x | amp=0.99 | rms/gate=0.1407/0.0020 | beat=1 accepted=1 conf=0.96 contrast=0.35 result=too-early | bright=0.17 | bands=0.48/0.51/0.01 | rhythm=0.51 | offbeat=0.19
+match | accepted | confidence=0.94 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.65, JB5:0.63, JB1:0.61] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Folk, Latin---Tango, Folk, World, & Country---Polka]
+music | bpm=170.5 | speed=1.09x | amp=1.03 | rms/gate=0.2357/0.0020 | beat=1 accepted=1 conf=0.51 contrast=0.03 result=accepted | bright=0.29 | bands=0.36/0.56/0.08 | rhythm=0.50 | offbeat=0.21
+match | accepted | confidence=0.81 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.65, JB5:0.63, JB1:0.61] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.58 | tags=[Folk, World, & Country---Folk, Latin---Tango, Stage & Screen---Soundtrack]
+music | bpm=163.0 | speed=1.52x | amp=1.04 | rms/gate=0.1834/0.0020 | beat=1 accepted=1 conf=0.45 contrast=0.47 result=too-early | bright=0.26 | bands=0.20/0.76/0.03 | rhythm=0.44 | offbeat=0.24
+match | accepted | confidence=0.52 | genre=JB:0.66 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.64, JB1:0.63] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.66 | tags=[Folk, World, & Country---Folk, Latin---Tango, Stage & Screen---Soundtrack]
+Switching (forced_end): gWA_sBM_cAll_d25_mWA1_ch02 -> gWA_sBM_cAll_d26_mWA5_ch02 entry=0.1403 blend=0.368s entry_score=0.113
+music | bpm=150.0 | speed=0.55x | amp=1.06 | rms/gate=0.2242/0.0020 | beat=1 accepted=1 conf=0.25 contrast=0.59 result=low-confidence | bright=0.17 | bands=0.22/0.77/0.01 | rhythm=0.36 | offbeat=0.00
+match | accepted | confidence=0.75 | genre=JB:0.71 | bpm=156.2 | tracks=[JB3:0.66, JB5:0.65, JB1:0.63] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.66 | tags=[Folk, World, & Country---Folk, Latin---Tango, Stage & Screen---Soundtrack]
+Motion switch complete: gWA_sBM_cAll_d26_mWA5_ch02 (GMR artifact)
+music | bpm=156.2 | speed=0.64x | amp=0.98 | rms/gate=0.2262/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.76 result=accepted | bright=0.18 | bands=0.41/0.58/0.01 | rhythm=0.34 | offbeat=0.00
+match | accepted | confidence=0.88 | genre=JB:0.93 | bpm=156.2 | tracks=[JB3:0.66, JB1:0.64, JB5:0.63] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.65 | tags=[Latin---Tango, Folk, World, & Country---Folk, Stage & Screen---Soundtrack]
+music | bpm=163.0 | speed=0.55x | amp=1.07 | rms/gate=0.2320/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.76 result=accepted | bright=0.16 | bands=0.29/0.70/0.01 | rhythm=0.32 | offbeat=0.11
+match | accepted | confidence=0.92 | genre=JB:0.86 | bpm=150.0 | tracks=[JB3:0.65, JB1:0.64, JB5:0.63] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.66 | tags=[Stage & Screen---Soundtrack, Folk, World, & Country---Éntekhno, Latin---Tango]
+music | bpm=170.5 | speed=1.05x | amp=1.03 | rms/gate=0.2443/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.50 result=too-early | bright=0.18 | bands=0.28/0.71/0.01 | rhythm=0.33 | offbeat=0.26
+match | accepted | confidence=0.64 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.65, JB1:0.64, JB5:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.58 | tags=[Folk, World, & Country---Éntekhno, Folk, World, & Country---Laïkó, Folk, World, & Country---Canzone Napoletana]
+music | bpm=156.2 | speed=1.60x | amp=1.08 | rms/gate=0.1969/0.0020 | beat=1 accepted=1 conf=0.65 contrast=0.50 result=accepted | bright=0.15 | bands=0.32/0.67/0.01 | rhythm=0.35 | offbeat=0.37
+match | accepted | confidence=0.95 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.65, JB5:0.63, JB1:0.62] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.58 | tags=[Folk, World, & Country---Canzone Napoletana, Folk, World, & Country---Éntekhno, Folk, World, & Country---Laïkó]
+Switching (forced_end): gWA_sBM_cAll_d26_mWA5_ch02 -> gJB_sBM_cAll_d08_mJB5_ch03 entry=0.0701 blend=0.384s entry_score=0.209
+music | bpm=163.0 | speed=1.12x | amp=1.08 | rms/gate=0.1857/0.0020 | beat=1 accepted=1 conf=0.38 contrast=0.53 result=accepted | bright=0.16 | bands=0.17/0.82/0.01 | rhythm=0.39 | offbeat=0.41
+match | accepted | confidence=0.96 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB1:0.63, JB5:0.63] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.58 | tags=[Folk, World, & Country---Éntekhno, Folk, World, & Country---Canzone Napoletana, Folk, World, & Country---Laïkó]
+Motion switch complete: gJB_sBM_cAll_d08_mJB5_ch03 (GMR artifact)
+music | bpm=170.5 | speed=1.60x | amp=0.98 | rms/gate=0.1953/0.0020 | beat=1 accepted=1 conf=0.46 contrast=0.12 result=accepted | bright=0.17 | bands=0.26/0.74/0.01 | rhythm=0.42 | offbeat=0.42
+match | accepted | confidence=0.95 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB1:0.64, JB5:0.64] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Éntekhno, Folk, World, & Country---Canzone Napoletana, Folk, World, & Country---Laïkó]
+music | bpm=163.0 | speed=1.13x | amp=1.00 | rms/gate=0.1854/0.0020 | beat=1 accepted=1 conf=0.92 contrast=0.76 result=accepted | bright=0.17 | bands=0.28/0.71/0.01 | rhythm=0.42 | offbeat=0.28
+match | accepted | confidence=0.88 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.67, JB1:0.65, JB5:0.64] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Folk, World, & Country---Canzone Napoletana, Pop---Vocal, Folk, World, & Country---Éntekhno]
+music | bpm=156.2 | speed=1.14x | amp=1.02 | rms/gate=0.1611/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.71 result=accepted | bright=0.15 | bands=0.36/0.64/0.00 | rhythm=0.42 | offbeat=0.15
+match | accepted | confidence=0.67 | genre=WA:0.65 | bpm=156.2 | tracks=[JB3:0.66, JB1:0.65, JB5:0.64] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.57 | tags=[Pop---Vocal, Folk, World, & Country---Canzone Napoletana, Folk, World, & Country---Folk]
+Pending motion (relevance): gWA_sBM_cAll_d26_mWA5_ch02 score=0.569 music=0.516 held=1 bar(s) pool=[gWA_sBM_cAll_d26_mWA5_ch02:0.571/0.520, gWA_sBM_cAll_d27_mWA5_ch02:0.551/0.520, gWA_sBM_cAll_d25_mWA1_ch02:0.543/0.476, gWA_sBM_cAll_d26_mWA5_ch01:0.545/0.520]
+music | bpm=163.0 | speed=1.40x | amp=0.95 | rms/gate=0.1770/0.0020 | beat=1 accepted=1 conf=0.77 contrast=0.12 result=weak-overload-beat | bright=0.18 | bands=0.18/0.81/0.01 | rhythm=0.42 | offbeat=0.19
+Switching (bar): gJB_sBM_cAll_d08_mJB5_ch03 -> gWA_sBM_cAll_d26_mWA5_ch02 entry=0.0792 blend=0.368s entry_score=0.203Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sBM_cAll_d26_mWA5_ch02.pkl with constant root Z offset +0.864269 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sBM_cAll_d25_mWA1_ch02.pkl with constant root Z offset +0.853507 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sBM_cAll_d27_mWA5_ch02.pkl with constant root Z offset +0.924758 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d08_mJB5_ch03.pkl with constant root Z offset +1.011041 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d08_mJB1_ch02.pkl with constant root Z offset +1.005056 m.
+
+match | accepted | confidence=0.57 | genre=JB:0.67 | bpm=156.2 | tracks=[JB3:0.67, JB1:0.66, JB5:0.65] | motion=gJB_sBM_cAll_d08_mJB5_ch03:0.66 | tags=[Pop---Vocal, Folk, World, & Country---Folk, Folk, World, & Country---Éntekhno]
+Motion switch complete: gWA_sBM_cAll_d26_mWA5_ch02 (GMR artifact)
+music | bpm=178.6 | speed=0.77x | amp=1.05 | rms/gate=0.1778/0.0020 | beat=1 accepted=1 conf=0.70 contrast=0.62 result=accepted | bright=0.16 | bands=0.40/0.60/0.01 | rhythm=0.38 | offbeat=0.31
+match | accepted | confidence=0.78 | genre=JB:0.71 | bpm=156.2 | tracks=[JB1:0.68, JB3:0.68, JB5:0.66] | motion=gJB_sBM_cAll_d08_mJB1_ch02:0.67 | tags=[Folk, World, & Country---Folk, Pop---Vocal, Folk, World, & Country---Éntekhno]
+music | bpm=178.6 | speed=1.19x | amp=0.96 | rms/gate=0.2213/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.44 result=accepted | bright=0.19 | bands=0.30/0.69/0.01 | rhythm=0.34 | offbeat=0.66
+match | accepted | confidence=0.58 | genre=JB:0.68 | bpm=156.2 | tracks=[JB3:0.69, JB1:0.68, JB5:0.66] | motion=gJB_sBM_cAll_d08_mJB1_ch02:0.67 | tags=[Folk, World, & Country---Folk, Folk, World, & Country---Éntekhno, Electronic---Abstract]
+music | bpm=133.9 | speed=1.25x | amp=1.02 | rms/gate=0.2268/0.0020 | beat=1 accepted=0 conf=0.27 contrast=0.71 result=low-confidence | bright=0.15 | bands=0.29/0.70/0.00 | rhythm=0.30 | offbeat=0.50
+match | accepted | confidence=0.78 | genre=JB:0.74 | bpm=156.2 | tracks=[JB3:0.68, JB1:0.68, JB5:0.66] | motion=gJB_sBM_cAll_d08_mJB1_ch02:0.67 | tags=[Folk, World, & Country---Folk, Electronic---Abstract, Stage & Screen---Soundtrack]
+Pending motion (relevance): gJB_sBM_cAll_d08_mJB1_ch02 score=0.667 music=0.681 held=1 bar(s) pool=[gJB_sBM_cAll_d08_mJB1_ch02:0.666/0.679, gJB_sBM_cAll_d08_mJB5_ch03:0.664/0.662, gJB_sBM_cAll_d08_mJB5_ch02:0.663/0.662, gJB_sBM_cAll_d09_mJB5_ch08:0.659/0.662]
+music | bpm=163.0 | speed=0.55x | amp=1.03 | rms/gate=0.2228/0.0020 | beat=1 accepted=1 conf=0.97 contrast=0.88 result=accepted | bright=0.15 | bands=0.24/0.76/0.00 | rhythm=0.32 | offbeat=0.21
+match | accepted | confidence=0.64 | genre=JB:0.72 | bpm=156.2 | tracks=[JB1:0.67, JB3:0.67, JB5:0.65] | motion=gJB_sBM_cAll_d08_mJB1_ch02:0.66 | tags=[Folk, World, & Country---Canzone Napoletana, Folk, World, & Country---Folk, Electronic---Abstract]

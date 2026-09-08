@@ -97,6 +97,101 @@ class HumanoidRetargetingTests(unittest.TestCase):
                 mode,
             )
 
+    def test_realtime_projection_does_not_jump_from_contract_safe_margin_anchor(self) -> None:
+        model_path = (
+            ROOT
+            / "realtime"
+            / "humanoid_robot"
+            / "assets"
+            / "open_humanoid_dancer.xml"
+        )
+        player = MujocoHumanoidPlayer(model_path, realtime=False, headless=True)
+        crossed = RobotMotionFrame({
+            "left_shoulder_pitch": -1.397803572925763,
+            "left_shoulder_roll": 0.19197895788978014,
+            "left_shoulder_yaw": -0.7298091788876543,
+            "left_elbow": 0.6708478365713926,
+            "right_shoulder_pitch": -1.3957220447029512,
+            "right_shoulder_roll": -0.3026502352493593,
+            "right_shoulder_yaw": 0.7186641141781159,
+            "right_elbow": 1.0114740943633653,
+        })
+        neutral = player.data.qpos.copy()
+        player.collision_scratch.qpos[:] = neutral
+        player._write_frame(player.collision_scratch, crossed, count_limits=False)
+        colliding = player.collision_scratch.qpos.copy()
+
+        # Locate a pose in the 0.5 mm soft-margin band: it satisfies the 6.0 mm
+        # emitted-pose contract but not the 6.5 mm internal target.
+        low, high = 0.0, 1.0
+        boundary = neutral.copy()
+        for _ in range(40):
+            amount = 0.5 * (low + high)
+            boundary[:] = neutral + amount * (colliding - neutral)
+            player.collision_scratch.qpos[:] = boundary
+            if player._has_self_clearance_violation(player.collision_scratch, 0.00625):
+                high = amount
+            else:
+                low = amount
+        boundary[:] = neutral + low * (colliding - neutral)
+        player.collision_scratch.qpos[:] = boundary
+        self.assertFalse(player._has_self_clearance_violation(player.collision_scratch, 0.006))
+        self.assertTrue(player._has_self_clearance_violation(player.collision_scratch, 0.0065))
+
+        player.data.qpos[:] = boundary
+        mujoco.mj_forward(player.model, player.data)
+        player.last_collision_safe_qpos = neutral.copy()
+        candidate = RobotMotionFrame(
+            {
+                name: float(boundary[qpos_id])
+                for name, qpos_id in player.actuator_joint_qpos_ids.items()
+            },
+            boundary[:3].copy(),
+            boundary[3:7].copy(),
+        )
+        projected = player.project_self_collision_safe(
+            candidate, minimum_dynamic_scale=1.0
+        )
+        projected_qpos = boundary.copy()
+        player.collision_scratch.qpos[:] = boundary
+        player._write_frame(player.collision_scratch, projected, count_limits=False)
+        projected_qpos[:] = player.collision_scratch.qpos
+
+        self.assertLess(float(np.max(np.abs(projected_qpos[7:] - boundary[7:]))), 1e-9)
+        self.assertFalse(player._has_self_clearance_violation(player.collision_scratch, 0.006))
+
+    def test_realtime_projection_rejects_stale_unsafe_cached_pose(self) -> None:
+        model_path = (
+            ROOT
+            / "realtime"
+            / "humanoid_robot"
+            / "assets"
+            / "open_humanoid_dancer.xml"
+        )
+        player = MujocoHumanoidPlayer(model_path, realtime=False, headless=True)
+        crossed = RobotMotionFrame({
+            "left_shoulder_pitch": -1.397803572925763,
+            "left_shoulder_roll": 0.19197895788978014,
+            "left_shoulder_yaw": -0.7298091788876543,
+            "left_elbow": 0.6708478365713926,
+            "right_shoulder_pitch": -1.3957220447029512,
+            "right_shoulder_roll": -0.3026502352493593,
+            "right_shoulder_yaw": 0.7186641141781159,
+            "right_elbow": 1.0114740943633653,
+        })
+        player._write_frame(player.data, crossed, count_limits=False)
+        mujoco.mj_forward(player.model, player.data)
+        self.assertTrue(player._has_self_clearance_violation_after_forward(player.data, 0.006))
+        player.last_collision_safe_qpos = player.data.qpos.copy()
+
+        projected = player.project_self_collision_safe(crossed)
+        player._write_frame(player.collision_scratch, projected, count_limits=False)
+
+        self.assertFalse(
+            player._has_self_clearance_violation(player.collision_scratch, 0.006)
+        )
+        self.assertEqual(1, player.collision_anchor_recovery_count)
+
     def test_authored_preview_does_not_apply_music_modulation(self) -> None:
         class OneFramePlayer:
             def __init__(self) -> None:

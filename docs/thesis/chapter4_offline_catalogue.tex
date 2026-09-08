@@ -27,12 +27,6 @@ key poses and is retargeted through General Motion Retargeting (GMR) to the
 and the resulting descriptors, motion profiles, provenance records, and dense
 arrays are written as a versioned catalogue.
 
-The emphasis of the chapter is data correctness rather than online behaviour.
-Audio-to-motion ranking, switching hysteresis, beat acceptance, and transition
-playback are discussed in the following chapter. Here, the important question
-is more fundamental: what evidence must be established before an item is safe
-to expose to the real-time matcher?
-
 \section{Source Data and Reproducibility Contracts}
 \label{sec:offline_sources}
 
@@ -120,11 +114,12 @@ recording gain from dominating similarity while retaining loudness information
 as optional diagnostic metadata.
 
 The six-second, two-second policy creates overlapping reference segments. This
-is deliberate: a music file may contain an introduction, a breakdown, and a
+is deliberate. A music file may contain an introduction, a breakdown, and a
 dense rhythmic passage that should not share one global descriptor. Segment
 retrieval can first locate the locally relevant passage, after which evidence
-may be aggregated at track level. The current catalogue contains 70 distinct
-audio variants and 348 analysis segments drawn from 60 music identifiers.
+may be aggregated at track level. The resulting catalogue counts are reported
+with the final audio--motion join in Section~\ref{subsec:catalogue_join}, where
+their admission status can be interpreted correctly.
 
 \subsection{Learned music representation}
 \label{subsec:learned_audio_representation}
@@ -137,7 +132,7 @@ network:
 
 \begin{enumerate}[label=(\arabic*)]
     \item a 1,280-dimensional embedding used for broad content and style
-    similarity; and
+    similarity.
     \item a 400-dimensional vector of style-label activations used as an
     interpretable tag representation.
 \end{enumerate}
@@ -145,8 +140,7 @@ network:
 Using one fixed model for both outputs avoids an undocumented combination of
 incompatible learned spaces. The catalogue metadata records the backend name,
 model filename, and model digest. The online extractor must satisfy the same
-contract. A change of model weights is consequently a catalogue migration,
-not a transparent implementation detail: existing reference vectors must be
+contract. A change of model weights is consequently a catalogue migration. Existing reference vectors must be
 rebuilt before they can be compared with new queries.
 
 \subsection{Rhythm, timbre, and activity descriptors}
@@ -187,7 +181,7 @@ The beat-quality estimate is
 \end{equation}
 
 where $s_t$ measures tempo stability. These quantities have separate meanings.
-Activity estimates how much motion energy the audio can support; beat quality
+Activity estimates how much motion energy the audio can support. Beat quality
 estimates whether tempo-dependent decisions should be trusted. For example, a
 noisy, onset-rich passage may have high activity but an unstable beat.
 
@@ -207,7 +201,7 @@ For compact comparison, the main handcrafted features are assembled into a
 
 where $B$ is tempo in beats per minute, $r_o$ is the off-beat ratio, and the
 superscripts indicate the number of retained components. The logarithmic tempo
-term expresses octave-related tempo errors symmetrically: estimates of 60 and
+term expresses octave-related tempo errors symmetrically. Estimates of 60 and
 240 BPM are equally distant from 120 BPM in opposite directions. Per-track
 reference tempo is the median of its valid segment estimates, which is more
 robust than trusting a single window.
@@ -233,9 +227,11 @@ rhythm--timbre dimension. These statistics are computed only from the offline
 reference set and are reused online. They must not be recomputed from a live
 window, because doing so would make a query's representation depend on itself
 and would destroy comparability across time. Zero or near-zero standard
-deviations are guarded before standardisation. The JSON and NPZ paths are tied
-together by catalogue metadata so that a stale array file cannot be interpreted
-as belonging to a newly generated index.
+deviations are guarded before standardisation. Style activations retain their
+label-coordinate meaning and are unit-normalised online without
+z-standardisation. The JSON and NPZ paths are tied together by catalogue
+metadata so that a stale array file cannot be interpreted as belonging to a
+newly generated index.
 
 \section{Motion Key-Pose and Activity Analysis}
 \label{sec:motion_analysis}
@@ -340,16 +336,38 @@ weak numerical valleys from one with several pronounced key poses.
 
 For catalogue organisation, motions are grouped by genre and coarse activity
 attributes. Median velocity and weighted key-pose density are divided at the
-dataset tertiles; regularity is divided at its median. The present catalogue's
+dataset tertiles. Regularity is divided at its median. The present catalogue's
 velocity cut points are approximately $1.10$ and $1.51\,\mathrm{m\,s^{-1}}$ on
 the equivalent-speed scale, while density cut points are approximately $0.59$
-and $0.85\,\mathrm{s^{-1}}$. These thresholds are derived from the catalogue,
-not presented as universal properties of dance. Their purpose is to support
+and $0.85\,\mathrm{s^{-1}}$. These thresholds are derived from the catalogue. 
+Their purpose is to support
 stratified diversity choices and interpretable diagnostics without requiring a
 learned motion-style classifier.
 
 \section{SMPL-to-G1 Retargeting}
 \label{sec:offline_retargeting}
+
+Figure~\ref{fig:smpl_g1_same_frame} compares the source human mesh with the
+stored G1 trajectory at identical frame indices. The examples are selected
+from source-motion wrist separation and height, rather than from target-fit
+quality. They illustrate preservation of broad gestures alongside changes in
+body proportions and joint configuration; they are qualitative examples,
+not evidence of dynamic tracking or contact stability.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/chapter4_smpl_g1_same_frame.pdf}
+    \caption{Same-frame SMPL-to-G1 retargeting comparison for AIST++ sequence
+    \texttt{gBR\_sBM\_cAll\_d04\_mBR0\_ch01}. The neutral SMPL source mesh
+    (top) and stored GMR-retargeted G1 poses (bottom) are shown at zero-based
+    frames 269, 358, and 422 of the 60~fps sequence. Each column uses the same
+    frame, camera, and metric scale. For display, each body is independently
+    centred horizontally and grounded vertically; joint rotations are
+    unchanged, so absolute root translation and ground clearance are not
+    compared. Source and SMPL-model hashes were verified against the target
+    artefact.}
+    \label{fig:smpl_g1_same_frame}
+\end{figure}
 
 \subsection{Human forward kinematics and coordinate conversion}
 \label{subsec:human_fk}
@@ -432,10 +450,10 @@ geometry set.
 Collision validity is checked against both the GMR retargeting model and the
 MuJoCo playback model. This dual-model check matters because different XML
 files can use different meshes, contact exclusions, or visual/collision roles.
-MuJoCo is used here as a consistent model evaluator rather than as evidence of
-dynamic stability \cite{todorov2012mujoco}. Where shallow contact behaviour
-differs between MuJoCo versions, the validator uses explicit geometry-distance
-queries so that the intended separation contract remains visible.
+Where shallow contact behaviour differs between MuJoCo versions, the validator
+uses explicit geometry-distance queries so that the intended separation
+contract remains visible. The scope of this kinematic validation is stated with
+the complete preflight procedure in Section~\ref{subsec:mujoco_preflight}.
 
 \subsection{Continuity conditioning}
 \label{subsec:retarget_continuity}
@@ -466,8 +484,7 @@ configuration.
 This stage conditions the source trajectory but does not close its loop. A
 forced last-to-first match would change valid one-shot motion and hide the real
 seam that the online transition controller must handle. Loop suitability and
-clip-to-clip blending are therefore addressed during playback, not baked into
-the canonical data.
+clip-to-clip blending are therefore addressed during playback.
 
 \section{Canonical Trajectory and Dataset Build}
 \label{sec:canonical_dataset}
@@ -487,16 +504,11 @@ Its primary arrays are
 
 representing root position, root orientation in \texttt{wxyz} order, and G1
 joint positions. The stored joint-name list fixes the semantic order of all 29
-columns; array width alone is insufficient because two 29-DoF models may use a
+columns. Array width alone is insufficient because two 29-DoF models may use a
 different order. The artefact also stores frame rate, format and pipeline
 versions, source identifier and digest, SMPL-model digest, retargeter name and
 full revision, collision settings, compatibility mode, and continuity limits.
 
-Version fields have operational meaning. The current direct SMPL-to-G1 format
-uses artefact format version~1 and pipeline version~4. It explicitly rejects
-older provenance paths, including intermediate BVH conversions, so that a
-legacy file cannot be mixed silently with trajectories created from direct
-SMPL forward kinematics.
 
 \subsection{Cached builds, quarantine, and atomic publication}
 \label{subsec:dataset_build_management}
@@ -512,12 +524,12 @@ than being left under its canonical name.
 New trajectories are generated to a temporary \texttt{.build} path. Only a
 fully validated output atomically replaces the canonical path. Dataset
 manifests follow the same publish-after-validation rule. A complete build of an
-official split may replace its manifest; a partial build is merged so that an
+official split may replace its manifest. A partial build is merged so that an
 interrupted experiment does not erase unrelated valid rows. Failed identifiers
 are removed from the active manifest and written to a separate failure report.
 
-These measures turn the manifest into a declaration of validated availability,
-not a log of attempted work. They also make interrupted builds recoverable: the
+These measures turn the manifest into a declaration of validated availability.
+They also make interrupted builds recoverable. The
 next run can reuse verified artefacts, quarantine incompatible ones, and
 continue without assuming that an existing filename is complete.
 
@@ -534,8 +546,8 @@ norms, missing source identity, disabled collision generation, or an abbreviated
 software revision. It also applies secondary corruption thresholds of
 $20\,\mathrm{rad\,s^{-1}}$ for joint speed, $10\,\mathrm{m\,s^{-1}}$ for root
 translation, and $20\,\mathrm{rad\,s^{-1}}$ for root angular speed. These are
-looser than the generation limits in Section~\ref{subsec:retarget_continuity};
-their role is to detect malformed data rather than tune motion style.
+looser than the generation limits in Section~\ref{subsec:retarget_continuity}.
+Their role is to detect malformed data.
 
 The trajectory is then loaded into the headless G1 playback model and grounded.
 For each frame, the validator checks finite joint values and actual model joint
@@ -545,8 +557,7 @@ actuator-state arrays must remain finite, and the minimum foot height must not
 fall below $-10^{-5}\,\mathrm{m}$ after grounding. No actuator command is
 applied in this test.
 
-Preflight is therefore a kinematic admission test, not a claim that the robot
-can dynamically track the trajectory. It catches schema mismatch, model-order
+Preflight is therefore a kinematic admission test. It catches schema mismatch, model-order
 errors, invalid states, excessive discontinuities, and grounding failure at
 catalogue-build time. Dynamic tracking, torque limits, balance, and hardware
 safety require a later controller and a separate experimental evaluation.
@@ -561,13 +572,12 @@ are all present. Excluded rows are written to a dedicated CSV file with a
 machine-readable reason. This strict inner join prevents a high-scoring audio
 entry from referring to a motion that the online process cannot load.
 
-The current catalogue has schema version~2 and contains 411 paired manifest
+The current catalogue contains 411 paired manifest
 rows. All 411 motion rows passed admission in the recorded build, with zero
 excluded motions. Because several dances share music, these rows refer to 60
 music identifiers, 70 representative audio variants, and 348 audio segments.
 The global median equivalent motion speed is approximately
-$1.31\,\mathrm{m\,s^{-1}}$. These figures document the current artefact rather
-than define fixed system constants; a rebuild with different data, model
+$1.31\,\mathrm{m\,s^{-1}}$. These figures document the current artefact. A rebuild with different data, model
 weights, or validation settings must update them.
 
 \section{Integrity Guarantees and Remaining Limitations}
@@ -575,36 +585,41 @@ weights, or validation settings must update them.
 
 The finished offline catalogue provides five guarantees to the online matcher.
 First, the query and reference audio paths share one documented extractor and
-one learned-model identity. Second, dense matrices have known dimensions and
-normalisation statistics. Third, every selectable motion has stable source and
-retargeting provenance. Fourth, key poses and activity statistics have been
-computed consistently from the source sequence. Fifth, the exact trajectory
-can be loaded, grounded, and evaluated in the target MuJoCo kinematic model.
+one learned-model identity, so their descriptors are compared within a
+consistent feature space. Second, dense matrices have known dimensions and
+reference-set normalisation statistics, preserving comparability across live
+queries. Third, every selectable motion has stable source and retargeting
+provenance, including source and model hashes, software revision, and generation
+settings. Fourth, key poses and activity statistics have been computed
+consistently from the source sequence, providing comparable entry candidates
+and motion profiles. Fifth, the exact trajectory can be loaded, grounded, and
+evaluated in the target MuJoCo kinematic model, with its joint ordering,
+numerical validity, and model compatibility checked before admission.
 
-These guarantees intentionally stop short of several stronger claims. A
-Discogs-derived embedding is not a direct measure of choreographic correctness.
-A velocity valley is not necessarily a semantic dance boundary. IK and
-self-collision constraints do not prove balance, torque feasibility, or safe
-hardware execution. Finally, AIST++ pairings reflect the choreography in the
-dataset and may not cover arbitrary live music or all desired G1 behaviours.
-The online matcher must therefore combine several weak signals, expose
-confidence and rejection reasons, and fall back conservatively when evidence is
-poor. The experimental chapters should evaluate retrieval relevance,
-transition quality, timing, and robot feasibility separately rather than
-compressing them into one success rate.
+Together, these guarantees establish a traceable connection between an audio
+retrieval result and an available robot trajectory. Validated caching,
+quarantine of incompatible artefacts, and atomic publication reduce the risk
+of exposing stale or incomplete outputs. The final audio--motion join further
+ensures that searchable entries refer to motions with the required profiles
+and preflight results. These guarantees remain specific to the recorded data,
+model assets, and validation settings. Changes to those dependencies require
+the corresponding artefacts to be rebuilt or revalidated.
 
-\section{Chapter Summary}
-\label{sec:offline_summary}
+But these guarantees stop short of several stronger claims. A
+Discogs-derived embedding is not a direct measure of choreographic correctness:
+musical similarity does not establish that a particular motion suits the
+phrasing or expressive intent of a new passage. A velocity valley is not
+necessarily a semantic dance boundary, and a low-velocity source pose does not
+by itself guarantee a smooth transition from the robot's current state.
+Retargeting and continuity conditioning may also alter the motion around a
+source-derived key pose, so entry suitability still requires online evaluation.
 
-This chapter detailed the construction of the Humanoid Matcher's offline
-knowledge base. Music is deduplicated, divided into overlapping windows, and
-encoded by a fixed Discogs EffNet model together with explicit rhythm and
-timbre descriptors. Human motion is analysed for low-velocity key poses,
-converted from SMPL coordinates, retargeted to the 29-DoF Unitree G1 through
-collision-aware GMR, and conditioned for temporal continuity. Versioned
-artefacts, cryptographic provenance, validated caching, quarantine, and atomic
-manifests make the build reproducible and recoverable. Finally, a headless
-MuJoCo preflight establishes kinematic catalogue eligibility before audio and
-motion records are joined. The resulting catalogue supplies the consistent
-reference data assumed by the online matching and control methods developed in
-the next chapter.
+IK and self-collision constraints do not prove balance, torque feasibility, or
+safe hardware execution. The MuJoCo preflight evaluates kinematic states
+without applying actuator commands, and its sampled checks do not establish
+continuous-time dynamic feasibility. Likewise, validating individual clips
+does not validate every possible blend, loop seam, or playback-speed change.
+Finally, AIST++ pairings reflect the choreography in the dataset and may not
+cover arbitrary live music or all desired G1 behaviours.
+
+

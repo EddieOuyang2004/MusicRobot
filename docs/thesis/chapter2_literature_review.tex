@@ -1,4 +1,5 @@
 % Chapter 2 can be included from a larger thesis with \input or \include.
+% The parent document must load the graphicx package.
 % Existing citation keys follow the user-maintained references.bib file.
 % References first introduced for this chapter are grouped in a clearly marked
 % block at the end of references.bib.
@@ -9,35 +10,22 @@
 \section{Introduction}
 \label{sec:lit_introduction}
 
-Music-driven humanoid motion lies at the intersection of music information
-retrieval, data-driven character animation, real-time control, and humanoid
-robotics. These fields share an interest in temporal behaviour, but they make
-different assumptions about what information is available and what constitutes
-a successful output. Music information retrieval is primarily concerned with
-extracting useful structure from sound. Dance-generation research usually aims
-to synthesise plausible human motion from a complete music clip. Interactive
-animation instead prioritises responsiveness and continuity under online user
-control. Humanoid robotics adds embodiment, contact, and feasibility constraints
-that are absent from an unconstrained virtual character.
+Music-driven humanoid motion combines music information retrieval, character
+animation, online control, and robotics. Although all four fields model
+temporal behaviour, they impose different requirements: audio analysis extracts
+musical structure, dance generation seeks plausible motion, real-time control
+requires causal and continuous responses, and humanoid deployment adds contact,
+kinematic, and feasibility constraints.
 
-This chapter reviews these areas from the perspective of the problem defined in
-the preceding chapter: causal selection and continuous playback of robot-ready
-dance motions from streaming audio. The review distinguishes three
-forms of music-driven motion system. An \emph{offline generative system} may
-observe a complete audio sequence and synthesise a complete motion sequence. A
-\emph{streaming generative system} produces new motion while restricting its
-access to future audio. A \emph{retrieval-and-control system} selects and adapts
-motion from a finite database. The proposed Humanoid Matcher belongs to the
-third category. Its closest conceptual predecessors therefore include not only
-music-to-dance models, but also motion graphs, motion matching, beat tracking,
-and humanoid motion retargeting.
-
-The purpose of the review is not to claim that retrieval is a substitute for
-generative modelling. Instead, it identifies the trade-offs among novelty,
-latency, interpretability, motion provenance, and embodiment safety. These
-trade-offs motivate a hybrid architecture in which audio analysis, cross-modal
-retrieval, temporal decision rules, phase control, and prevalidated robot
-motion each address a different part of the overall problem.
+This chapter reviews these areas in relation to causal selection and playback
+of robot-ready dance from streaming audio. It distinguishes offline generation,
+which may use a complete music sequence; streaming generation, which restricts
+access to future audio; and retrieval-and-control, which adapts motions from a
+finite database. BeatWeaver belongs to the third category, drawing on work in
+music-to-dance generation, beat tracking, motion graphs, motion matching, and
+humanoid retargeting. The review focuses on the trade-offs among novelty,
+latency, interpretability, provenance, and embodiment safety that motivate its
+hybrid architecture.
 
 \section{Music Representation for Motion Control}
 \label{sec:lit_music_representation}
@@ -45,15 +33,12 @@ motion each address a different part of the overall problem.
 \subsection{Temporal and semantic information in music}
 \label{subsec:lit_temporal_semantic}
 
-A music representation for dance control must describe both \emph{when} motion
-events should occur and \emph{what kind} of movement may be appropriate.
+A music representation for dance control must describe both when motion
+events should occur and what kind of movement may be appropriate.
 Rhythmic descriptors such as tempo, onset strength, beat confidence, and
 inter-beat interval provide temporal cues. Spectral shape, timbre, harmony,
 loudness, and learned style embeddings provide broader evidence about musical
-content and activity. These two groups are related but not interchangeable. Two
-tracks can have similar tempi yet differ substantially in energy and timbre;
-conversely, two stylistically similar tracks can require different playback
-rates.
+content and activity. These two groups are related but not interchangeable.
 
 Classical music information retrieval systems construct descriptors from
 short-time signal analysis. A frame-level descriptor sequence may be written as
@@ -78,7 +63,7 @@ Frame-level features retain that structure, but direct comparison becomes more
 expensive and sensitive to alignment. The appropriate representation therefore
 depends on the decision timescale. A short rolling window is useful for
 responsiveness, whereas a longer context is useful for estimating stable style
-or tempo. A real-time system commonly needs both: local events for phase
+or tempo. A real-time system commonly needs both. Local events for phase
 control, and a slower descriptor for motion selection.
 
 \subsection{Learned music embeddings}
@@ -92,9 +77,7 @@ Alonso-Jim\'enez et al. use associations extracted from Discogs editorial
 metadata as contrastive supervision and show that large, weakly labelled music
 collections can produce useful general-purpose representations
 \cite{alonso2022music}. This line of work is relevant to the Discogs EffNet
-backend used by the current Humanoid Matcher catalogue: a learned embedding
-can encode stylistic relations that are difficult to state as a small set of
-DSP rules.
+backend used by the current BeatWeaver catalogue.
 
 A learned representation nevertheless introduces new sources of uncertainty.
 Its similarity metric reflects the pretraining data and objective rather than
@@ -129,13 +112,13 @@ Beat tracking illustrates the difference between analysing music and
 controlling motion from music. Ellis formulates beat tracking as a compromise
 between local onset evidence and a transition preference for a regular
 inter-beat interval \cite{ellis2007beat}. This formulation captures a general
-principle: a beat is not merely a spectral peak, but a temporally coherent
+principle that a beat is not merely a spectral peak, but a temporally coherent
 hypothesis supported by recent events. For offline analysis, dynamic programming
-can optimise a sequence of beat times over a complete region. A live controller
+can optimise a sequence of beat times over a complete region. But a live controller
 cannot freely revise past beat decisions after the corresponding robot pose has
 already been emitted.
 
-Causal beat handling therefore requires explicit confidence and latency
+Therefore, causal beat handling requires explicit confidence and latency
 policies. Strong percussive subdivisions can produce twice the intended control
 rate, while weak passages can produce missing or unstable events. Accepting
 every detected event risks aligning motion key poses to hi-hat subdivisions
@@ -168,6 +151,22 @@ especially relevant to retrieval-based work because multiple dance sequences
 can be associated with related musical material, permitting the catalogue to
 represent one-to-many music--motion relationships.
 
+Figure~\ref{fig:lit_aistpp_fact} shows the relationship between the two
+contributions that are often mentioned together: AIST++ provides paired music
+and reconstructed human motion, whereas FACT learns to generate future human
+poses from that data.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/chapter2_aistpp_fact_overview.pdf}
+    \caption{The AIST++ dataset and FACT generation setting, reproduced from
+    Fig.~1 of Li et al.~\cite{li2021ai}. Multi-view recordings and synchronised
+    music provide paired 3D human-motion sequences, and FACT generates dance
+    motion conditioned on music. The output remains a human or animated
+    character representation, so target-robot embodiment is a separate step.}
+    \label{fig:lit_aistpp_fact}
+\end{figure}
+
 FineDance extends the emphasis from broad coverage to fine-grained, full-body
 choreography. It increases stylistic diversity and includes more detailed hand
 movement and genre coverage than earlier benchmarks \cite{li2023finedance}.
@@ -182,7 +181,7 @@ appropriate without matching a held-out reference pose. Dataset labels may
 also reflect dance genre, music genre, performer, or recording session in
 different proportions. Models can consequently exploit correlations that do
 not transfer to live music. Evaluations based only on reconstruction distance
-are therefore insufficient; rhythmic alignment, distributional quality,
+are therefore insufficient. Rhythmic alignment, distributional quality,
 diversity, transition continuity, and user judgement provide complementary
 evidence.
 
@@ -236,9 +235,9 @@ However, token boundaries do not automatically correspond to dynamically safe
 robot transition points, and decoding a human pose sequence still leaves an
 embodiment conversion problem.
 
-These methods establish two important ideas for the Humanoid Matcher. First,
+These methods establish two important ideas for the BeatWeaver. First,
 musical context beyond the instantaneous beat is necessary for coherent
-selection. Second, repeated motion patterns are not inherently undesirable;
+selection. Second, repeated motion patterns are not inherently undesirable.
 dance contains motifs whose recurrence supports style and structure. A
 retrieval system can exploit this property directly, although its available
 motifs remain limited to the catalogue.
@@ -257,6 +256,22 @@ showing the value of representing rhythmic constraints directly rather than
 expecting them to emerge only from a global audio embedding
 \cite{huang2024beat}.
 
+Figure~\ref{fig:lit_beatit} illustrates why these conditions are distinct.
+Music supplies dense contextual evidence, while beats and key poses identify
+sparse temporal requirements that should survive the generation process.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/chapter2_beatit_conditioning.pdf}
+    \caption{Beat-It's music, key-pose, and beat conditioning, reproduced from
+    Fig.~1 of Huang et al.~\cite{huang2024beat}. The figure makes explicit that
+    rhythmic constraints and selected poses guide the generated motion in
+    addition to the music signal. BeatWeaver addresses the inverse timing
+    problem: its motion already exists, so playback phase must be adapted to
+    incoming beats.}
+    \label{fig:lit_beatit}
+\end{figure}
+
 The principal attraction of diffusion is its capacity to represent multiple
 valid motions for the same music. This is well matched to the multimodal nature
 of dance. Iterative sampling can also integrate diverse constraints. The cost
@@ -268,7 +283,7 @@ establish causal, bounded-latency behaviour.
 For this reason, offline diffusion results and real-time control results should
 not be compared solely through motion quality metrics. They solve different
 information problems. If an offline model observes future musical events, it
-can anticipate an upcoming accent; a causal controller can respond only after
+can anticipate an upcoming accent. A causal controller can respond only after
 sufficient evidence has arrived. The fair comparison must include latency,
 look-ahead, revision policy, and how committed motion history is handled.
 
@@ -283,7 +298,7 @@ or candidates that are subsequently adapted. The quality of retrieval then
 depends on the correspondence between the query feature space and the desired
 motion property.
 
-In the Humanoid Matcher, retrieval has a stricter role: the selected item is a
+In the BeatWeaver, retrieval has a stricter role: the selected item is a
 prevalidated robot trajectory rather than a context example for a generator.
 This reduces representational freedom but strengthens motion provenance. Every
 candidate can be inspected offline, linked to its source audio and retargeting
@@ -335,11 +350,11 @@ reduce accumulated error and latency across pipeline stages. The work also
 demonstrates expressive behaviour on a Unitree G1 platform, making it more
 directly relevant to humanoid performance than animation-only dance models.
 
-RoboPerform and the Humanoid Matcher address related goals through different
+RoboPerform and the BeatWeaver address related goals through different
 assumptions. RoboPerform learns an action policy and can synthesise behaviour
 beyond a fixed set of stored trajectories. The matcher assumes that a library
 of actions has already been retargeted and checked. The former places more of
-the problem in representation learning and policy training; the latter places
+the problem in representation learning and policy training. The latter places
 more of it in catalogue construction, similarity design, selection stability,
 and transition planning. The contrast is useful because it identifies two
 different ways of handling embodiment: learn it inside the policy, or validate
@@ -360,9 +375,9 @@ a first-class problem rather than an offline model run on shorter windows.
 The importance of DiscoForcing to this dissertation is methodological. It
 provides a stronger standard for the term ``real time'': causal access,
 specified latency, continuous history, and online output should all be stated.
-The Humanoid Matcher does not use diffusion forcing, but it faces analogous
+The BeatWeaver does not use diffusion forcing, but it faces analogous
 stability questions. A generative model must decide how much noisy history to
-condition on; a retrieval system must decide how much ranking history is enough
+condition on. A retrieval system must decide how much ranking history is enough
 to justify a switch. Both systems balance responsiveness against temporal
 consistency, although they implement that balance at different levels.
 
@@ -371,8 +386,8 @@ generator may gradually drift or produce locally implausible motion, whereas a
 retrieval system is bounded by the quality of its stored clips but can still
 fail through a poor match, phase error, or discontinuous transition. Therefore,
 the evaluation metrics should differ. Generative diversity and distributional
-quality are central for DiscoForcing; catalogue recall, switching stability,
-entry-state cost, and deadline misses are central for the Humanoid Matcher.
+quality are central for DiscoForcing. Catalogue recall, switching stability,
+entry-state cost, and deadline misses are central for the BeatWeaver.
 
 \section{Example-Based Motion Synthesis and Motion Matching}
 \label{sec:lit_motion_matching}
@@ -409,12 +424,12 @@ retaining the responsive, data-driven character of database search
 control: captured detail can be preserved, behaviour is guided by an explicit
 query, and selection can respond continuously to an external target.
 
-The Humanoid Matcher uses the term \emph{matcher} in a related but more
+The BeatWeaver uses the term \emph{matcher} in a related but more
 hierarchical sense. Its primary query is music rather than a desired locomotion
 trajectory, and it initially ranks complete motion candidates associated with
 catalogue tracks. Only after a candidate is selected does it search entry
 states using the current robot pose and velocity. This division addresses a
-scaling and semantics problem: joint-state proximity alone cannot establish
+scaling and semantics problem. Joint-state proximity alone cannot establish
 that a dance matches the current music, while music similarity alone cannot
 establish that the transition is continuous.
 
@@ -436,25 +451,6 @@ This formulation makes the compatibility dimensions visible. It also supports
 ablations that would be harder to interpret if the entire cross-modal relation
 were represented by one end-to-end latent score.
 
-\subsection{Selection stability and diversity}
-\label{subsec:lit_selection_stability}
-
-Nearest-neighbour retrieval is stateless: a small score change can replace the
-current winner. An online controller is stateful, and switching itself has a
-cost. When two candidates have nearly equal scores, immediate winner-takes-all
-selection can cause oscillation. A stable selector therefore resembles a
-decision process with hysteresis. It can require a candidate to win for several
-consecutive observations and exceed the current motion by a margin before a
-relevance-driven switch is accepted.
-
-Stability alone can create repetitive behaviour. If the same catalogue item
-remains marginally best, the robot may repeat it indefinitely even when several
-alternatives are musically acceptable. Bounded-hold diversity provides a
-separate mechanism: after a configured duration, selection may rotate among a
-near-optimal set without pretending that the music itself has changed. This
-separation between relevance and diversity is conceptually important. It
-prevents diversity pressure from overriding a strong musical match while still
-making a finite library appear less mechanical.
 
 \section{Motion Transitions and Beat--Phase Synchronisation}
 \label{sec:lit_transitions_phase}
@@ -484,8 +480,8 @@ A more complete entry cost for candidate phase $\phi$ is
 
 where the terms measure joint pose, joint velocity, contact state, root state,
 and musical or key-pose salience. The weights expose a practical compromise. A
-large pose weight favours a visually smooth first frame; a large salience weight
-favours musically meaningful entry; contact and root terms reduce foot and
+large pose weight favours a visually smooth first frame. A large salience weight
+favours musically meaningful entry. Contact and root terms reduce foot and
 world-frame artefacts. The transition planner can restrict its search to
 salient phases, thereby reducing computation and avoiding entry in the middle
 of an expressive gesture.
@@ -496,9 +492,9 @@ of an expressive gesture.
 Once an entry state is chosen, blending can distribute the remaining mismatch
 over time. Database animation methods use automatically generated transitions
 to connect captured sequences \cite{kovar2023motion}. For a floating-base
-humanoid, the target motion should first be aligned to the current world root;
-otherwise a locally smooth joint blend can still cause a global translation or
-yaw jump. Joint interpolation should also respect angular topology and use the
+humanoid, the target motion should first be aligned to the current world root.
+Otherwise a locally smooth joint blend can still cause a global translation or
+yaw jump. Joint interpolation should also be careful to angular topology and use the
 shortest path for wrapped angles.
 
 The blend duration is not purely aesthetic. If the pose displacement for joint
@@ -550,7 +546,7 @@ The bounded rate prevents an accurate beat estimate from demanding an
 unacceptable motion speed. The controller must also distinguish beat tracking
 error from structural incompatibility. If a motion has too many or too few
 salient poses for the observed rhythm, phase correction alone cannot solve the
-problem; the motion should receive a lower compatibility score during
+problem, the motion should receive a lower compatibility score during
 selection.
 
 \section{Humanoid Motion Retargeting and Validation}
@@ -568,19 +564,35 @@ joint coordinates. Direct copying is impossible because joint meanings, axes,
 and ranges do not correspond one to one.
 
 GMR treats motion retargeting as a consequential part of the humanoid learning
-pipeline rather than a neutral preprocessing operation
+pipeline
 \cite{araujo2025retargeting}. Its evaluation shows that artefacts such as foot
 sliding, self-penetration, and physically implausible reference motion can
 reduce downstream tracking robustness. This observation supports two design
-decisions in the Humanoid Matcher. First, retargeting occurs offline so that its
+decisions in the BeatWeaver. First, retargeting occurs offline so that its
 cost and failures do not enter the live audio path. Second, the catalogue stores
 retargeting provenance and admits only trajectories that satisfy explicit
 preflight checks.
 
-Retargeting quality has at least three dimensions. \emph{Fidelity} measures how
-well the target preserves the source gesture. \emph{Kinematic validity} covers
-joint ranges, continuity, grounding, and collision geometry. \emph{Dynamic
-trackability} concerns whether a feedback controller and physical robot can
+Figure~\ref{fig:lit_retargeting_gap} gives concrete examples of retargeting
+artefacts. Kinematic validation can reject these malformed robot references,
+but passing such checks still does not establish that a controller can track a
+trajectory while balancing under contact and torque limits.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.72\textwidth]{figures/chapter2_retargeting_gap.pdf}
+    \caption{Ground penetration and self-intersection in retargeted humanoid
+    references, reproduced from Fig.~2 of Araujo et
+    al.~\cite{araujo2025retargeting}. These examples show why visual and
+    kinematic preflight checks are necessary before a motion enters the online
+    catalogue.}
+    \label{fig:lit_retargeting_gap}
+\end{figure}
+
+Retargeting quality has at least three dimensions. Fidelity measures how
+well the target preserves the source gesture. Kinematic validity covers
+joint ranges, continuity, grounding, and collision geometry. Dynamic
+trackability concerns whether a feedback controller and physical robot can
 execute the reference under contact and torque constraints. A trajectory can
 pass the first two dimensions and still fail the third. The experiments in this
 dissertation should therefore avoid using kinematic success as evidence of
@@ -598,91 +610,51 @@ balance control, and disturbance response.
 
 This distinction prevents an otherwise common category error. A motion displayed
 in a physics engine is not necessarily a physics-controlled motion. Kinematic
-preview remains valuable: it can reveal joint-order mistakes, orientation
+preview remains valuable. It can reveal joint-order mistakes, orientation
 errors, ground penetration, discontinuities, and self-collision before an
-online candidate is accepted. It should be reported as preflight and
+online candidate is accepted. It can be reported as preflight and
 visualisation evidence, not as a sim-to-real result.
 
 \section{Critical Synthesis and Research Gap}
 \label{sec:lit_synthesis}
 
-The reviewed literature provides strong solutions to individual components of
-music-driven motion, but no single line of work directly satisfies all of the
-constraints of the present project.
+Figure~\ref{fig:lit_discoforcing} provides a recent example of an end-to-end
+streaming architecture. It makes the distinction between causal audio feature
+extraction, streaming motion generation, online retargeting, and the final
+avatar or humanoid control stack visible in one pipeline.
 
-\begin{description}
-    \item[Offline dance generation]
-    FACT, Bailando, EDGE, FineDance, and Beat-It provide increasingly expressive
-    mappings from music to human motion
-    \cite{li2021ai,siyao2022bailando,tseng2023edge,li2023finedance,huang2024beat}.
-    Their strengths are learned choreography, diversity, and long-range
-    structure. Their typical output is not automatically a target-robot action,
-    and offline results do not establish strict causal latency.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/chapter2_discoforcing_streaming.pdf}
+    \caption{The DiscoForcing system pipeline, reproduced from Fig.~2 of Ji et
+    al.~\cite{ji2026discoforcing}. Live audio is encoded causally, motion is
+    generated with a streaming diffusion-forcing model, and the resulting
+    human representation is retargeted for avatar rendering or humanoid
+    control.}
+    \label{fig:lit_discoforcing}
+\end{figure}
 
-    \item[Streaming generation]
-    DiscoForcing addresses causality, bounded latency, and generated-history
-    stability directly \cite{ji2026discoforcing}. It offers a compelling route
-    to novel online motion, but requires a trained generative model and a
-    deployment stack able to manage its output distribution.
-
-    \item[Direct humanoid audio control]
-    RoboPerform reduces the human-to-robot pipeline by learning direct
-    audio-conditioned humanoid actions \cite{li2026you}. This strengthens
-    embodiment integration, while moving the burden toward large-scale policy
-    learning, training data, and sim-to-real validation.
-
-    \item[Database animation]
-    Motion graphs and motion matching preserve captured detail and support
-    responsive reuse of motion data
-    \cite{kovar2023motion,holden2020learned}. They provide principles for
-    state-compatible transition search but do not by themselves define a music
-    query or beat-aware switching policy.
-
-    \item[Humanoid retargeting]
-    GMR addresses the embodiment gap and demonstrates that reference quality
-    affects downstream tracking \cite{araujo2025retargeting}. Retargeting alone
-    does not decide which trajectory fits live music or how successive
-    trajectories should be scheduled.
-\end{description}
-
-The resulting research gap is an integrated, lightweight system that treats
-music similarity, robot-motion compatibility, temporal selection stability,
-beat alignment, transition continuity, and catalogue validity as separate but
-cooperating problems. A straightforward nearest-neighbour system is
-insufficient because it can select tempo-incompatible motion and oscillate
-between near-equal candidates. A beat-only controller is insufficient because
-tempo does not encode style or activity. A smooth blend is insufficient if the
-entry states disagree in velocity or support. Finally, a retargeted motion is
-insufficient if its provenance and preflight status are unknown.
-
-The Humanoid Matcher is motivated by this gap. It combines a rolling audio
-representation with hierarchical retrieval, explicitly interpretable
-compatibility terms, stateful switch acceptance, beat-boundary scheduling,
+The literature addresses important parts of music-driven motion without yet
+providing the integrated, lightweight solution required here. Offline models
+such as FACT, Bailando, EDGE, FineDance, and Beat-It demonstrate expressive,
+diverse, and structurally coherent music-to-human-motion generation
+\cite{li2021ai,siyao2022bailando,tseng2023edge,li2023finedance,huang2024beat},
+while DiscoForcing extends generation to causal streaming with bounded latency
+\cite{ji2026discoforcing} and RoboPerform integrates embodiment through direct
+audio-conditioned humanoid control \cite{li2026you}. In parallel, motion graphs
+and motion matching establish principles for responsive reuse and
+state-compatible transitions \cite{kovar2023motion,holden2020learned}, and GMR
+shows that retargeted reference quality affects downstream humanoid tracking
+\cite{araujo2025retargeting}. However, these strands do not jointly connect
+streaming music similarity, tempo and activity compatibility, stable selection,
+beat-aware scheduling, phase synchronisation, continuous robot-state
+transitions, and validated motion provenance. This leaves a research gap for a
+system that treats these requirements as cooperating components rather than as
+a single similarity or generation problem. BeatWeaver addresses that gap by
+combining rolling audio analysis, hierarchical retrieval, interpretable
+compatibility scores, stateful switch acceptance, beat-boundary scheduling,
 key-pose phase control, state-aware entry search, root-aligned blending, and
-offline G1 validation. Its intended contribution is therefore architectural
-and experimental rather than a new foundational generative model. The relevant
-question is whether these components together achieve a useful operating point:
-less novel than unconstrained generation, but causal, inspectable,
-computationally modest, and bounded by a prevalidated motion library.
-
-\section{Chapter Summary}
-\label{sec:lit_summary}
-
-This chapter reviewed the foundations of real-time music-driven humanoid
-motion. Music information retrieval provides complementary temporal and
-semantic representations, while causal beat analysis exposes the need to
-balance local evidence against rhythmic consistency. AIST++ and FineDance
-support large-scale study of music--dance relationships, but their human motion
-representations must be distinguished from executable robot coordinates.
-Autoregressive, discrete, and diffusion models demonstrate increasingly
-expressive choreography; RoboPerform and DiscoForcing extend the field toward
-direct humanoid action and strict streaming generation.
-
-Example-based animation contributes a different set of principles: preserve
-high-quality captured motion, search explicitly over a database, and join clips
-only at compatible states. GMR further shows that retargeting quality materially
-affects humanoid tracking, supporting offline retargeting and preflight before a
-motion enters the online catalogue. Together, these findings justify the hybrid
-retrieval-and-control approach developed in the following chapters. Chapter~3
-translates the identified requirements into the offline and online architecture
-of the Humanoid Matcher.
+offline G1 validation. It investigates whether a finite prevalidated motion library can
+provide a causal, inspectable, and computationally modest operating point for
+real-time humanoid dance, while accepting less novelty than unconstrained
+generation.

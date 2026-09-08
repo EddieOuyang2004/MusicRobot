@@ -1,0 +1,26 @@
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch03.pkl with constant root Z offset +0.853115 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch05.pkl with constant root Z offset +0.855082 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d05_mBR0_ch05.pkl with constant root Z offset +1.305134 m.
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sFM_cAll_d25_mWA0_ch01.pkl with constant root Z offset +0.882814 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\aistpp_stitched_test.wav (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gWA_sFM_cAll_d25_mWA0_ch01
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=0.55x | amp=1.05 | rms/gate=0.2874/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.12 | bands=0.91/0.06/0.01 | rhythm=0.15 | offbeat=0.13
+music | bpm=93.8 | speed=0.55x | amp=0.69 | rms/gate=0.0299/0.0020 | beat=1 accepted=1 conf=0.83 contrast=0.25 result=too-early | bright=0.28 | bands=0.36/0.56/0.07 | rhythm=0.24 | offbeat=1.00
+music | bpm=163.0 | speed=0.55x | amp=0.73 | rms/gate=0.1880/0.0020 | beat=1 accepted=1 conf=0.72 contrast=0.50 result=accepted | bright=0.26 | bands=0.70/0.18/0.10 | rhythm=0.30 | offbeat=0.59
+music | bpm=163.0 | speed=0.55x | amp=0.84 | rms/gate=0.2641/0.0020 | beat=1 accepted=0 conf=0.70 contrast=0.75 result=too-early | bright=0.11 | bands=0.91/0.07/0.01 | rhythm=0.33 | offbeat=0.30
+music | bpm=121.0 | speed=0.55x | amp=0.63 | rms/gate=0.0289/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.30 result=weak-overload-beat | bright=0.27 | bands=0.29/0.65/0.05 | rhythm=0.36 | offbeat=0.29
+music | bpm=163.0 | speed=1.60x | amp=0.76 | rms/gate=0.1730/0.0020 | beat=1 accepted=1 conf=0.39 contrast=0.50 result=too-early | bright=0.27 | bands=0.56/0.31/0.10 | rhythm=0.38 | offbeat=0.33
+match | accepted | confidence=0.57 | genre=BR:0.73 | bpm=107.1 | tracks=[BR0:0.98, BR1:0.71, BR4:0.66] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.93 | tags=[Electronic---Drum n Bass, Electronic---Downtempo, Hip Hop---Trip Hop]
+music | bpm=163.0 | speed=1.60x | amp=0.92 | rms/gate=0.3347/0.0020 | beat=1 accepted=1 conf=0.57 contrast=0.28 result=too-early | bright=0.12 | bands=0.93/0.06/0.00 | rhythm=0.37 | offbeat=0.42
+match | accepted | confidence=0.47 | genre=MH:0.71 | bpm=107.1 | tracks=[BR0:0.97, BR1:0.70, BR4:0.65] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.93 | tags=[Electronic---Drum n Bass, Hip Hop---Trip Hop, Electronic---Downtempo]
+music | bpm=163.0 | speed=1.60x | amp=0.82 | rms/gate=0.1870/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.35 result=too-early | bright=0.23 | bands=0.71/0.20/0.03 | rhythm=0.42 | offbeat=0.40
+match | accepted | confidence=0.53 | genre=MH:0.72 | bpm=107.1 | tracks=[BR0:0.97, BR1:0.70, LH0:0.61] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.92 | tags=[Electronic---Drum n Bass, Electronic---Downtempo, Hip Hop---Jazzy Hip-Hop]
+Pending motion (relevance): gBR_sBM_cAll_d04_mBR0_ch03 score=0.922 music=0.972 held=2 bar(s) pool=[gBR_sBM_cAll_d04_mBR0_ch03:0.926/0.974, gBR_sBM_cAll_d05_mBR0_ch05:0.902/0.974, gBR_sBM_cAll_d04_mBR0_ch05:0.902/0.974, gBR_sBM_cAll_d05_mBR0_ch09:0.896/0.974, gBR_sBM_cAll_d05_mBR0_ch03:0.896/0.974]
+Switching (bar): gWA_sFM_cAll_d25_mWA0_ch01 -> gBR_sBM_cAll_d04_mBR0_ch03 entry=0.3992 blend=0.480s entry_score=0.159
+Motion switch complete: gBR_sBM_cAll_d04_mBR0_ch03 (GMR artifact)
+music | bpm=144.2 | speed=0.97x | amp=0.59 | rms/gate=0.0995/0.0020 | beat=1 accepted=1 conf=0.70 contrast=0.56 result=accepted | bright=0.35 | bands=0.55/0.28/0.12 | rhythm=0.49 | offbeat=0.44
+match | accepted | confidence=0.68 | genre=BR:0.78 | bpm=107.1 | tracks=[BR0:0.95, BR1:0.70, LH0:0.65] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.91 | tags=[Electronic---Drum n Bass, Electronic---Downtempo, Electronic---Dubstep]

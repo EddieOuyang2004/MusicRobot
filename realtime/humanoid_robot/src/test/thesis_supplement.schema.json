@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "cohort": "online_causal",
+  "expected_runs": {"smoke": 1, "short": 130, "long": 5},
+  "pose_npz": {
+    "time_seconds": "N float64 audio received position; may repeat; not a frame clock",
+    "wall_time_seconds": "N float64 strictly increasing perf_counter seconds relative to stream start plus startup silence",
+    "frame_index": "N int64 consecutive from zero",
+    "audio_received_sample_index": "N int64 audio receive position, excluding startup silence",
+    "audio_sample_rate_hz": "scalar integer",
+    "wall_clock_origin_perf_counter": "scalar float64; process-local monotonic origin, not UTC",
+    "final_qpos": "N by model_nq float64, final displayed MuJoCo qpos",
+    "joint_positions": "N by J float32 final qpos at joint_qpos_indices",
+    "joint_names": "J strings in actuator order",
+    "joint_qpos_indices": "J integer indices into final_qpos",
+    "joint_ranges": "J by 2; +/- infinity denotes unlimited",
+    "model_xml_sha256": "top-level model XML SHA-256; dependency asset hashes in cohort manifest",
+    "safety_counts": "N by 4: candidate_clearance_detection, collision_projection, final_residual_clearance, final_joint_limit",
+    "beat_events": "B by 4: event_wall_seconds, delivery_wall_seconds, audio_received_seconds, accepted; all detector beats, not only controller-accepted beats",
+    "accepted_causal_beat_times_seconds": "legacy controller-accepted audio positions retained for compatibility; use beat_events for new causal BAS"
+  },
+  "units": "metres, radians, seconds",
+  "evaluation": "discard first 6 audio-origin wall seconds; output frames at actual wall clocks; BAS uses delivery times on 60 FPS resampled motion",
+  "safety_semantics": "Configured clearance pairs and existing minimum distance plus buffer; kinematic only; audit overhead included in control work",
+  "readiness": "Integrity-complete does not imply performance or safety passed",
+  "source_reference": "https://github.com/Stanford-TML/EDGE/blob/main/eval/eval_pfc.py"
+}

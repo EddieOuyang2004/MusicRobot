@@ -118,6 +118,8 @@ class JointDynamicsLimiter:
         self.last_target_speed_rad_s = 0.0
         self.last_output_speed_rad_s = 0.0
         self.last_output_acceleration_rad_s2 = 0.0
+        self._pre_apply_positions: dict[str, float] = {}
+        self._pre_apply_velocities: dict[str, float] = {}
 
     def reset(self, frame: RobotMotionFrame | None = None) -> None:
         self.positions.clear()
@@ -144,6 +146,8 @@ class JointDynamicsLimiter:
             )
             return frame.with_joint_positions(joints)
 
+        self._pre_apply_positions = dict(self.positions)
+        self._pre_apply_velocities = dict(self.velocities)
         output = dict(frame.joint_positions)
         activated: list[str] = []
         target_speed_max = 0.0
@@ -259,6 +263,72 @@ class JointDynamicsLimiter:
             output_acceleration_max,
         )
         return frame.with_joint_positions(output)
+
+    def minimum_feasible_output_scale(
+        self, frame: RobotMotionFrame, dt: float
+    ) -> float:
+        """Lowest segment scale that preserves the current acceleration bounds.
+
+        ``frame`` is the already-limited candidate and the segment starts at the
+        pre-apply output.  Alpha=1 is therefore feasible by construction; lower
+        alphas may brake faster than the configured acceleration permits.
+        """
+
+        if not math.isfinite(dt) or dt <= 0.0:
+            return 1.0
+        lower = 0.0
+        for name, candidate in frame.joint_positions.items():
+            limits = self.limits.get(name)
+            previous = self._pre_apply_positions.get(name)
+            if limits is None or previous is None:
+                continue
+            candidate_velocity = (float(candidate) - previous) / dt
+            if abs(candidate_velocity) <= 1e-12:
+                continue
+            previous_velocity = self._pre_apply_velocities.get(name, 0.0)
+            velocity_low = max(
+                -limits.max_speed_rad_s,
+                previous_velocity - limits.max_acceleration_rad_s2 * dt,
+            )
+            velocity_high = min(
+                limits.max_speed_rad_s,
+                previous_velocity + limits.max_acceleration_rad_s2 * dt,
+            )
+            if candidate_velocity > 0.0:
+                joint_lower = velocity_low / candidate_velocity
+            else:
+                joint_lower = velocity_high / candidate_velocity
+            lower = max(lower, float(np.clip(joint_lower, 0.0, 1.0)))
+        return float(np.clip(lower, 0.0, 1.0))
+
+    def sync_output(self, frame: RobotMotionFrame, dt: float) -> None:
+        """Synchronise limiter state to the command actually emitted."""
+
+        if not math.isfinite(dt) or dt <= 0.0:
+            self.reset(frame)
+            return
+        speed_max = 0.0
+        acceleration_max = 0.0
+        for name, value in frame.joint_positions.items():
+            if name not in self.limits:
+                continue
+            position = float(value)
+            previous = self._pre_apply_positions.get(
+                name, self.positions.get(name, position)
+            )
+            previous_velocity = self._pre_apply_velocities.get(name, 0.0)
+            velocity = (position - previous) / dt
+            acceleration = (velocity - previous_velocity) / dt
+            self.positions[name] = position
+            self.velocities[name] = velocity
+            speed_max = max(speed_max, abs(velocity))
+            acceleration_max = max(acceleration_max, abs(acceleration))
+        self.last_output_speed_rad_s = speed_max
+        self.last_output_acceleration_rad_s2 = acceleration_max
+        self.max_output_speed_rad_s = max(self.max_output_speed_rad_s, speed_max)
+        self.max_output_acceleration_rad_s2 = max(
+            self.max_output_acceleration_rad_s2, acceleration_max
+        )
 
     @property
     def activation_rate(self) -> float:

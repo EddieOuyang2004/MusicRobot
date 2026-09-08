@@ -1,0 +1,101 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sFM_cAll_d25_mWA0_ch01.pkl with constant root Z offset +0.882814 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\cc0_matcher_set\07_orchestral_battle_ready.mp3 (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gWA_sFM_cAll_d25_mWA0_ch01
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=0.99 | rms/gate=0.0525/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.50 result=accepted | bright=0.08 | bands=0.00/0.91/0.00 | rhythm=0.06 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=1.05 | rms/gate=0.0762/0.0020 | beat=1 accepted=1 conf=0.51 contrast=0.50 result=accepted | bright=0.12 | bands=0.08/0.92/0.00 | rhythm=0.09 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=1.09 | rms/gate=0.2556/0.0020 | beat=1 accepted=1 conf=0.66 contrast=0.50 result=accepted | bright=0.14 | bands=0.93/0.06/0.00 | rhythm=0.08 | offbeat=0.00
+music | bpm=58.6 | speed=1.00x | amp=0.78 | rms/gate=0.1060/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.75 result=accepted | bright=0.08 | bands=0.94/0.06/0.00 | rhythm=0.13 | offbeat=0.19
+music | bpm=66.4 | speed=1.00x | amp=0.87 | rms/gate=0.2580/0.0020 | beat=1 accepted=1 conf=0.39 contrast=0.70 result=accepted | bright=0.10 | bands=0.95/0.04/0.00 | rhythm=0.20 | offbeat=0.33
+music | bpm=91.5 | speed=1.00x | amp=0.66 | rms/gate=0.1013/0.0020 | beat=1 accepted=1 conf=0.39 contrast=0.21 result=accepted | bright=0.09 | bands=0.91/0.08/0.00 | rhythm=0.21 | offbeat=0.37
+music | bpm=91.5 | speed=1.00x | amp=0.78 | rms/gate=0.1983/0.0020 | beat=1 accepted=1 conf=0.43 contrast=0.44 result=too-early | bright=0.08 | bands=0.94/0.04/0.00 | rhythm=0.23 | offbeat=0.23
+match | accepted | confidence=0.47 | genre=BR:0.71 | bpm=117.2 | tracks=[JB5:0.68, JB1:0.66, JB3:0.63] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.67 | tags=[Electronic---Experimental, Electronic---Industrial, Electronic---Ambient]
+match | accepted | confidence=0.77 | genre=BR:0.78 | bpm=87.2 | tracks=[JB5:0.64, JB1:0.60, JB3:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Ambient]
+music | bpm=91.5 | speed=1.00x | amp=0.72 | rms/gate=0.0943/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.45 result=accepted | bright=0.10 | bands=0.88/0.11/0.00 | rhythm=0.24 | offbeat=0.12
+match | accepted | confidence=0.99 | genre=BR:0.88 | bpm=87.2 | tracks=[JB5:0.61, JB3:0.59, JB1:0.58] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.68 | tags=[Folk, World, & Country---Nordic, Electronic---Industrial, Electronic---Experimental]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch03.pkl with constant root Z offset +0.853115 m.
+music | bpm=87.2 | speed=1.00x | amp=0.86 | rms/gate=0.2160/0.0020 | beat=1 accepted=1 conf=0.78 contrast=0.38 result=accepted | bright=0.11 | bands=0.90/0.09/0.00 | rhythm=0.27 | offbeat=0.40
+match | accepted | confidence=0.95 | genre=BR:0.82 | bpm=87.2 | tracks=[JB5:0.61, JB3:0.60, JB0:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Electronic---Industrial, Electronic---Neofolk, Folk, World, & Country---Nordic]
+Pending motion (relevance): gBR_sBM_cAll_d05_mBR1_ch01 score=0.668 music=0.546 held=2 bar(s) pool=[gBR_sBM_cAll_d05_mBR1_ch01:0.673/0.548]
+Switching (bar_fallback): gWA_sFM_cAll_d25_mWA0_ch01 -> gBR_sBM_cAll_d04_mBR0_ch03 entry=0.3992 blend=0.672s entry_score=0.149
+music | bpm=89.3 | speed=1.00x | amp=0.79 | rms/gate=0.1360/0.0020 | beat=1 accepted=1 conf=0.75 contrast=0.42 result=accepted | bright=0.11 | bands=0.88/0.11/0.00 | rhythm=0.28 | offbeat=0.49
+Motion switch complete: gBR_sBM_cAll_d04_mBR0_ch03 (GMR artifact)
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d05_mBR1_ch01.pkl with constant root Z offset +1.167913 m.
+match | accepted | confidence=0.99 | genre=BR:0.84 | bpm=87.2 | tracks=[JB5:0.62, JB3:0.60, JB0:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Neofolk]
+music | bpm=87.2 | speed=1.00x | amp=0.79 | rms/gate=0.1186/0.0020 | beat=1 accepted=1 conf=0.38 contrast=0.53 result=accepted | bright=0.08 | bands=0.94/0.06/0.00 | rhythm=0.33 | offbeat=0.64
+match | accepted | confidence=0.91 | genre=BR:0.85 | bpm=87.2 | tracks=[JB5:0.62, JB3:0.60, JB1:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Ambient]
+music | bpm=87.2 | speed=1.00x | amp=0.81 | rms/gate=0.0986/0.0020 | beat=1 accepted=0 conf=0.23 contrast=0.38 result=low-confidence | bright=0.08 | bands=0.96/0.03/0.00 | rhythm=0.34 | offbeat=0.75
+match | accepted | confidence=0.98 | genre=BR:0.78 | bpm=87.2 | tracks=[JB5:0.63, JB3:0.62, JB0:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.65 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Ambient]
+music | bpm=87.2 | speed=1.00x | amp=0.71 | rms/gate=0.2287/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.41 result=accepted | bright=0.09 | bands=0.93/0.07/0.00 | rhythm=0.34 | offbeat=1.00
+match | accepted | confidence=0.57 | genre=PO:0.71 | bpm=87.2 | tracks=[JB5:0.62, JB3:0.60, JB1:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.66 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Ambient]
+music | bpm=87.2 | speed=1.00x | amp=0.98 | rms/gate=0.2510/0.0020 | beat=1 accepted=1 conf=0.51 contrast=0.53 result=accepted | bright=0.13 | bands=0.93/0.06/0.00 | rhythm=0.37 | offbeat=0.81
+match | accepted | confidence=0.63 | genre=BR:0.73 | bpm=89.3 | tracks=[JB5:0.63, JB3:0.61, JB1:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Ambient]
+music | bpm=87.2 | speed=1.00x | amp=0.82 | rms/gate=0.1590/0.0020 | beat=1 accepted=1 conf=0.80 contrast=0.56 result=accepted | bright=0.13 | bands=0.78/0.21/0.00 | rhythm=0.36 | offbeat=0.80
+match | accepted | confidence=0.89 | genre=BR:0.78 | bpm=117.2 | tracks=[JB1:0.62, JB5:0.62, JB3:0.61] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.66 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Ambient]
+music | bpm=87.2 | speed=1.00x | amp=0.85 | rms/gate=0.1357/0.0020 | beat=1 accepted=1 conf=0.39 contrast=0.47 result=accepted | bright=0.14 | bands=0.80/0.19/0.00 | rhythm=0.31 | offbeat=0.72
+match | accepted | confidence=0.93 | genre=BR:0.80 | bpm=117.2 | tracks=[JB5:0.62, JB1:0.62, JB3:0.61] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.66 | tags=[Electronic---Industrial, Electronic---Dark Ambient, Electronic---Experimental]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch05.pkl with constant root Z offset +0.855082 m.
+Switching (forced_end): gBR_sBM_cAll_d04_mBR0_ch03 -> gBR_sBM_cAll_d04_mBR0_ch05 entry=0.0654 blend=0.688s entry_score=0.096
+music | bpm=87.2 | speed=1.00x | amp=0.69 | rms/gate=0.0835/0.0020 | beat=1 accepted=1 conf=0.26 contrast=0.12 result=low-confidence | bright=0.09 | bands=0.85/0.13/0.00 | rhythm=0.27 | offbeat=0.61
+match | accepted | confidence=0.73 | genre=BR:0.84 | bpm=117.2 | tracks=[JB1:0.61, JB5:0.61, JB3:0.59] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.65 | tags=[Electronic---Dark Ambient, Electronic---Industrial, Stage & Screen---Score]
+Motion switch complete: gBR_sBM_cAll_d04_mBR0_ch05 (GMR artifact)
+music | bpm=89.3 | speed=1.00x | amp=0.73 | rms/gate=0.1263/0.0020 | beat=1 accepted=1 conf=0.67 contrast=0.56 result=accepted | bright=0.08 | bands=0.90/0.09/0.00 | rhythm=0.27 | offbeat=1.00
+match | accepted | confidence=0.84 | genre=JB:0.95 | bpm=89.3 | tracks=[JB5:0.61, JB1:0.61, JB3:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Electronic---Dark Ambient, Stage & Screen---Score, Stage & Screen---Soundtrack]
+music | bpm=89.3 | speed=1.00x | amp=0.72 | rms/gate=0.1477/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.44 result=accepted | bright=0.13 | bands=0.89/0.11/0.00 | rhythm=0.31 | offbeat=0.59
+match | accepted | confidence=0.89 | genre=JB:0.95 | bpm=89.3 | tracks=[JB1:0.61, JB5:0.60, JB3:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Electronic---Dark Ambient, Stage & Screen---Soundtrack, Stage & Screen---Score]
+music | bpm=89.3 | speed=1.00x | amp=1.01 | rms/gate=0.1639/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.85 result=accepted | bright=0.12 | bands=0.83/0.16/0.00 | rhythm=0.33 | offbeat=0.59
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d08_mJB0_ch02.pkl with constant root Z offset +1.006155 m.
+match | accepted | confidence=0.59 | genre=JB:0.83 | bpm=89.3 | tracks=[JB5:0.62, JB3:0.62, JB1:0.61] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.65 | tags=[Stage & Screen---Soundtrack, Stage & Screen---Score, Electronic---Dark Ambient]
+Pending motion (relevance): gJB_sBM_cAll_d08_mJB0_ch02 score=0.650 music=0.556 held=1 bar(s) pool=[gJB_sBM_cAll_d08_mJB0_ch02:0.651/0.557, gJB_sBM_cAll_d08_mJB5_ch03:0.625/0.610, gJB_sBM_cAll_d07_mJB2_ch01:0.624/0.545, gJB_sBM_cAll_d07_mJB0_ch01:0.631/0.557]
+music | bpm=87.2 | speed=1.00x | amp=0.81 | rms/gate=0.0767/0.0020 | beat=1 accepted=1 conf=0.73 contrast=0.68 result=accepted | bright=0.13 | bands=0.67/0.26/0.00 | rhythm=0.30 | offbeat=0.52
+match | accepted | confidence=0.89 | genre=BR:0.84 | bpm=89.3 | tracks=[JB5:0.61, JB1:0.60, JB3:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.70 | tags=[Stage & Screen---Soundtrack, Electronic---Experimental, Folk, World, & Country---Nordic]
+music | bpm=87.2 | speed=1.00x | amp=0.80 | rms/gate=0.1301/0.0020 | beat=1 accepted=1 conf=0.77 contrast=0.82 result=accepted | bright=0.09 | bands=0.91/0.07/0.00 | rhythm=0.30 | offbeat=0.46
+Switching (bar): gBR_sBM_cAll_d04_mBR0_ch05 -> gJB_sBM_cAll_d08_mJB0_ch02 entry=0.4631 blend=0.688s entry_score=0.101
+match | accepted | confidence=0.96 | genre=BR:0.90 | bpm=87.2 | tracks=[JB3:0.61, JB1:0.61, JB5:0.61] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.69 | tags=[Electronic---Experimental, Folk, World, & Country---Nordic, Stage & Screen---Soundtrack]
+Motion switch complete: gJB_sBM_cAll_d08_mJB0_ch02 (GMR artifact)
+music | bpm=87.2 | speed=1.00x | amp=0.96 | rms/gate=0.2058/0.0020 | beat=1 accepted=1 conf=0.72 contrast=0.85 result=none | bright=0.12 | bands=0.86/0.13/0.00 | rhythm=0.33 | offbeat=0.44
+match | accepted | confidence=0.92 | genre=BR:0.82 | bpm=89.3 | tracks=[JB3:0.61, JB5:0.60, JB1:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.69 | tags=[Stage & Screen---Soundtrack, Electronic---Experimental, Stage & Screen---Score]
+music | bpm=87.2 | speed=1.00x | amp=0.88 | rms/gate=0.1426/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.59 result=accepted | bright=0.09 | bands=0.91/0.08/0.00 | rhythm=0.36 | offbeat=0.43
+match | accepted | confidence=0.53 | genre=JB:0.74 | bpm=170.5 | tracks=[JB5:0.61, JB3:0.61, JB1:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.63 | tags=[Stage & Screen---Soundtrack, Electronic---Experimental, Stage & Screen---Score]
+music | bpm=87.2 | speed=1.00x | amp=0.97 | rms/gate=0.1211/0.0020 | beat=1 accepted=1 conf=0.81 contrast=0.12 result=accepted | bright=0.14 | bands=0.80/0.18/0.00 | rhythm=0.41 | offbeat=0.45
+match | accepted | confidence=0.95 | genre=JB:0.84 | bpm=170.5 | tracks=[JB5:0.62, JB3:0.61, JB1:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Stage & Screen---Soundtrack, Stage & Screen---Score, Electronic---Experimental]
+music | bpm=87.2 | speed=1.00x | amp=0.83 | rms/gate=0.1691/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.68 result=accepted | bright=0.15 | bands=0.69/0.30/0.00 | rhythm=0.34 | offbeat=0.43
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJB_sBM_cAll_d07_mJB0_ch01.pkl with constant root Z offset +1.954090 m.
+match | accepted | confidence=0.71 | genre=JB:0.73 | bpm=170.5 | tracks=[JB5:0.63, JB3:0.62, JB1:0.60] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Stage & Screen---Soundtrack, Electronic---Experimental, Electronic---Dark Ambient]
+music | bpm=89.3 | speed=1.00x | amp=0.83 | rms/gate=0.1468/0.0020 | beat=1 accepted=0 conf=0.31 contrast=0.29 result=low-confidence | bright=0.15 | bands=0.80/0.19/0.00 | rhythm=0.30 | offbeat=0.56
+Switching (forced_end): gJB_sBM_cAll_d08_mJB0_ch02 -> gJB_sBM_cAll_d07_mJB0_ch01 entry=0.5480 blend=0.672s entry_score=0.160
+match | accepted | confidence=0.91 | genre=BR:0.76 | bpm=170.5 | tracks=[JB5:0.63, JB3:0.61, JB1:0.61] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.63 | tags=[Electronic---Electroclash, Stage & Screen---Soundtrack, Electronic---Dark Ambient]
+music | bpm=89.3 | speed=1.00x | amp=0.79 | rms/gate=0.1082/0.0020 | beat=1 accepted=1 conf=0.24 contrast=0.21 result=low-confidence | bright=0.08 | bands=0.90/0.08/0.00 | rhythm=0.30 | offbeat=0.50
+match | accepted | confidence=0.93 | genre=BR:0.84 | bpm=89.3 | tracks=[JB5:0.62, JB3:0.61, JB1:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.68 | tags=[Stage & Screen---Soundtrack, Electronic---Electroclash, Stage & Screen---Score]
+Motion switch complete: gJB_sBM_cAll_d07_mJB0_ch01 (GMR artifact)
+music | bpm=89.3 | speed=1.00x | amp=0.78 | rms/gate=0.0655/0.0020 | beat=1 accepted=1 conf=0.36 contrast=0.38 result=accepted | bright=0.08 | bands=0.91/0.08/0.00 | rhythm=0.29 | offbeat=0.65
+match | accepted | confidence=0.81 | genre=BR:0.81 | bpm=89.3 | tracks=[JB5:0.61, JB3:0.60, JB1:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Folk, World, & Country---Nordic, Stage & Screen---Soundtrack, Stage & Screen---Score]
+music | bpm=87.2 | speed=1.00x | amp=0.94 | rms/gate=0.2349/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.53 result=accepted | bright=0.15 | bands=0.91/0.08/0.00 | rhythm=0.31 | offbeat=0.76
+match | accepted | confidence=0.81 | genre=BR:0.76 | bpm=87.2 | tracks=[JB5:0.63, JB3:0.62, JB1:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Folk, World, & Country---Nordic, Stage & Screen---Soundtrack, Stage & Screen---Score]
+music | bpm=89.3 | speed=1.00x | amp=0.86 | rms/gate=0.1616/0.0020 | beat=1 accepted=1 conf=0.89 contrast=0.68 result=accepted | bright=0.12 | bands=0.86/0.13/0.00 | rhythm=0.31 | offbeat=0.64
+match | accepted | confidence=0.92 | genre=BR:0.74 | bpm=87.2 | tracks=[JB5:0.61, JB3:0.61, JB1:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Folk, World, & Country---Nordic, Electronic---Experimental, Electronic---Industrial]
+Pending motion (relevance): gBR_sBM_cAll_d05_mBR1_ch01 score=0.671 music=0.541 held=1 bar(s) pool=[gBR_sBM_cAll_d05_mBR1_ch01:0.670/0.538]
+Switching (bar): gJB_sBM_cAll_d07_mJB0_ch01 -> gBR_sBM_cAll_d05_mBR1_ch01 entry=0.2911 blend=0.688s entry_score=0.170
+music | bpm=87.2 | speed=1.00x | amp=0.80 | rms/gate=0.1638/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.62 result=accepted | bright=0.13 | bands=0.81/0.18/0.00 | rhythm=0.29 | offbeat=0.56
+Motion switch complete: gBR_sBM_cAll_d05_mBR1_ch01 (GMR artifact)
+match | accepted | confidence=0.97 | genre=BR:0.81 | bpm=89.3 | tracks=[JB3:0.60, JB5:0.59, JB1:0.58] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Folk, World, & Country---Nordic, Stage & Screen---Soundtrack, Electronic---Experimental]
+music | bpm=87.2 | speed=1.00x | amp=0.81 | rms/gate=0.1291/0.0020 | beat=1 accepted=1 conf=0.78 contrast=0.29 result=accepted | bright=0.08 | bands=0.93/0.07/0.00 | rhythm=0.32 | offbeat=0.46
+match | accepted | confidence=0.92 | genre=BR:0.78 | bpm=87.2 | tracks=[JB3:0.59, JB5:0.59, JB1:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Folk, World, & Country---Nordic, Stage & Screen---Soundtrack, Electronic---Experimental]
+music | bpm=87.2 | speed=1.00x | amp=0.75 | rms/gate=0.1564/0.0020 | beat=1 accepted=1 conf=0.78 contrast=0.44 result=accepted | bright=0.14 | bands=0.80/0.19/0.00 | rhythm=0.32 | offbeat=0.42
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch03.pkl with constant root Z offset +0.853115 m.
+match | accepted | confidence=0.59 | genre=JB:0.71 | bpm=170.5 | tracks=[JB5:0.61, JB3:0.60, JB1:0.59] | motion=gJB_sBM_cAll_d08_mJB0_ch02:0.64 | tags=[Stage & Screen---Soundtrack, Stage & Screen---Score, Electronic---Experimental]
+music | bpm=87.2 | speed=1.00x | amp=0.82 | rms/gate=0.1167/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.62 result=accepted | bright=0.14 | bands=0.70/0.29/0.00 | rhythm=0.34 | offbeat=0.49
+match | accepted | confidence=0.90 | genre=BR:0.73 | bpm=170.5 | tracks=[JB5:0.60, JB1:0.59, JB3:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.61 | tags=[Stage & Screen---Soundtrack, Electronic---Experimental, Stage & Screen---Score]
+music | bpm=87.2 | speed=1.00x | amp=0.94 | rms/gate=0.1906/0.0020 | beat=1 accepted=1 conf=0.58 contrast=0.44 result=accepted | bright=0.09 | bands=0.88/0.10/0.00 | rhythm=0.35 | offbeat=0.43
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d06_mBR3_ch01.pkl with constant root Z offset +0.832762 m.
+match | accepted | confidence=0.94 | genre=BR:0.73 | bpm=170.5 | tracks=[JB5:0.62, JB1:0.60, JB3:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.60 | tags=[Stage & Screen---Soundtrack, Electronic---Experimental, Rock---Alternative Rock]
+music | bpm=87.2 | speed=1.00x | amp=0.89 | rms/gate=0.1543/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.53 result=accepted | bright=0.09 | bands=0.94/0.05/0.00 | rhythm=0.29 | offbeat=0.51
+match | accepted | confidence=0.72 | genre=BR:0.74 | bpm=170.5 | tracks=[JB5:0.63, JB1:0.61, JB3:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.60 | tags=[Electronic---Experimental, Stage & Screen---Soundtrack, Electronic---Industrial]
+music | bpm=89.3 | speed=1.00x | amp=0.73 | rms/gate=0.0823/0.0020 | beat=1 accepted=0 conf=0.25 contrast=0.44 result=low-confidence | bright=0.11 | bands=0.89/0.08/0.00 | rhythm=0.30 | offbeat=0.71
+Switching (forced_end): gBR_sBM_cAll_d05_mBR1_ch01 -> gBR_sBM_cAll_d06_mBR3_ch01 entry=0.3709 blend=0.672s entry_score=0.146
+match | accepted | confidence=0.61 | genre=BR:0.73 | bpm=89.3 | tracks=[JB1:0.62, JB5:0.62, JB3:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.66 | tags=[Electronic---Industrial, Electronic---Experimental, Electronic---Ambient]
+music | bpm=89.3 | speed=1.00x | amp=0.84 | rms/gate=0.1938/0.0020 | beat=1 accepted=1 conf=0.39 contrast=0.29 result=accepted | bright=0.06 | bands=0.96/0.04/0.00 | rhythm=0.31 | offbeat=0.71
+Motion switch complete: gBR_sBM_cAll_d06_mBR3_ch01 (GMR artifact)

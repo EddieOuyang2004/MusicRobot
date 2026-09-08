@@ -1,0 +1,44 @@
+% Include with \input{abstract} before Chapter 1 in the parent thesis.
+% Numerical claims follow the frozen Chapter 6 60 Hz v5 formal results.
+% This fragment has no dependency on chapter-specific result macros.
+
+\chapter*{Abstract}
+
+Live music-driven humanoid dance requires musical relevance, responsive timing,
+continuous motion transitions, and feasible robot configurations to be maintained
+under causal audio access and limited computation. This dissertation presents
+Humanoid Matcher, a retrieval-and-control system that adapts a finite library of
+dance trajectories to streaming music on a 29-degree-of-freedom Unitree G1 model.
+
+The offline pipeline combines paired AIST++ music and human motion, extracts
+salient key poses from whole-body velocity minima, and retargets SMPL sequences
+through General Motion Retargeting. Provenance checks and MuJoCo kinematic
+preflight produce a catalogue of 411 admitted motions associated with 60 music
+identities and 348 audio segments. Online, six-second rolling audio windows are
+gain-normalised and encoded using Discogs EffNet embeddings, style activations,
+and rhythm--timbre descriptors. Hierarchical retrieval combines musical similarity
+with tempo, key-pose-density, and activity compatibility. Temporal evidence and
+bounded-hold selection govern motion changes, while asynchronous retrieval and
+candidate preparation support continuous playback. Motion-aware beat acceptance
+and bounded phase correction adapt timing gradually. Transition-entry search
+uses joint pose, velocity, foot contact, and root state, followed by root-aligned
+blending and joint-dynamics and collision constraints.
+
+Strict leave-one-music-out evaluation achieves genre Recall@1 of 0.317 and
+Recall@5 of 0.783, indicating stronger shortlist relevance than top-one
+identification. In causal headless evaluation, all 135 formal runs, comprising
+130 matched full-system and authored-timing short runs and five approximately
+ten-minute full-system runs, satisfy the registered timing, readiness, and final
+kinematic-output criteria at 60 Hz. The worst run-level control-work p99 is
+14.483 ms, below the 16.67 ms budget, with no residual clearance or joint-range
+violations. A separate 120 Hz pilot passes only six of 21 runs. Harmonic beat
+alignment score relative to delivered online beat events is 0.313 with beat
+synchronisation and 0.306 with authored timing; the difference is not
+statistically significant after multiplicity correction.
+
+The results establish an inspectable integration of music retrieval and
+continuous humanoid playback with an empirically validated 60 Hz operating
+point. Musical generalisation and the benefit of beat synchronisation remain
+limited or unconfirmed. Validation concerns kinematic playback in MuJoCo;
+dynamic balance, physical robot execution, and human-perceived dance quality
+require further evaluation.

@@ -54,7 +54,28 @@ def load_smpl_rest_pose(model_path: Path, gender: str = "NEUTRAL") -> tuple[np.n
     model_path = Path(model_path).resolve()
     if not model_path.exists():
         raise FileNotFoundError(f"SMPL model path not found: {model_path}")
-    smplx, torch = import_smpl_dependencies()
+    try:
+        smplx, torch = import_smpl_dependencies()
+    except RuntimeError:
+        # Formal evaluation only needs the neutral rest joints and kinematic
+        # tree. Read them directly so feature extraction does not require the
+        # heavyweight Torch/SMPL-X runtime.
+        with model_path.open("rb") as handle:
+            payload = pickle.load(handle, encoding="latin1")
+        if not isinstance(payload, dict) or "kintree_table" not in payload:
+            raise ValueError(f"Invalid SMPL model archive: {model_path}")
+        if "J" in payload:
+            joints = np.asarray(payload["J"], dtype=np.float64)
+        else:
+            regressor = payload["J_regressor"]
+            joints = np.asarray(regressor.dot(payload["v_template"]), dtype=np.float64)
+        tree = np.asarray(payload["kintree_table"], dtype=np.int64)
+        joint_ids = tree[1, :SMPL_JOINT_COUNT]
+        id_to_index = {int(joint_id): index for index, joint_id in enumerate(joint_ids)}
+        parents = np.full(SMPL_JOINT_COUNT, -1, dtype=np.int64)
+        for index in range(1, SMPL_JOINT_COUNT):
+            parents[index] = id_to_index[int(tree[0, index])]
+        return joints[:SMPL_JOINT_COUNT], parents
     model = smplx.create(
         model_path=str(model_path.parent),
         model_type="smpl",
@@ -174,4 +195,3 @@ def gmr_smpl_frames(
             }
         )
     return frames
-

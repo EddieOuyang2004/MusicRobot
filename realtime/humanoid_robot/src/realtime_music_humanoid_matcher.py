@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import math
 import random
 import sys
+import threading
 import time
-from concurrent.futures import Future, ThreadPoolExecutor
+from collections import OrderedDict
+from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
@@ -42,6 +45,39 @@ ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CATALOG = (
     ROOT / "realtime" / "humanoid_robot" / "data" / "music_catalog" / "catalog.json"
 )
+
+
+def _set_windows_thread_priority(priority: int) -> None:
+    """Best-effort per-thread priority without changing process-wide policy."""
+
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.SetThreadPriority(kernel32.GetCurrentThread(), int(priority))
+    except Exception:
+        pass
+
+
+def _set_background_worker_priority() -> None:
+    # THREAD_PRIORITY_BELOW_NORMAL. The control thread remains responsive when
+    # a Python/MuJoCo preparation scan becomes runnable on Windows.
+    _set_windows_thread_priority(-1)
+
+
+def _set_retrieval_process_priority() -> None:
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        # BELOW_NORMAL_PRIORITY_CLASS
+        kernel32.SetPriorityClass(kernel32.GetCurrentProcess(), 0x00004000)
+    except Exception:
+        pass
 
 
 def parse_args() -> argparse.Namespace:
@@ -121,6 +157,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--switch-recent-history", type=int, default=3)
     parser.add_argument("--switch-ready-pool-size", type=int, default=3)
     parser.add_argument(
+        "--motion-cache-size",
+        type=int,
+        default=96,
+        help="Maximum prepared motions retained by the realtime loader.",
+    )
+    parser.add_argument(
+        "--python-thread-switch-interval-ms",
+        type=float,
+        default=1.0,
+        help=(
+            "Python GIL scheduling interval used in realtime mode. A 1 ms interval "
+            "reduces control-loop stalls while background feature work is active."
+        ),
+    )
+    parser.add_argument(
         "--startup-ready-reserve-seconds",
         type=float,
         default=4.0,
@@ -142,7 +193,11 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--output-max-joint-speed", type=float, default=16.0)
-    parser.add_argument("--output-max-joint-acceleration", type=float, default=2000.0)
+    # Keep 20% implementation headroom below the 2000 rad/s^2 experiment
+    # acceptance boundary.  The limiter runs shortly before emission, so Windows
+    # scheduling and final collision auditing make the measured wall-clock dt
+    # slightly different from the dt available at the limiter call.
+    parser.add_argument("--output-max-joint-acceleration", type=float, default=1600.0)
     parser.add_argument("--output-joint-limits-json", type=Path, default=None)
     parser.add_argument(
         "--diagnostic-disable-output-limiter",
@@ -186,12 +241,25 @@ def parse_args() -> argparse.Namespace:
         help="Audio-time interval between --trace-csv samples (default: 0.05).",
     )
     parser.add_argument(
+        "--experiment-causal-file-input", action="store_true",
+        help="Experiment only: online beats, wall-clock-paced file input and final-output telemetry.",
+    )
+    parser.add_argument(
         "--experiment-pose-npz",
         type=Path,
         default=None,
         help=(
             "Optional experiment-only NPZ containing every output pose, body "
             "position, COM, feet, motion ID, and accepted causal beat time."
+        ),
+    )
+    parser.add_argument(
+        "--experiment-warmup-seconds",
+        type=float,
+        default=0.0,
+        help=(
+            "Experiment-only interval excluded from control-stage/deadline timing; "
+            "the default zero preserves normal CLI behaviour."
         ),
     )
     parser.add_argument(
@@ -779,7 +847,75 @@ class MatcherFileMicrophoneSource(base.FileMicrophoneSource):
         self._pending_beat_contrasts: list[float] = []
         self._next_beat = 0
         self._beat_period: float | None = None
-        self._analyze_beats()
+        self.causal_input = getattr(args, "experiment_causal_file_input", False)
+        self._feeder_stop = threading.Event()
+        self._feeder_thread: threading.Thread | None = None
+        self._feeder_error: BaseException | None = None
+        if not self.causal_input:
+            self._analyze_beats()
+
+    def start(self) -> None:
+        if not self.causal_input:
+            return super().start()
+        # Warm the analyzer's process worker before starting the experiment clock.
+        # Otherwise its first spawn/import can pre-empt the control loop seconds later.
+        prepare = getattr(self.analyzer, "prepare_background_analysis", None)
+        if callable(prepare):
+            prepare()
+        super().start()
+        self._feeder_stop.clear()
+        self._feeder_error = None
+        self._feeder_thread = threading.Thread(
+            target=self._run_causal_feeder,
+            name="causal-file-microphone",
+            daemon=True,
+        )
+        self._feeder_thread.start()
+
+    def stop(self) -> None:
+        feeder = self._feeder_thread
+        self._feeder_thread = None
+        if feeder is not None:
+            self._feeder_stop.set()
+            feeder.join(timeout=2.0)
+        super().stop()
+        self._raise_feeder_error()
+
+    def _raise_feeder_error(self) -> None:
+        if self._feeder_error is not None:
+            raise RuntimeError("Causal file microphone feeder failed.") from self._feeder_error
+
+    def _run_causal_feeder(self) -> None:
+        try:
+            _set_background_worker_priority()
+            total = self.startup_samples + self.audio.size
+            while self.cursor < total and not self._feeder_stop.is_set():
+                block_size = min(self.block_size, total - self.cursor)
+                assert self.stream_start_wall is not None
+                deadline = self.stream_start_wall + (self.cursor + block_size) / self.sample_rate
+                remaining = deadline - time.perf_counter()
+                if remaining > 0.0:
+                    self._feeder_stop.wait(remaining)
+                    if self._feeder_stop.is_set():
+                        break
+                self._feed_block(block_size)
+        except BaseException as exc:
+            self._feeder_error = exc
+
+    def advance(self, dt: float) -> None:
+        if not self.causal_input:
+            return super().advance(dt)
+        if self._feeder_thread is not None:
+            self._raise_feeder_error()
+            return
+        # Absolute receive clock: never accumulate nominal dt ahead of real audio.
+        now = time.perf_counter()
+        total = self.startup_samples + self.audio.size
+        target = min(int(max(now - self.stream_start_wall, 0.0) * self.sample_rate), total)
+        while target - self.cursor >= self.block_size:
+            self._feed_block(self.block_size)
+        if target == total and self.cursor < total:
+            self._feed_block(total - self.cursor)
 
     def _analyze_beats(self) -> None:
         hop_length = self.analyzer.plp_hop_length
@@ -812,6 +948,8 @@ class MatcherFileMicrophoneSource(base.FileMicrophoneSource):
             self._beat_period = float(np.median(np.diff(self._pending_beats)))
 
     def drain(self) -> list[base.MusicFrame]:
+        if self.causal_input:
+            return super().drain()
         frames = [frame for frame in super().drain() if not frame.is_beat]
         playback = self.playback_seconds
         now = time.perf_counter()
@@ -846,6 +984,99 @@ class MatcherFileMicrophoneSource(base.FileMicrophoneSource):
         return super().recent_audio(self.window_seconds)
 
 
+@dataclass(frozen=True)
+class RetrievalProcessConfig:
+    catalog_path: Path
+    sample_rate: int
+    embedding_model: Path | None
+    tag_model: Path | None
+    speed_min: float
+    speed_max: float
+    style_first: bool
+    weak_music_threshold: float
+    weak_music_consecutive_windows: int
+    motion_compatibility: bool
+
+
+@dataclass(frozen=True)
+class RetrievalJobResult:
+    result: MatchResult
+    feature_seconds: float
+    match_seconds: float
+    feature_stage_ms: dict[str, float]
+    matcher_stage_ms: dict[str, float]
+
+
+_RETRIEVAL_PROCESS_EXTRACTOR: AudioFeatureExtractor | None = None
+_RETRIEVAL_PROCESS_MATCHER: MusicMotionMatcher | None = None
+
+
+def _initialize_retrieval_process(config: RetrievalProcessConfig) -> None:
+    global _RETRIEVAL_PROCESS_EXTRACTOR, _RETRIEVAL_PROCESS_MATCHER
+    _set_retrieval_process_priority()
+    catalog = MusicCatalog.load(config.catalog_path)
+    _RETRIEVAL_PROCESS_EXTRACTOR = AudioFeatureExtractor(
+        sample_rate=config.sample_rate,
+        embedding_model=config.embedding_model,
+        tag_model=config.tag_model,
+        onnx_intra_op_threads=1,
+    )
+    _RETRIEVAL_PROCESS_MATCHER = MusicMotionMatcher(
+        catalog,
+        speed_min=config.speed_min,
+        speed_max=config.speed_max,
+        style_first=config.style_first,
+        weak_music_threshold=config.weak_music_threshold,
+        weak_music_consecutive_windows=config.weak_music_consecutive_windows,
+        motion_compatibility=config.motion_compatibility,
+    )
+
+
+def _warm_retrieval_process() -> bool:
+    extractor = _RETRIEVAL_PROCESS_EXTRACTOR
+    matcher = _RETRIEVAL_PROCESS_MATCHER
+    if extractor is None or matcher is None:
+        return False
+    # Exercise the cold librosa/Numba and ONNX paths before the experiment
+    # clock begins. Silence takes a fast path and would not actually warm them.
+    duration = 6.0
+    samples = np.arange(int(round(duration * extractor.sample_rate)), dtype=np.float32)
+    samples = (0.02 * np.sin(samples * (2.0 * np.pi * 220.0 / extractor.sample_rate))).astype(
+        np.float32
+    )
+    descriptor = extractor.describe(samples)
+    matcher.match(descriptor, top_k_tracks=1, top_k_motions=1)
+    return True
+
+
+def _run_retrieval_process(
+    samples: np.ndarray,
+    top_tracks: int,
+    top_motions: int,
+) -> RetrievalJobResult:
+    extractor = _RETRIEVAL_PROCESS_EXTRACTOR
+    matcher = _RETRIEVAL_PROCESS_MATCHER
+    if extractor is None or matcher is None:
+        raise RuntimeError("Retrieval process was not initialized.")
+    feature_started = time.perf_counter()
+    descriptor = extractor.describe(samples)
+    feature_seconds = max(time.perf_counter() - feature_started, 0.0)
+    match_started = time.perf_counter()
+    result = matcher.match(
+        descriptor,
+        top_k_tracks=top_tracks,
+        top_k_motions=top_motions,
+    )
+    match_seconds = max(time.perf_counter() - match_started, 0.0)
+    return RetrievalJobResult(
+        result=result,
+        feature_seconds=feature_seconds,
+        match_seconds=match_seconds,
+        feature_stage_ms=dict(extractor.last_timing_ms),
+        matcher_stage_ms=dict(matcher.last_timing_ms),
+    )
+
+
 class RetrievalWorker:
     def __init__(
         self,
@@ -853,13 +1084,28 @@ class RetrievalWorker:
         matcher: MusicMotionMatcher,
         top_tracks: int,
         top_motions: int,
+        process_config: RetrievalProcessConfig | None = None,
     ) -> None:
         self.extractor = extractor
         self.matcher = matcher
         self.top_tracks = max(int(top_tracks), 1)
         self.top_motions = max(int(top_motions), 1)
-        self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="music-match")
-        self.future: Future[MatchResult] | None = None
+        self.process_isolated = process_config is not None
+        if process_config is None:
+            self.executor: ThreadPoolExecutor | ProcessPoolExecutor = ThreadPoolExecutor(
+                max_workers=1,
+                thread_name_prefix="music-match",
+                initializer=_set_background_worker_priority,
+            )
+        else:
+            self.executor = ProcessPoolExecutor(
+                max_workers=1,
+                initializer=_initialize_retrieval_process,
+                initargs=(process_config,),
+            )
+            if not self.executor.submit(_warm_retrieval_process).result():
+                raise RuntimeError("Could not initialize isolated retrieval worker.")
+        self.future: Future[MatchResult | RetrievalJobResult] | None = None
         self.submitted_at: float | None = None
         self.submit_attempts = 0
         self.accepted_submissions = 0
@@ -884,7 +1130,15 @@ class RetrievalWorker:
         self.copy_seconds.append(max(time.perf_counter() - copy_started, 0.0))
         self.submitted_at = time.perf_counter()
         self.accepted_submissions += 1
-        self.future = self.executor.submit(self._run, samples)
+        if self.process_isolated:
+            self.future = self.executor.submit(
+                _run_retrieval_process,
+                samples,
+                self.top_tracks,
+                self.top_motions,
+            )
+        else:
+            self.future = self.executor.submit(self._run, samples)
         return True
 
     def _run(self, samples: np.ndarray) -> MatchResult:
@@ -914,7 +1168,23 @@ class RetrievalWorker:
             return None
         future = self.future
         self.future = None
-        result = future.result()
+        outcome = future.result()
+        if isinstance(outcome, RetrievalJobResult):
+            self.feature_seconds.append(outcome.feature_seconds)
+            self.match_seconds.append(outcome.match_seconds)
+            for key, value in outcome.feature_stage_ms.items():
+                self.feature_stage_ms.setdefault(key, []).append(float(value))
+            for key, value in outcome.matcher_stage_ms.items():
+                self.matcher_stage_ms.setdefault(key, []).append(float(value))
+            submitted = (
+                self.submitted_at
+                if self.submitted_at is not None
+                else time.perf_counter()
+            )
+            self.total_seconds.append(max(time.perf_counter() - submitted, 0.0))
+            result = outcome.result
+        else:
+            result = outcome
         self.completed += 1
         return result
 
@@ -926,25 +1196,27 @@ class RetrievalWorker:
             samples = np.asarray(values, dtype=np.float64)
             if milliseconds:
                 samples = samples * 1_000.0
-            if not samples.size:
-                return {
-                    f"{prefix}_p50": 0.0,
-                    f"{prefix}_p95": 0.0,
-                    f"{prefix}_p99": 0.0,
-                    f"{prefix}_max": 0.0,
-                }
-            return {
-                f"{prefix}_p50": float(np.percentile(samples, 50.0)),
-                f"{prefix}_p95": float(np.percentile(samples, 95.0)),
-                f"{prefix}_p99": float(np.percentile(samples, 99.0)),
-                f"{prefix}_max": float(np.max(samples)),
-            }
+            result: dict[str, float] = {}
+            for label, subset in (
+                ("", samples),
+                ("_cold", samples[:1]),
+                ("_warm", samples[1:]),
+            ):
+                for quantile_label, quantile in (("p50", 50.0), ("p95", 95.0), ("p99", 99.0)):
+                    result[f"{prefix}{label}_{quantile_label}"] = (
+                        float(np.percentile(subset, quantile)) if subset.size else 0.0
+                    )
+                result[f"{prefix}{label}_max"] = (
+                    float(np.max(subset)) if subset.size else 0.0
+                )
+            return result
 
         result: dict[str, float | int] = {
             "retrieval_submit_attempts": self.submit_attempts,
             "retrieval_submitted": self.accepted_submissions,
             "retrieval_completed": self.completed,
             "retrieval_busy_submissions": self.submit_attempts - self.accepted_submissions,
+            "retrieval_process_isolated": int(self.process_isolated),
         }
         result.update(metric("retrieval_audio_copy_ms", self.copy_seconds))
         result.update(metric("retrieval_queue_ms", self.queue_seconds))
@@ -965,21 +1237,105 @@ class RetrievalWorker:
 MotionSampler = base.AistppMotionSampler | base.GmrUnitreeG1MotionSampler
 
 
+@dataclass(frozen=True)
+class MotionPreparationResult:
+    sampler: MotionSampler
+    load_seconds: float
+    prepare_seconds: float
+    feature_seconds: float
+
+
+_MOTION_PROCESS_ARGS: argparse.Namespace | None = None
+_MOTION_PROCESS_CATALOG: MusicCatalog | None = None
+_MOTION_PROCESS_ADAPTER: Any = None
+_MOTION_PROCESS_PLAYER: base.MujocoHumanoidPlayer | None = None
+
+
+def _initialize_motion_prepare_process(
+    args: argparse.Namespace,
+    catalog: MusicCatalog,
+    adapter: Any,
+) -> None:
+    global _MOTION_PROCESS_ARGS, _MOTION_PROCESS_CATALOG
+    global _MOTION_PROCESS_ADAPTER, _MOTION_PROCESS_PLAYER
+    _set_retrieval_process_priority()
+    _MOTION_PROCESS_ARGS = args
+    _MOTION_PROCESS_CATALOG = catalog
+    _MOTION_PROCESS_ADAPTER = adapter
+    _MOTION_PROCESS_PLAYER = base.MujocoHumanoidPlayer(
+        args.model,
+        realtime=False,
+        headless=True,
+    )
+
+
+def _motion_prepare_process_ready() -> bool:
+    return _MOTION_PROCESS_PLAYER is not None
+
+
+def _run_motion_prepare_process(motion_id: str) -> MotionPreparationResult:
+    args = _MOTION_PROCESS_ARGS
+    catalog = _MOTION_PROCESS_CATALOG
+    player = _MOTION_PROCESS_PLAYER
+    if args is None or catalog is None or player is None:
+        raise RuntimeError("Motion preparation process was not initialized.")
+    load_started = time.perf_counter()
+    sampler = load_motion_sampler(args, catalog, catalog.motions[motion_id])
+    load_seconds = max(time.perf_counter() - load_started, 0.0)
+    prepare_started = time.perf_counter()
+    player.ground_sampler(sampler, _MOTION_PROCESS_ADAPTER, cooperative_yield=False)
+    prepare_seconds = max(time.perf_counter() - prepare_started, 0.0)
+    feature_started = time.perf_counter()
+    setattr(
+        sampler,
+        "entry_features",
+        build_motion_entry_features(
+            sampler,
+            catalog.motions[motion_id],
+            _MOTION_PROCESS_ADAPTER,
+            player.actuator_joint_ranges,
+        ),
+    )
+    feature_seconds = max(time.perf_counter() - feature_started, 0.0)
+    return MotionPreparationResult(
+        sampler=sampler,
+        load_seconds=load_seconds,
+        prepare_seconds=prepare_seconds,
+        feature_seconds=feature_seconds,
+    )
+
+
 class MotionLoader:
     def __init__(self, catalog: MusicCatalog, args: argparse.Namespace, adapter: Any) -> None:
         self.catalog = catalog
         self.args = args
         self.adapter = adapter
         self.ready_pool_size = max(int(args.switch_ready_pool_size), 1)
-        self.max_cached = self.ready_pool_size + 1
-        self.executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="motion-load")
-        self.prepare_executor = ThreadPoolExecutor(
-            max_workers=1,
-            thread_name_prefix="motion-prepare",
+        self.max_cached = max(int(args.motion_cache_size), self.ready_pool_size + 1)
+        self.process_isolated = bool(getattr(args, "realtime", False))
+        self.executor = ThreadPoolExecutor(
+            max_workers=2,
+            thread_name_prefix="motion-load",
+            initializer=_set_background_worker_priority,
         )
+        if self.process_isolated:
+            self.prepare_executor: ThreadPoolExecutor | ProcessPoolExecutor = ProcessPoolExecutor(
+                max_workers=1,
+                initializer=_initialize_motion_prepare_process,
+                initargs=(args, catalog, adapter),
+            )
+            if not self.prepare_executor.submit(_motion_prepare_process_ready).result():
+                raise RuntimeError("Could not initialize isolated motion preparation worker.")
+        else:
+            self.prepare_executor = ThreadPoolExecutor(
+                max_workers=1,
+                thread_name_prefix="motion-prepare",
+                initializer=_set_background_worker_priority,
+            )
         self.score_executor = ThreadPoolExecutor(
             max_workers=1,
             thread_name_prefix="motion-score",
+            initializer=_set_background_worker_priority,
         )
         self.grounding_player = base.MujocoHumanoidPlayer(
             args.model,
@@ -988,7 +1344,10 @@ class MotionLoader:
         )
         self.futures: dict[str, Future[MotionSampler]] = {}
         self.prepare_futures: dict[str, Future[MotionSampler]] = {}
-        self.cache: dict[str, MotionSampler] = {}
+        self.cache: OrderedDict[str, MotionSampler] = OrderedDict()
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.cache_evictions = 0
         self.load_seconds: list[float] = []
         self.prepare_seconds: list[float] = []
         self.feature_seconds: list[float] = []
@@ -1014,8 +1373,11 @@ class MotionLoader:
             if (
                 motion_id in self.cache
                 or motion_id in self.futures
+                or motion_id in self.prepare_futures
                 or motion_id in self.failed_motions
             ):
+                continue
+            if self.process_isolated:
                 continue
             self.submitted_at[motion_id] = time.perf_counter()
             self.futures[motion_id] = self.executor.submit(
@@ -1025,12 +1387,16 @@ class MotionLoader:
 
     def take_ready(self, motion_id: str) -> MotionSampler | None:
         if motion_id in self.cache:
+            self.cache_hits = getattr(self, "cache_hits", 0) + 1
+            if hasattr(self.cache, "move_to_end"):
+                self.cache.move_to_end(motion_id)
             return self.cache[motion_id]
+        self.cache_misses = getattr(self, "cache_misses", 0) + 1
         future = self.prepare_futures.get(motion_id)
         if future is None or not future.done():
             return None
         try:
-            sampler = future.result()
+            sampler = self._record_preparation_outcome(motion_id, future.result())
         except Exception as exc:
             reason = f"{type(exc).__name__}: {exc}"
             self.failed_motions[motion_id] = reason
@@ -1042,14 +1408,21 @@ class MotionLoader:
         del self.prepare_futures[motion_id]
         self.futures.pop(motion_id, None)
         self.cache[motion_id] = sampler
-        if len(self.cache) > self.max_cached:
-            removable = [
-                cached_id
-                for cached_id in self.cache
-                if cached_id not in self.desired_ids and cached_id != motion_id
-            ]
-            while len(self.cache) > self.max_cached and removable:
-                del self.cache[removable.pop(0)]
+        if hasattr(self.cache, "move_to_end"):
+            self.cache.move_to_end(motion_id)
+        while len(self.cache) > self.max_cached:
+            removable = next(
+                (
+                    cached_id
+                    for cached_id in self.cache
+                    if cached_id not in self.desired_ids and cached_id != motion_id
+                ),
+                None,
+            )
+            if removable is None:
+                break
+            del self.cache[removable]
+            self.cache_evictions = getattr(self, "cache_evictions", 0) + 1
         return sampler
 
     def prepare(self, motion_id: str) -> None:
@@ -1058,6 +1431,13 @@ class MotionLoader:
             or motion_id in self.prepare_futures
             or motion_id in self.failed_motions
         ):
+            return
+        if self.process_isolated:
+            self.submitted_at.setdefault(motion_id, time.perf_counter())
+            self.prepare_futures[motion_id] = self.prepare_executor.submit(
+                _run_motion_prepare_process,
+                motion_id,
+            )
             return
         load_future = self.futures.get(motion_id)
         if load_future is None:
@@ -1106,7 +1486,7 @@ class MotionLoader:
             if future is None:
                 continue
             try:
-                sampler = future.result()
+                sampler = self._record_preparation_outcome(motion_id, future.result())
             except Exception as exc:
                 print(
                     f"Warning: initial motion preparation failed for {motion_id}: "
@@ -1119,7 +1499,23 @@ class MotionLoader:
             self.prepare_futures.pop(motion_id, None)
             self.futures.pop(motion_id, None)
             self.cache[motion_id] = sampler
+            if hasattr(self.cache, "move_to_end"):
+                self.cache.move_to_end(motion_id)
         return tuple(motion_id for motion_id in desired if motion_id in self.cache)
+
+    def _record_preparation_outcome(
+        self,
+        motion_id: str,
+        outcome: MotionSampler | MotionPreparationResult,
+    ) -> MotionSampler:
+        if isinstance(outcome, MotionPreparationResult):
+            self.load_seconds.append(outcome.load_seconds)
+            self.prepare_seconds.append(outcome.prepare_seconds)
+            self.feature_seconds.append(outcome.feature_seconds)
+            submitted = self.submitted_at.pop(motion_id, time.perf_counter())
+            self.ready_seconds.append(max(time.perf_counter() - submitted, 0.0))
+            return outcome.sampler
+        return outcome
 
     def ready_motion_ids(self, motion_ids: tuple[str, ...] | list[str]) -> tuple[str, ...]:
         ready = []
@@ -1179,21 +1575,32 @@ class MotionLoader:
     def timing_summary(self) -> dict[str, float | int]:
         def metric(prefix: str, values: list[float]) -> dict[str, float]:
             milliseconds = np.asarray(values, dtype=np.float64) * 1_000.0
-            if not milliseconds.size:
-                return {
-                    f"{prefix}_ms_p50": 0.0,
-                    f"{prefix}_ms_p95": 0.0,
-                    f"{prefix}_ms_max": 0.0,
-                }
-            return {
-                f"{prefix}_ms_p50": float(np.percentile(milliseconds, 50.0)),
-                f"{prefix}_ms_p95": float(np.percentile(milliseconds, 95.0)),
-                f"{prefix}_ms_max": float(np.max(milliseconds)),
-            }
+            result: dict[str, float] = {}
+            for label, subset in (
+                ("", milliseconds),
+                ("_cold", milliseconds[:1]),
+                ("_warm", milliseconds[1:]),
+            ):
+                for quantile_label, quantile in (("p50", 50.0), ("p95", 95.0), ("p99", 99.0)):
+                    result[f"{prefix}_ms{label}_{quantile_label}"] = (
+                        float(np.percentile(subset, quantile)) if subset.size else 0.0
+                    )
+                result[f"{prefix}_ms{label}_max"] = (
+                    float(np.max(subset)) if subset.size else 0.0
+                )
+            return result
 
         result: dict[str, float | int] = {
             "ready_pool_underruns": self.ready_pool_underruns,
             "motion_prepare_failures": len(self.failed_motions),
+            "motion_cache_capacity": self.max_cached,
+            "motion_cache_entries": len(self.cache),
+            "motion_cache_hits": self.cache_hits,
+            "motion_cache_misses": self.cache_misses,
+            "motion_cache_evictions": self.cache_evictions,
+            "motion_preparation_process_isolated": int(
+                getattr(self, "process_isolated", False)
+            ),
         }
         result.update(metric("motion_load", self.load_seconds))
         result.update(metric("motion_grounding", self.prepare_seconds))
@@ -1397,11 +1804,18 @@ def control_stage_timing_summary(
     for name, values in sorted(stage_seconds.items()):
         samples = np.asarray(values, dtype=np.float64) * 1_000.0
         result[f"control_{name}_samples"] = int(samples.size)
-        for label, quantile in (("p50", 50.0), ("p95", 95.0), ("p99", 99.0)):
-            result[f"control_{name}_ms_{label}"] = (
-                float(np.percentile(samples, quantile)) if samples.size else 0.0
+        for temperature, subset in (
+            ("", samples),
+            ("_cold", samples[:1]),
+            ("_warm", samples[1:]),
+        ):
+            for label, quantile in (("p50", 50.0), ("p95", 95.0), ("p99", 99.0)):
+                result[f"control_{name}_ms{temperature}_{label}"] = (
+                    float(np.percentile(subset, quantile)) if subset.size else 0.0
+                )
+            result[f"control_{name}_ms{temperature}_max"] = (
+                float(np.max(subset)) if subset.size else 0.0
             )
-        result[f"control_{name}_ms_max"] = float(np.max(samples)) if samples.size else 0.0
     return result
 
 
@@ -1524,6 +1938,7 @@ def choose_ready_transition(
     beat_period: float,
     preferred_id: str | None,
     ready_only: bool = False,
+    include_cached_fallback: bool = False,
 ) -> tuple[str, MotionSampler, MotionEntryScore, bool] | None:
     source_features = getattr(current_sampler, "entry_features", None)
     fixed_entry_transition = bool(
@@ -1531,10 +1946,15 @@ def choose_ready_transition(
     )
     if source_features is None and not fixed_entry_transition:
         return None
+    fallback_ids = (
+        tuple(loader.cache.keys()) if include_cached_fallback else ()
+    )
     ordered = tuple(
         motion_id
         for motion_id in dict.fromkeys(
-            ([preferred_id] if preferred_id is not None else []) + list(candidate_ids)
+            ([preferred_id] if preferred_id is not None else [])
+            + list(candidate_ids)
+            + list(fallback_ids)
         )
         if motion_id is not None
     )
@@ -1546,6 +1966,8 @@ def choose_ready_transition(
             else loader.take_ready(motion_id)
         )
         if sampler is None:
+            continue
+        if sampler is current_sampler:
             continue
         target_features = getattr(sampler, "entry_features", None)
         if target_features is None:
@@ -1608,6 +2030,18 @@ def main() -> int:
         raise ValueError("--switch-min-remaining-bars must be non-negative.")
     if args.switch_ready_pool_size <= 0:
         raise ValueError("--switch-ready-pool-size must be positive.")
+    if args.motion_cache_size <= 0:
+        raise ValueError("--motion-cache-size must be positive.")
+    if (
+        not math.isfinite(args.python_thread_switch_interval_ms)
+        or args.python_thread_switch_interval_ms <= 0.0
+    ):
+        raise ValueError("--python-thread-switch-interval-ms must be finite and positive.")
+    if args.realtime:
+        sys.setswitchinterval(args.python_thread_switch_interval_ms / 1_000.0)
+        # THREAD_PRIORITY_ABOVE_NORMAL; only the latency-critical main thread is
+        # raised, while process workers are explicitly lowered on creation.
+        _set_windows_thread_priority(1)
     if (
         not math.isfinite(args.startup_ready_reserve_seconds)
         or args.startup_ready_reserve_seconds < 0.0
@@ -1633,6 +2067,10 @@ def main() -> int:
         raise ValueError(
             "--diagnostic-disable-output-limiter is restricted to --headless runs."
         )
+    if args.experiment_causal_file_input and (
+        args.audio_input is None or not args.headless or args.experiment_pose_npz is None
+    ):
+        raise ValueError("Causal experiment mode requires --audio-input, --headless and --experiment-pose-npz.")
     if (
         args.diagnostic_disable_motion_compatibility
         or args.diagnostic_fixed_entry_transition
@@ -1757,6 +2195,30 @@ def main() -> int:
         matcher,
         args.match_top_tracks,
         args.match_top_motions,
+        process_config=(
+            RetrievalProcessConfig(
+                catalog_path=catalog.catalog_path.resolve(),
+                sample_rate=extractor.sample_rate,
+                embedding_model=(
+                    extractor.embedding_backend.model_path
+                    if extractor.embedding_backend is not None
+                    else None
+                ),
+                tag_model=(
+                    extractor.tag_backend.model_path
+                    if extractor.tag_backend is not None
+                    else None
+                ),
+                speed_min=matcher.speed_min,
+                speed_max=matcher.speed_max,
+                style_first=matcher.style_first,
+                weak_music_threshold=matcher.weak_music_threshold,
+                weak_music_consecutive_windows=matcher.weak_music_consecutive_windows,
+                motion_compatibility=matcher.motion_compatibility,
+            )
+            if args.realtime
+            else None
+        ),
     )
     loader = MotionLoader(catalog, args, adapter)
     # Do not seed the pool from catalog insertion order: those motions are not
@@ -1847,6 +2309,7 @@ def main() -> int:
             trace_handle,
             fieldnames=(
                 "audio_time_seconds",
+                "wall_time_seconds",
                 "event",
                 "current_motion_id",
                 "pending_motion_id",
@@ -1934,6 +2397,13 @@ def main() -> int:
         trace_writer.writeheader()
 
     pose_times: list[float] = []
+    causal_experiment = getattr(args, "experiment_causal_file_input", False)
+    pose_wall_times: list[float] = []
+    pose_qpos: list[np.ndarray] = []
+    pose_safety: list[list[int]] = []
+    beat_events: list[list[float]] = []
+    final_residual_count = 0
+    final_limit_count = 0
     pose_joint_positions: list[list[float]] = []
     pose_body_positions: list[np.ndarray] = []
     pose_center_of_mass: list[np.ndarray] = []
@@ -1944,6 +2414,9 @@ def main() -> int:
     pose_motion_ids: list[str] = []
     pose_events: list[str] = []
     experiment_joint_names = tuple(player.actuator_names)
+    experiment_qpos_ids = [player.actuator_joint_qpos_ids[name] for name in experiment_joint_names]
+    experiment_joint_ranges = [player.actuator_joint_ranges.get(name, (-np.inf, np.inf))
+                               for name in experiment_joint_names]
     experiment_body_names = tuple(
         base.mujoco.mj_id2name(player.model, base.mujoco.mjtObj.mjOBJ_BODY, index)
         or f"body_{index}"
@@ -1979,7 +2452,12 @@ def main() -> int:
         time.perf_counter() - process_started
     ) * 1_000.0
     wall_start = time.perf_counter()
+    audio_wall_origin = (
+        source.stream_start_wall + source.startup_delay_sec
+        if isinstance(source, MatcherFileMicrophoneSource) else wall_start
+    )
     scheduler = base.RealtimeLoopScheduler(args.control_rate_hz, args.realtime)
+    timing_warmup_reset = args.experiment_warmup_seconds <= 0.0
     print(f"Initial motion: {current_id}")
     try:
         while player.is_running() and not source.done:
@@ -2000,12 +2478,22 @@ def main() -> int:
             )
             if args.max_seconds is not None and elapsed >= args.max_seconds:
                 break
+            evaluation_elapsed = now - audio_wall_origin if causal_experiment else elapsed
+            if not timing_warmup_reset and evaluation_elapsed >= args.experiment_warmup_seconds:
+                scheduler.reset_statistics()
+                control_stage_seconds.clear()
+                timing_warmup_reset = True
 
             switch_boundary = False
             ready_selection: MotionSelection | None = None
             for frame in source.drain():
+                received_wall = time.perf_counter()
                 last_frame = frame
                 accepted = current_controller.observe(frame)
+                if causal_experiment and frame.is_beat:
+                    beat_events.append([frame.timestamp - audio_wall_origin,
+                                        received_wall - audio_wall_origin,
+                                        source.playback_seconds, float(accepted)])
                 if transition_controller is not None:
                     transition_controller.observe(frame)
                 dt = max(now - last_feature_update, scheduler.period)
@@ -2181,6 +2669,7 @@ def main() -> int:
                             args,
                             beat_period=beat_period,
                             preferred_id=requested_id,
+                            include_cached_fallback=True,
                         )
                     forced_choice = forced_transition_plan
                     if forced_choice is not None:
@@ -2444,13 +2933,18 @@ def main() -> int:
             )
 
             safety_stage_started = time.perf_counter()
+            limiter_dt = scheduler.time_since_last_output(safety_stage_started)
             if args.diagnostic_disable_output_limiter:
                 limited_frame = motion_frame
                 dynamics_limiter.reset(motion_frame)
+                minimum_dynamic_scale = 0.0
             else:
                 limited_frame = dynamics_limiter.apply(
                     motion_frame,
-                    scheduler.period,
+                    limiter_dt,
+                )
+                minimum_dynamic_scale = dynamics_limiter.minimum_feasible_output_scale(
+                    limited_frame, limiter_dt
                 )
 
             resolved_beat = False
@@ -2503,6 +2997,8 @@ def main() -> int:
                 )
                 if dynamics_limiter.last_activated:
                     limiter_impacted_beats += len(accepted_times_this_iteration)
+            detections_before = getattr(player, "collision_candidate_violation_count", 0)
+            corrections_before = player.collision_projection_count
             motion_frame = player.apply_collision_policy(
                 limited_frame,
                 args.runtime_collision_check,
@@ -2510,6 +3006,7 @@ def main() -> int:
                     transition_sampler is not None
                     or (modulator is not None and features.is_active)
                 ),
+                minimum_dynamic_scale=minimum_dynamic_scale,
             )
             joint_limit_violations += sum(
                 1
@@ -2533,7 +3030,6 @@ def main() -> int:
             )
             if collision_override:
                 collision_override_count += 1
-                dynamics_limiter.reset(motion_frame)
             control_stage_seconds.setdefault("limiter_collision", []).append(
                 max(time.perf_counter() - safety_stage_started, 0.0)
             )
@@ -2541,7 +3037,7 @@ def main() -> int:
                 wrist_motion_diagnostics(
                     motion_frame,
                     previous_output_wrist_positions,
-                    scheduler.period,
+                    limiter_dt,
                 )
             )
             max_output_wrist_abs_rad = max(
@@ -2554,15 +3050,38 @@ def main() -> int:
             )
             mujoco_stage_started = time.perf_counter()
             player.set_frame(motion_frame)
-            player.step(scheduler.period)
+            emitted_at = time.perf_counter()
+            actual_output_dt = scheduler.record_output(emitted_at)
+            if not args.diagnostic_disable_output_limiter:
+                dynamics_limiter.sync_output(motion_frame, actual_output_dt)
+            player.step(actual_output_dt)
             control_stage_seconds.setdefault("mujoco_forward", []).append(
                 max(time.perf_counter() - mujoco_stage_started, 0.0)
             )
             if args.experiment_pose_npz is not None:
                 pose_times.append(float(elapsed))
                 pose_joint_positions.append(
+                    [float(player.data.qpos[index]) for index in experiment_qpos_ids]
+                    if causal_experiment else
                     [float(motion_frame.joint_positions.get(name, 0.0)) for name in experiment_joint_names]
                 )
+                if causal_experiment:
+                    # Snapshot the final displayed qpos, after clipping and collision policy.
+                    pose_wall_times.append(emitted_at - audio_wall_origin)
+                    pose_qpos.append(player.data.qpos.copy())
+                    audit_started = time.perf_counter()
+                    residual = int(player._has_self_clearance_violation_after_forward(
+                        player.data, base.DEFAULT_COLLISION_MIN_DISTANCE_M
+                        + base.COLLISION_CLEARANCE_BUFFER_M))
+                    limits = sum(int(value < low - 1e-8 or value > high + 1e-8)
+                                 for value, (low, high) in zip(pose_joint_positions[-1], experiment_joint_ranges))
+                    final_residual_count += residual
+                    final_limit_count += limits
+                    pose_safety.append([
+                        player.collision_candidate_violation_count - detections_before,
+                        player.collision_projection_count - corrections_before, residual, limits])
+                    control_stage_seconds.setdefault("experiment_final_safety_audit", []).append(
+                        time.perf_counter() - audit_started)
                 pose_body_positions.append(np.asarray(player.data.xpos, dtype=np.float64).copy())
                 pose_center_of_mass.append(
                     np.asarray(player.data.subtree_com[0], dtype=np.float64).copy()
@@ -2611,6 +3130,7 @@ def main() -> int:
                 trace_writer.writerow(
                     {
                         "audio_time_seconds": f"{elapsed:.6f}",
+                        "wall_time_seconds": f"{time.perf_counter() - audio_wall_origin:.9f}",
                         "event": trace_event,
                         "current_motion_id": current_id,
                         "pending_motion_id": (
@@ -2928,9 +3448,26 @@ def main() -> int:
             pose_path.parent.mkdir(parents=True, exist_ok=True)
             np.savez_compressed(
                 pose_path,
-                schema_version=np.asarray(1, dtype=np.int32),
+                schema_version=np.asarray(2 if causal_experiment else 1, dtype=np.int32),
+                beat_input_mode=np.asarray("online_causal" if causal_experiment else "preanalysed_replay"),
+                wall_time_seconds=np.asarray(pose_wall_times, dtype=np.float64),
+                wall_clock_origin_perf_counter=np.asarray(audio_wall_origin),
+                final_qpos=np.asarray(pose_qpos, dtype=np.float64),
+                joint_qpos_indices=np.asarray(experiment_qpos_ids, dtype=np.int32),
+                joint_ranges=np.asarray(experiment_joint_ranges, dtype=np.float64),
+                model_xml_sha256=np.asarray(hashlib.sha256(Path(args.model).read_bytes()).hexdigest()),
+                model_nq=np.asarray(player.model.nq),
+                safety_counts=np.asarray(pose_safety, dtype=np.int32).reshape(-1, 4),
+                safety_columns=np.asarray(["candidate_clearance_detection", "collision_projection",
+                                           "final_residual_clearance", "final_joint_limit"]),
+                beat_events=np.asarray(beat_events, dtype=np.float64).reshape(-1, 4),
+                beat_event_columns=np.asarray(["event_wall_seconds", "delivery_wall_seconds",
+                                               "audio_received_seconds", "accepted"]),
                 control_rate_hz=np.asarray(args.control_rate_hz, dtype=np.float64),
                 time_seconds=np.asarray(pose_times, dtype=np.float64),
+                frame_index=np.arange(len(pose_times), dtype=np.int64),
+                audio_sample_rate_hz=np.asarray(getattr(source, "sample_rate", 0), dtype=np.int32),
+                audio_received_sample_index=np.rint(np.asarray(pose_times) * getattr(source, "sample_rate", 0)).astype(np.int64),
                 joint_names=np.asarray(experiment_joint_names, dtype=np.str_),
                 joint_positions=np.asarray(pose_joint_positions, dtype=np.float32),
                 body_names=np.asarray(experiment_body_names, dtype=np.str_),
@@ -2967,6 +3504,17 @@ def main() -> int:
                 **retrieval.timing_summary(),
                 **loader.timing_summary(),
                 **control_stage_timing_summary(control_stage_seconds),
+                "evaluation_warmup_seconds": args.experiment_warmup_seconds,
+                "beat_input_mode": "online_causal" if causal_experiment else "preanalysed_replay",
+                "pose_schema_version": 2 if causal_experiment else 1,
+                "onnxruntime_providers": extractor.embedding_backend.session.get_providers()
+                if extractor.embedding_backend is not None else [],
+                "collision_candidate_detections": getattr(player, "collision_candidate_violation_count", 0),
+                "collision_corrections": player.collision_projection_count,
+                "collision_projection_fallbacks": player.collision_projection_fallback_count,
+                "collision_dynamics_infeasible": player.collision_dynamics_infeasible_count,
+                "final_residual_clearance_violations": final_residual_count if causal_experiment else None,
+                "final_joint_limit_violations": final_limit_count if causal_experiment else None,
                 "motion_timing": args.motion_timing,
                 "max_raw_wrist_abs_rad": max_raw_wrist_abs_rad,
                 "max_raw_wrist_speed_rad_s": max_raw_wrist_speed_rad_s,
@@ -2976,7 +3524,7 @@ def main() -> int:
                 "hold_last_events": hold_last_count,
                 "collision_dynamics_overrides": collision_override_count,
                 "joint_limit_violations": joint_limit_violations,
-                "self_collision_violations": player.collision_projection_count,
+                "self_collision_violations": final_residual_count if causal_experiment else None,
                 "limiter_enabled": not args.diagnostic_disable_output_limiter,
                 "limiter_activation_rate": dynamics_limiter.activation_rate,
                 "limiter_max_target_speed_rad_s": dynamics_limiter.max_target_speed_rad_s,

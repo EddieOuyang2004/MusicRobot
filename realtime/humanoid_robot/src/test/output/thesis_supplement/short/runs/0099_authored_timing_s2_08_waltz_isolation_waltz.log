@@ -1,0 +1,94 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sFM_cAll_d25_mWA0_ch01.pkl with constant root Z offset +0.882814 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\cc0_matcher_set\08_waltz_isolation_waltz.mp3 (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gWA_sFM_cAll_d25_mWA0_ch01
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=0.90 | rms/gate=0.1315/0.0020 | beat=1 accepted=1 conf=0.70 contrast=0.50 result=accepted | bright=0.04 | bands=0.55/0.45/0.00 | rhythm=0.13 | offbeat=0.00
+music | bpm=129.3 | speed=1.00x | amp=0.74 | rms/gate=0.1880/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=too-early | bright=0.03 | bands=0.63/0.37/0.00 | rhythm=0.14 | offbeat=0.00
+music | bpm=129.3 | speed=1.00x | amp=0.69 | rms/gate=0.1956/0.0020 | beat=1 accepted=1 conf=0.58 contrast=0.25 result=accepted | bright=0.03 | bands=0.50/0.50/0.00 | rhythm=0.16 | offbeat=0.00
+music | bpm=125.0 | speed=1.00x | amp=0.77 | rms/gate=0.1372/0.0020 | beat=1 accepted=1 conf=0.84 contrast=0.50 result=accepted | bright=0.03 | bands=0.57/0.43/0.00 | rhythm=0.18 | offbeat=0.00
+music | bpm=125.0 | speed=1.00x | amp=0.66 | rms/gate=0.1124/0.0020 | beat=1 accepted=1 conf=0.86 contrast=0.45 result=accepted | bright=0.03 | bands=0.73/0.27/0.00 | rhythm=0.20 | offbeat=0.00
+music | bpm=125.0 | speed=1.00x | amp=0.81 | rms/gate=0.1271/0.0020 | beat=1 accepted=1 conf=0.81 contrast=0.54 result=accepted | bright=0.03 | bands=0.80/0.20/0.00 | rhythm=0.21 | offbeat=0.00
+music | bpm=125.0 | speed=1.00x | amp=0.65 | rms/gate=0.0734/0.0020 | beat=1 accepted=1 conf=0.87 contrast=0.37 result=too-early | bright=0.04 | bands=0.54/0.46/0.00 | rhythm=0.22 | offbeat=0.00
+match | accepted | confidence=0.50 | genre=JS:0.68 | bpm=121.0 | tracks=[JB2:0.71, JB5:0.71, JB1:0.65] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---IDM]
+match | accepted | confidence=0.81 | genre=PO:0.67 | bpm=125.0 | tracks=[JB5:0.71, JB2:0.71, JB1:0.65] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.73 | rms/gate=0.0796/0.0020 | beat=1 accepted=1 conf=0.86 contrast=0.44 result=accepted | bright=0.04 | bands=0.58/0.42/0.00 | rhythm=0.25 | offbeat=0.00
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO4_ch02.pkl with constant root Z offset +0.809989 m.
+match | accepted | confidence=0.56 | genre=PO:0.66 | bpm=125.0 | tracks=[JB2:0.71, JB5:0.69, JB1:0.63] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Experimental, Electronic---Glitch, Electronic---Ambient]
+Pending motion (relevance): gPO_sBM_cAll_d12_mPO4_ch02 score=0.618 music=0.514 held=3 bar(s) pool=[gPO_sBM_cAll_d12_mPO4_ch02:0.618/0.515, gPO_sBM_cAll_d12_mPO4_ch01:0.590/0.515, gPO_sBM_cAll_d12_mPO5_ch01:0.582/0.512, gPO_sBM_cAll_d11_mPO4_ch02:0.577/0.515]
+music | bpm=125.0 | speed=1.00x | amp=0.71 | rms/gate=0.0767/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.29 result=accepted | bright=0.03 | bands=0.83/0.17/0.00 | rhythm=0.24 | offbeat=0.00
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO4_ch01.pkl with constant root Z offset +0.806594 m.
+match | accepted | confidence=0.52 | genre=PO:0.66 | bpm=125.0 | tracks=[JB2:0.71, JB5:0.69, JB1:0.63] | motion=gPO_sBM_cAll_d12_mPO5_ch01:0.59 | tags=[Electronic---Experimental, Electronic---Glitch, Electronic---Downtempo]
+music | bpm=125.0 | speed=1.00x | amp=0.88 | rms/gate=0.1325/0.0020 | beat=1 accepted=1 conf=0.70 contrast=0.65 result=too-early | bright=0.03 | bands=0.42/0.58/0.00 | rhythm=0.26 | offbeat=0.00
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO5_ch01.pkl with constant root Z offset +0.823898 m.
+match | accepted | confidence=0.61 | genre=PO:0.65 | bpm=125.0 | tracks=[JB2:0.71, JB5:0.70, JB1:0.63] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Downtempo]
+Switching (bar): gWA_sFM_cAll_d25_mWA0_ch01 -> gPO_sBM_cAll_d12_mPO4_ch02 entry=0.3173 blend=0.480s entry_score=0.139
+music | bpm=125.0 | speed=1.00x | amp=0.75 | rms/gate=0.0663/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.47 result=accepted | bright=0.03 | bands=0.65/0.35/0.00 | rhythm=0.26 | offbeat=0.00
+Motion switch complete: gPO_sBM_cAll_d12_mPO4_ch02 (GMR artifact)
+match | accepted | confidence=0.49 | genre=JS:0.68 | bpm=125.0 | tracks=[JB5:0.72, JB2:0.70, JB1:0.63] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.63 | tags=[Electronic---Ambient, Electronic---Downtempo, Electronic---Experimental]
+music | bpm=125.0 | speed=1.00x | amp=0.64 | rms/gate=0.1289/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.47 result=accepted | bright=0.03 | bands=0.63/0.37/0.00 | rhythm=0.26 | offbeat=0.00
+match | accepted | confidence=0.52 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.73, JB2:0.71, JB1:0.64] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.63 | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.79 | rms/gate=0.1841/0.0020 | beat=1 accepted=1 conf=0.49 contrast=0.50 result=accepted | bright=0.03 | bands=0.65/0.35/0.00 | rhythm=0.25 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.44 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.72, JB2:0.70, JB1:0.65] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.80 | rms/gate=0.2324/0.0020 | beat=1 accepted=1 conf=0.52 contrast=0.59 result=accepted | bright=0.04 | bands=0.27/0.73/0.00 | rhythm=0.25 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.65 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.73, JB2:0.71, JB1:0.65] | motion=-- | tags=[Electronic---Ambient, Electronic---IDM, Electronic---Experimental]
+music | bpm=125.0 | speed=1.00x | amp=0.82 | rms/gate=0.1418/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.29 result=accepted | bright=0.04 | bands=0.41/0.59/0.00 | rhythm=0.26 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.66 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.73, JB2:0.70, JB1:0.65] | motion=-- | tags=[Electronic---Ambient, Electronic---IDM, Electronic---Experimental]
+music | bpm=125.0 | speed=1.00x | amp=0.84 | rms/gate=0.1242/0.0020 | beat=1 accepted=0 conf=0.56 contrast=0.44 result=too-early | bright=0.03 | bands=0.66/0.34/0.00 | rhythm=0.26 | offbeat=0.00
+match | accepted | confidence=0.47 | genre=PO:0.67 | bpm=125.0 | tracks=[JB5:0.71, JB2:0.71, JB1:0.65] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---IDM]
+Switching (forced_end): gPO_sBM_cAll_d12_mPO4_ch02 -> gPO_sBM_cAll_d12_mPO4_ch01 entry=0.1420 blend=0.480s entry_score=0.081
+Motion switch complete: gPO_sBM_cAll_d12_mPO4_ch01 (GMR artifact)
+music | bpm=125.0 | speed=1.00x | amp=0.75 | rms/gate=0.0561/0.0020 | beat=1 accepted=1 conf=0.54 contrast=0.24 result=too-early | bright=0.04 | bands=0.50/0.50/0.00 | rhythm=0.26 | offbeat=0.00
+match | accepted | confidence=0.53 | genre=JS:0.68 | bpm=125.0 | tracks=[JB2:0.71, JB5:0.71, JB1:0.65] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.63 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.73 | rms/gate=0.0821/0.0020 | beat=1 accepted=1 conf=0.83 contrast=0.53 result=too-early | bright=0.03 | bands=0.60/0.40/0.00 | rhythm=0.26 | offbeat=0.00
+match | accepted | confidence=0.59 | genre=JS:0.69 | bpm=125.0 | tracks=[JB2:0.72, JB5:0.71, JB1:0.65] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.58 | tags=[Electronic---Experimental, Electronic---Glitch, Electronic---Ambient]
+music | bpm=125.0 | speed=1.00x | amp=0.79 | rms/gate=0.0577/0.0020 | beat=1 accepted=1 conf=0.81 contrast=0.35 result=too-early | bright=0.03 | bands=0.77/0.23/0.00 | rhythm=0.24 | offbeat=0.00
+match | accepted | confidence=0.46 | genre=PO:0.67 | bpm=125.0 | tracks=[JB2:0.71, JB5:0.71, JB1:0.65] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.63 | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Downtempo]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJS_sBM_cAll_d01_mJS3_ch04.pkl with constant root Z offset +0.917895 m.
+music | bpm=125.0 | speed=1.00x | amp=0.59 | rms/gate=0.0554/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.41 result=too-early | bright=0.04 | bands=0.31/0.69/0.00 | rhythm=0.24 | offbeat=0.00
+match | accepted | confidence=0.59 | genre=JS:0.70 | bpm=121.0 | tracks=[JB2:0.72, JB5:0.70, JB1:0.65] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.58 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.82 | rms/gate=0.1548/0.0020 | beat=1 accepted=1 conf=0.60 contrast=0.35 result=too-early | bright=0.03 | bands=0.57/0.43/0.00 | rhythm=0.25 | offbeat=0.00
+match | accepted | confidence=0.56 | genre=JS:0.70 | bpm=121.0 | tracks=[JB2:0.71, JB5:0.71, JB1:0.65] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.58 | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.62 | rms/gate=0.1190/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.03 result=too-early | bright=0.03 | bands=0.51/0.49/0.00 | rhythm=0.23 | offbeat=0.06
+Switching (forced_end): gPO_sBM_cAll_d12_mPO4_ch01 -> gJS_sBM_cAll_d01_mJS3_ch04 entry=0.4302 blend=0.480s entry_score=0.167
+match | accepted | confidence=0.81 | genre=JS:0.69 | bpm=121.0 | tracks=[JB5:0.72, JB2:0.71, JB1:0.65] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.57 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+Pending motion (relevance): gJS_sBM_cAll_d01_mJS3_ch04 score=0.571 music=0.456 held=2 bar(s) pool=[gJS_sBM_cAll_d01_mJS3_ch04:0.575/0.460, gJS_sBM_cAll_d02_mJS4_ch01:0.569/0.521, gJS_sBM_cAll_d03_mJS4_ch02:0.568/0.521, gJS_sBM_cAll_d03_mJS4_ch01:0.567/0.521, gJS_sBM_cAll_d02_mJS4_ch02:0.566/0.521]
+music | bpm=117.2 | speed=1.00x | amp=0.56 | rms/gate=0.0607/0.0020 | beat=1 accepted=0 conf=0.29 contrast=0.09 result=low-confidence | bright=0.03 | bands=0.82/0.18/0.00 | rhythm=0.21 | offbeat=0.30
+Motion switch complete: gJS_sBM_cAll_d01_mJS3_ch04 (GMR artifact)
+match | accepted | confidence=0.86 | genre=PO:0.66 | bpm=121.0 | tracks=[JB5:0.76, JB2:0.73, JB1:0.67] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---IDM]
+music | bpm=110.3 | speed=1.00x | amp=0.48 | rms/gate=0.0310/0.0020 | beat=1 accepted=0 conf=0.24 contrast=0.15 result=low-confidence | bright=0.03 | bands=0.74/0.26/0.00 | rhythm=0.18 | offbeat=0.50
+match | held:non_dance_or_ambient | confidence=0.68 | genre=JS:0.68 | bpm=121.0 | tracks=[JB5:0.76, JB2:0.71, JB1:0.67] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+music | bpm=93.8 | speed=1.00x | amp=0.80 | rms/gate=0.1327/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.97 result=accepted | bright=0.06 | bands=0.59/0.41/0.00 | rhythm=0.16 | offbeat=0.90
+match | held:non_dance_or_ambient | confidence=0.80 | genre=JS:0.68 | bpm=121.0 | tracks=[JB5:0.76, JB2:0.72, JB1:0.68] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.92 | rms/gate=0.1546/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.68 result=accepted | bright=0.04 | bands=0.71/0.29/0.00 | rhythm=0.16 | offbeat=0.03
+match | held:non_dance_or_ambient | confidence=0.44 | genre=JS:0.67 | bpm=125.0 | tracks=[JB5:0.77, JB2:0.73, JB1:0.69] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.71 | rms/gate=0.0852/0.0020 | beat=1 accepted=1 conf=0.92 contrast=0.56 result=accepted | bright=0.04 | bands=0.51/0.49/0.00 | rhythm=0.15 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.61 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.77, JB2:0.74, JB1:0.69] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.92 | rms/gate=0.1151/0.0020 | beat=1 accepted=1 conf=0.69 contrast=0.62 result=accepted | bright=0.04 | bands=0.48/0.52/0.00 | rhythm=0.14 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.58 | genre=JS:0.69 | bpm=125.0 | tracks=[JB5:0.74, JB2:0.73, JB1:0.67] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.80 | rms/gate=0.0800/0.0020 | beat=1 accepted=1 conf=0.98 contrast=0.79 result=accepted | bright=0.05 | bands=0.33/0.67/0.00 | rhythm=0.13 | offbeat=0.00
+match | accepted | confidence=0.92 | genre=JS:0.70 | bpm=125.0 | tracks=[JB5:0.72, JB2:0.71, JB1:0.66] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.58 | tags=[Electronic---Experimental, Electronic---Glitch, Electronic---Ambient]
+music | bpm=125.0 | speed=1.00x | amp=0.80 | rms/gate=0.0881/0.0020 | beat=1 accepted=1 conf=0.87 contrast=0.47 result=accepted | bright=0.05 | bands=0.23/0.77/0.00 | rhythm=0.14 | offbeat=0.00
+match | accepted | confidence=0.56 | genre=JS:0.69 | bpm=125.0 | tracks=[JB5:0.73, JB2:0.71, JB1:0.67] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+Switching (forced_end): gJS_sBM_cAll_d01_mJS3_ch04 -> gPO_sBM_cAll_d12_mPO4_ch02 entry=0.3173 blend=0.480s entry_score=0.069
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJS_sBM_cAll_d03_mJS3_ch08.pkl with constant root Z offset +0.918990 m.
+music | bpm=125.0 | speed=1.00x | amp=0.66 | rms/gate=0.0551/0.0020 | beat=1 accepted=1 conf=0.45 contrast=0.38 result=accepted | bright=0.06 | bands=0.30/0.70/0.00 | rhythm=0.16 | offbeat=0.24
+Motion switch complete: gPO_sBM_cAll_d12_mPO4_ch02 (GMR artifact)
+match | accepted | confidence=0.58 | genre=JS:0.69 | bpm=125.0 | tracks=[JB5:0.73, JB2:0.71, JB1:0.67] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---Glitch]
+music | bpm=125.0 | speed=1.00x | amp=0.73 | rms/gate=0.0790/0.0020 | beat=1 accepted=1 conf=0.61 contrast=0.88 result=accepted | bright=0.05 | bands=0.80/0.20/0.00 | rhythm=0.18 | offbeat=0.23
+match | accepted | confidence=0.77 | genre=PO:0.67 | bpm=125.0 | tracks=[JB5:0.73, JB2:0.71, JB3:0.67] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.62 | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.65 | rms/gate=0.1650/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.26 result=accepted | bright=0.05 | bands=0.47/0.53/0.00 | rhythm=0.22 | offbeat=0.03
+match | held:non_dance_or_ambient | confidence=0.90 | genre=JS:0.68 | bpm=125.0 | tracks=[JB5:0.72, JB2:0.70, JB3:0.68] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.74 | rms/gate=0.1652/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.29 result=accepted | bright=0.05 | bands=0.21/0.79/0.00 | rhythm=0.22 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.54 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.75, JB2:0.71, JB3:0.68] | motion=-- | tags=[Electronic---Experimental, Electronic---Ambient, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.96 | rms/gate=0.1700/0.0020 | beat=1 accepted=1 conf=0.48 contrast=0.71 result=accepted | bright=0.05 | bands=0.41/0.59/0.00 | rhythm=0.24 | offbeat=0.22
+match | held:non_dance_or_ambient | confidence=0.64 | genre=PO:0.67 | bpm=125.0 | tracks=[JB5:0.75, JB2:0.70, JB1:0.68] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.92 | rms/gate=0.1644/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.79 result=accepted | bright=0.06 | bands=0.36/0.64/0.00 | rhythm=0.26 | offbeat=0.20
+match | held:non_dance_or_ambient | confidence=0.82 | genre=PO:0.67 | bpm=125.0 | tracks=[JB5:0.77, JB2:0.71, JB1:0.69] | motion=-- | tags=[Electronic---Ambient, Electronic---IDM, Electronic---Experimental]
+music | bpm=125.0 | speed=1.00x | amp=0.95 | rms/gate=0.1309/0.0020 | beat=1 accepted=1 conf=0.51 contrast=0.38 result=accepted | bright=0.05 | bands=0.48/0.52/0.00 | rhythm=0.27 | offbeat=0.20
+match | held:non_dance_or_ambient | confidence=0.68 | genre=JS:0.69 | bpm=125.0 | tracks=[JB5:0.77, JB2:0.71, JB1:0.70] | motion=-- | tags=[Electronic---Ambient, Electronic---Experimental, Electronic---IDM]
+music | bpm=125.0 | speed=1.00x | amp=0.64 | rms/gate=0.0941/0.0020 | beat=1 accepted=1 conf=0.69 contrast=0.32 result=accepted | bright=0.04 | bands=0.52/0.48/0.00 | rhythm=0.24 | offbeat=0.00
+match | held:non_dance_or_ambient | confidence=0.61 | genre=PO:0.68 | bpm=125.0 | tracks=[JB5:0.76, JB2:0.71, JB1:0.68] | motion=-- | tags=[Electronic---Ambient, Electronic---IDM, Electronic---Experimental]
+music | bpm=125.0 | speed=1.00x | amp=0.87 | rms/gate=0.1232/0.0020 | beat=1 accepted=1 conf=0.87 contrast=0.97 result=accepted | bright=0.05 | bands=0.68/0.32/0.00 | rhythm=0.23 | offbeat=0.00

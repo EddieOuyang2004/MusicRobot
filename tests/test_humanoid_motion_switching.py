@@ -454,6 +454,48 @@ class MotionEntrySelectionTests(unittest.TestCase):
         self.assertEqual("fallback", selected[0])
         self.assertTrue(selected[3])
 
+    def test_forced_end_can_use_cached_candidate_outside_latest_ranking(self) -> None:
+        source_features = entry_features(
+            np.zeros((20, 2)), candidates=(0,), salience=(1.0,)
+        )
+        fallback_features = entry_features(
+            np.zeros((20, 2)), candidates=(2,), salience=(0.8,)
+        )
+        source_sampler = SimpleNamespace(entry_features=source_features)
+        fallback_sampler = SimpleNamespace(entry_features=fallback_features)
+
+        class Loader:
+            score_seconds: list[float] = []
+            cache = {"current": source_sampler, "cached": fallback_sampler}
+
+            @classmethod
+            def take_ready(cls, motion_id: str) -> object | None:
+                return cls.cache.get(motion_id)
+
+        args = SimpleNamespace(
+            switch_beats_per_bar=1,
+            switch_min_remaining_bars=0.0,
+            speed_max=1.0,
+            transition_min_seconds=0.05,
+            transition_max_seconds=0.5,
+        )
+        selected = choose_ready_transition(
+            Loader(),
+            source_sampler,
+            0.5,
+            ("preferred",),
+            self.limits,
+            args,
+            beat_period=0.1,
+            preferred_id="preferred",
+            include_cached_fallback=True,
+        )
+
+        self.assertIsNotNone(selected)
+        assert selected is not None
+        self.assertEqual("cached", selected[0])
+        self.assertTrue(selected[3])
+
     def test_failed_preparation_is_quarantined_for_fallback(self) -> None:
         loader = object.__new__(MotionLoader)
         failed_future: Future[object] = Future()
@@ -494,6 +536,25 @@ class JointDynamicsLimiterTests(unittest.TestCase):
         limiter.reset(RobotMotionFrame({"joint": 0.25}))
         output = limiter.apply(RobotMotionFrame({"joint": 1.0}), math.nan)
         self.assertEqual(0.25, output.joint_positions["joint"])
+
+    def test_projection_scale_and_sync_preserve_actual_output_state(self) -> None:
+        limiter = JointDynamicsLimiter({"joint": JointDynamicsLimits(1.0, 10.0)})
+        limiter.reset(RobotMotionFrame({"joint": 0.0}))
+        candidate = limiter.apply(RobotMotionFrame({"joint": 1.0}), 0.01)
+        self.assertLessEqual(
+            limiter.minimum_feasible_output_scale(candidate, 0.01), 1.0
+        )
+        projected = candidate.with_joint_positions(
+            {"joint": candidate.joint_positions["joint"] * 0.5}
+        )
+        limiter.sync_output(projected, 0.012)
+        self.assertAlmostEqual(
+            projected.joint_positions["joint"], limiter.positions["joint"]
+        )
+        self.assertAlmostEqual(
+            projected.joint_positions["joint"] / 0.012,
+            limiter.velocities["joint"],
+        )
 
     def test_reverse_target_respects_dynamics_and_reaches_target(self) -> None:
         limiter = JointDynamicsLimiter(

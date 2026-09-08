@@ -5,6 +5,10 @@
   "control_rate_hz": 120.0,
   "match_window_seconds": 6.0,
   "match_interval_seconds": 1.0,
+  "longrun": {
+    "stable_seconds": 600.0,
+    "warmup_seconds": 6.0
+  },
   "literature": {
     "clips_per_genre": 4,
     "clip_seconds": 20.0,

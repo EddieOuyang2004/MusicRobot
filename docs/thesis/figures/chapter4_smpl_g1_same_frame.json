@@ -1,0 +1,22 @@
+{
+  "source_motion_id": "gBR_sBM_cAll_d04_mBR0_ch01",
+  "source_sha256": "51768ab001906029b273de1a7c15e8c6574f285663a28f4d8e0ce6dd44926bf3",
+  "target_sha256": "2e367b70d586a4544ef8702cc9a9d2bddf438ac22adf7f5b32df0baf1e51c7a7",
+  "smpl_model_sha256": "7cdbdd136f45d2d12698d08a12d28d89e7822660d9ef2f0f99b4bb9cdbd259d2",
+  "frames_zero_based": [
+    269,
+    358,
+    422
+  ],
+  "fps": 60.0,
+  "times_seconds": [
+    4.483333333333333,
+    5.966666666666667,
+    7.033333333333333
+  ],
+  "frame_selection": "Within this clip: maximum wrist separation, maximum mean wrist height relative to pelvis, minimum mean wrist height relative to pelvis. Selected from source kinematics, not target fit.",
+  "source_frames": 720,
+  "target_frames": 720,
+  "display": "Common camera and metric scale; independent horizontal root centering and vertical mesh grounding; joint rotations unchanged. Background excluded using renderer segmentation.",
+  "smpl_shape": "Neutral template; zero shape coefficients, matching the retargeting rest skeleton"
+}

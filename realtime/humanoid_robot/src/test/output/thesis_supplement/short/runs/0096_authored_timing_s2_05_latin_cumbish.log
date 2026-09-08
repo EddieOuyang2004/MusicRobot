@@ -1,0 +1,96 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sFM_cAll_d25_mWA0_ch01.pkl with constant root Z offset +0.882814 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\cc0_matcher_set\05_latin_cumbish.mp3 (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gWA_sFM_cAll_d25_mWA0_ch01
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=0.76 | rms/gate=0.0662/0.0020 | beat=1 accepted=1 conf=0.75 contrast=0.50 result=accepted | bright=0.19 | bands=0.21/0.78/0.00 | rhythm=0.10 | offbeat=0.00
+music | bpm=117.2 | speed=1.00x | amp=0.84 | rms/gate=0.1054/0.0020 | beat=1 accepted=1 conf=0.58 contrast=0.25 result=too-early | bright=0.17 | bands=0.39/0.60/0.00 | rhythm=0.13 | offbeat=0.98
+music | bpm=117.2 | speed=1.00x | amp=0.60 | rms/gate=0.0313/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.33 result=accepted | bright=0.23 | bands=0.28/0.69/0.03 | rhythm=0.11 | offbeat=1.00
+music | bpm=121.0 | speed=1.00x | amp=0.84 | rms/gate=0.1272/0.0020 | beat=1 accepted=1 conf=0.77 contrast=0.81 result=accepted | bright=0.15 | bands=0.27/0.73/0.00 | rhythm=0.13 | offbeat=1.00
+music | bpm=121.0 | speed=1.00x | amp=0.94 | rms/gate=0.1763/0.0020 | beat=1 accepted=1 conf=0.79 contrast=0.15 result=accepted | bright=0.15 | bands=0.18/0.81/0.01 | rhythm=0.11 | offbeat=1.00
+music | bpm=121.0 | speed=1.00x | amp=0.84 | rms/gate=0.0552/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.42 result=too-early | bright=0.16 | bands=0.52/0.47/0.01 | rhythm=0.13 | offbeat=0.70
+music | bpm=121.0 | speed=1.00x | amp=0.83 | rms/gate=0.1420/0.0020 | beat=1 accepted=1 conf=0.92 contrast=0.04 result=accepted | bright=0.16 | bands=0.15/0.83/0.01 | rhythm=0.13 | offbeat=0.34
+match | accepted | confidence=0.94 | genre=WA:0.73 | bpm=121.0 | tracks=[JB0:0.65, JB3:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.59 | tags=[Latin---Mariachi, Reggae---Rocksteady, Reggae---Ska]
+match | accepted | confidence=0.95 | genre=WA:0.74 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.59 | tags=[Reggae---Rocksteady, Reggae---Ska, Latin---Mariachi]
+music | bpm=121.0 | speed=1.00x | amp=0.68 | rms/gate=0.0406/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.56 result=accepted | bright=0.16 | bands=0.36/0.63/0.01 | rhythm=0.16 | offbeat=0.35
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sBM_cAll_d26_mWA5_ch02.pkl with constant root Z offset +0.864269 m.
+match | accepted | confidence=0.94 | genre=WA:0.73 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Latin---Mariachi, Reggae---Rocksteady, Latin---Ranchera]
+Pending motion (diversity): gWA_sBM_cAll_d25_mWA3_ch02 score=0.593 music=0.491 held=3 bar(s) pool=[gWA_sBM_cAll_d25_mWA3_ch02:0.593/0.491, gWA_sBM_cAll_d26_mWA4_ch02:0.591/0.484, gWA_sBM_cAll_d26_mWA5_ch02:0.591/0.514, gWA_sBM_cAll_d27_mWA5_ch02:0.573/0.514]
+music | bpm=121.0 | speed=1.00x | amp=0.80 | rms/gate=0.1396/0.0020 | beat=1 accepted=1 conf=0.86 contrast=0.03 result=too-early | bright=0.22 | bands=0.45/0.50/0.06 | rhythm=0.48 | offbeat=0.54
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sBM_cAll_d25_mWA3_ch02.pkl with constant root Z offset +0.839702 m.
+match | accepted | confidence=0.93 | genre=WA:0.74 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.59 | tags=[Latin---Mariachi, Latin---Ranchera, Latin---Cumbia]
+music | bpm=121.0 | speed=1.00x | amp=0.71 | rms/gate=0.0460/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.56 result=accepted | bright=0.23 | bands=0.42/0.55/0.03 | rhythm=0.49 | offbeat=0.59
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gWA_sBM_cAll_d26_mWA4_ch02.pkl with constant root Z offset +0.832815 m.
+match | accepted | confidence=0.94 | genre=WA:0.75 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Latin---Mariachi, Latin---Ranchera, Latin---Cumbia]
+music | bpm=121.0 | speed=1.00x | amp=0.81 | rms/gate=0.1362/0.0020 | beat=1 accepted=1 conf=0.83 contrast=0.32 result=accepted | bright=0.21 | bands=0.19/0.77/0.04 | rhythm=0.49 | offbeat=0.60
+Switching (bar): gWA_sFM_cAll_d25_mWA0_ch01 -> gWA_sBM_cAll_d25_mWA3_ch02 entry=0.4608 blend=0.496s entry_score=0.148
+match | accepted | confidence=0.90 | genre=WA:0.72 | bpm=121.0 | tracks=[JB0:0.62, JB3:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.59 | tags=[Latin---Ranchera, Latin---Mariachi, Reggae---Rocksteady]
+Motion switch complete: gWA_sBM_cAll_d25_mWA3_ch02 (GMR artifact)
+music | bpm=121.0 | speed=1.00x | amp=0.73 | rms/gate=0.0440/0.0020 | beat=1 accepted=1 conf=0.45 contrast=0.79 result=accepted | bright=0.18 | bands=0.53/0.47/0.01 | rhythm=0.53 | offbeat=0.61
+match | accepted | confidence=0.94 | genre=WA:0.77 | bpm=121.0 | tracks=[JB3:0.63, JB0:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Reggae---Rocksteady, Latin---Ranchera, Latin---Mariachi]
+music | bpm=121.0 | speed=1.00x | amp=0.78 | rms/gate=0.1550/0.0020 | beat=1 accepted=1 conf=0.84 contrast=0.38 result=accepted | bright=0.17 | bands=0.18/0.81/0.01 | rhythm=0.53 | offbeat=0.58
+match | accepted | confidence=0.96 | genre=WA:0.77 | bpm=121.0 | tracks=[JB3:0.63, JB0:0.63, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Reggae---Rocksteady, Reggae---Ska, Reggae---Reggae]
+music | bpm=121.0 | speed=1.00x | amp=0.67 | rms/gate=0.1280/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.82 result=accepted | bright=0.21 | bands=0.62/0.36/0.01 | rhythm=0.53 | offbeat=0.56
+match | accepted | confidence=0.96 | genre=WA:0.77 | bpm=121.0 | tracks=[JB3:0.64, JB0:0.63, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Reggae---Rocksteady, Reggae---Ska, Reggae---Reggae]
+music | bpm=121.0 | speed=1.00x | amp=0.82 | rms/gate=0.1699/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.18 result=accepted | bright=0.14 | bands=0.29/0.70/0.01 | rhythm=0.50 | offbeat=0.50
+Switching (forced_end): gWA_sBM_cAll_d25_mWA3_ch02 -> gWA_sBM_cAll_d26_mWA5_ch02 entry=0.1403 blend=0.496s entry_score=0.129
+match | accepted | confidence=0.94 | genre=WA:0.75 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.63, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.59 | tags=[Reggae---Rocksteady, Reggae---Ska, Latin---Mariachi]
+Motion switch complete: gWA_sBM_cAll_d26_mWA5_ch02 (GMR artifact)
+music | bpm=121.0 | speed=1.00x | amp=0.75 | rms/gate=0.1778/0.0020 | beat=1 accepted=1 conf=0.86 contrast=0.79 result=accepted | bright=0.14 | bands=0.84/0.16/0.01 | rhythm=0.50 | offbeat=0.50
+match | accepted | confidence=0.95 | genre=WA:0.76 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.61, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.60 | tags=[Latin---Mariachi, Latin---Ranchera, Reggae---Rocksteady]
+music | bpm=121.0 | speed=1.00x | amp=0.83 | rms/gate=0.2096/0.0020 | beat=1 accepted=1 conf=0.97 contrast=0.06 result=accepted | bright=0.18 | bands=0.31/0.67/0.02 | rhythm=0.51 | offbeat=0.55
+match | accepted | confidence=0.95 | genre=WA:0.76 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.61, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.61 | tags=[Latin---Mariachi, Latin---Ranchera, Reggae---Rocksteady]
+music | bpm=121.0 | speed=1.00x | amp=0.78 | rms/gate=0.1725/0.0020 | beat=1 accepted=1 conf=0.73 contrast=0.74 result=accepted | bright=0.22 | bands=0.51/0.46/0.03 | rhythm=0.51 | offbeat=0.63
+match | accepted | confidence=0.94 | genre=WA:0.75 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.61, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.60 | tags=[Latin---Mariachi, Latin---Ranchera, Latin---Cumbia]
+music | bpm=121.0 | speed=1.00x | amp=0.84 | rms/gate=0.2238/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.18 result=accepted | bright=0.18 | bands=0.39/0.59/0.01 | rhythm=0.51 | offbeat=0.64
+match | accepted | confidence=0.91 | genre=WA:0.73 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.61, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.60 | tags=[Latin---Mariachi, Latin---Ranchera, Latin---Cumbia]
+music | bpm=121.0 | speed=1.00x | amp=0.72 | rms/gate=0.2121/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.71 result=accepted | bright=0.20 | bands=0.84/0.15/0.01 | rhythm=0.50 | offbeat=0.58
+match | accepted | confidence=0.97 | genre=WA:0.76 | bpm=121.0 | tracks=[JB0:0.62, JB3:0.62, JB5:0.61] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Latin---Mariachi, Latin---Ranchera, Latin---Cumbia]
+Switching (forced_end): gWA_sBM_cAll_d26_mWA5_ch02 -> gWA_sBM_cAll_d26_mWA4_ch02 entry=0.3152 blend=0.496s entry_score=0.169
+music | bpm=121.0 | speed=1.00x | amp=0.87 | rms/gate=0.1588/0.0020 | beat=1 accepted=1 conf=0.94 contrast=0.21 result=accepted | bright=0.17 | bands=0.27/0.72/0.01 | rhythm=0.50 | offbeat=0.55
+Motion switch complete: gWA_sBM_cAll_d26_mWA4_ch02 (GMR artifact)
+match | accepted | confidence=0.97 | genre=WA:0.75 | bpm=121.0 | tracks=[JB3:0.63, JB0:0.63, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.60 | tags=[Latin---Mariachi, Reggae---Rocksteady, Latin---Cumbia]
+music | bpm=121.0 | speed=1.00x | amp=0.78 | rms/gate=0.1659/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.56 result=accepted | bright=0.19 | bands=0.78/0.20/0.03 | rhythm=0.50 | offbeat=0.55
+match | accepted | confidence=0.93 | genre=WA:0.74 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.63, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.60 | tags=[Latin---Mariachi, Reggae---Rocksteady, Reggae---Reggae]
+music | bpm=121.0 | speed=1.00x | amp=0.86 | rms/gate=0.1045/0.0020 | beat=1 accepted=1 conf=0.81 contrast=0.26 result=accepted | bright=0.17 | bands=0.41/0.58/0.02 | rhythm=0.53 | offbeat=0.50
+match | accepted | confidence=0.93 | genre=WA:0.74 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.63, JB5:0.61] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.60 | tags=[Latin---Mariachi, Latin---Ranchera, Reggae---Rocksteady]
+music | bpm=121.0 | speed=1.00x | amp=0.75 | rms/gate=0.1807/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.82 result=accepted | bright=0.15 | bands=0.94/0.06/0.01 | rhythm=0.53 | offbeat=0.54
+match | accepted | confidence=0.96 | genre=WA:0.75 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.62, JB5:0.60] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.61 | tags=[Latin---Mariachi, Latin---Ranchera, Latin---Merengue]
+music | bpm=121.0 | speed=1.00x | amp=0.85 | rms/gate=0.1941/0.0020 | beat=1 accepted=1 conf=0.94 contrast=0.15 result=accepted | bright=0.19 | bands=0.37/0.61/0.02 | rhythm=0.53 | offbeat=0.53
+Switching (forced_end): gWA_sBM_cAll_d26_mWA4_ch02 -> gWA_sBM_cAll_d25_mWA3_ch02 entry=0.2199 blend=0.496s entry_score=0.116
+match | accepted | confidence=0.96 | genre=WA:0.76 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.61, JB5:0.60] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.61 | tags=[Latin---Mariachi, Latin---Ranchera, Rock---Pop Rock]
+music | bpm=121.0 | speed=1.00x | amp=0.75 | rms/gate=0.1280/0.0020 | beat=1 accepted=1 conf=0.89 contrast=0.53 result=too-early | bright=0.21 | bands=0.70/0.28/0.01 | rhythm=0.51 | offbeat=0.59
+Motion switch complete: gWA_sBM_cAll_d25_mWA3_ch02 (GMR artifact)
+match | accepted | confidence=0.95 | genre=WA:0.76 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.61, JB5:0.60] | motion=gWA_sBM_cAll_d26_mWA4_ch02:0.61 | tags=[Latin---Mariachi, Latin---Ranchera, Folk, World, & Country---Country]
+music | bpm=121.0 | speed=1.00x | amp=0.81 | rms/gate=0.1210/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.32 result=accepted | bright=0.17 | bands=0.54/0.44/0.02 | rhythm=0.52 | offbeat=0.53
+match | accepted | confidence=0.94 | genre=WA:0.77 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.61, JB5:0.60] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.61 | tags=[Latin---Mariachi, Latin---Ranchera, Latin---Cumbia]
+music | bpm=121.0 | speed=1.00x | amp=0.72 | rms/gate=0.0917/0.0020 | beat=1 accepted=1 conf=0.78 contrast=0.79 result=accepted | bright=0.22 | bands=0.62/0.36/0.02 | rhythm=0.50 | offbeat=0.48
+match | accepted | confidence=0.95 | genre=WA:0.79 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.61, JB5:0.59] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.62 | tags=[Latin---Mariachi, Latin---Ranchera, Reggae---Reggae]
+music | bpm=121.0 | speed=1.00x | amp=0.85 | rms/gate=0.1397/0.0020 | beat=1 accepted=1 conf=0.90 contrast=0.38 result=accepted | bright=0.18 | bands=0.40/0.58/0.02 | rhythm=0.51 | offbeat=0.54
+match | accepted | confidence=0.95 | genre=WA:0.78 | bpm=121.0 | tracks=[JB0:0.63, JB3:0.62, JB5:0.59] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.61 | tags=[Latin---Mariachi, Reggae---Reggae, Reggae---Rocksteady]
+music | bpm=121.0 | speed=1.00x | amp=0.75 | rms/gate=0.2135/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.71 result=accepted | bright=0.19 | bands=0.51/0.47/0.02 | rhythm=0.51 | offbeat=0.55
+match | accepted | confidence=0.94 | genre=WA:0.75 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.62, JB5:0.60] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Latin---Mariachi, Reggae---Reggae, Latin---Ranchera]
+music | bpm=121.0 | speed=1.00x | amp=0.87 | rms/gate=0.1987/0.0020 | beat=1 accepted=1 conf=0.83 contrast=0.18 result=accepted | bright=0.20 | bands=0.27/0.72/0.01 | rhythm=0.50 | offbeat=0.51
+Switching (forced_end): gWA_sBM_cAll_d25_mWA3_ch02 -> gWA_sBM_cAll_d26_mWA5_ch02 entry=0.1403 blend=0.496s entry_score=0.129
+match | accepted | confidence=0.96 | genre=WA:0.73 | bpm=121.0 | tracks=[JB0:0.64, JB3:0.63, JB5:0.60] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Latin---Ranchera, Latin---Mariachi, Reggae---Rocksteady]
+Pending motion (diversity): gWA_sBM_cAll_d26_mWA5_ch02 score=0.591 music=0.520 held=3 bar(s) pool=[gWA_sBM_cAll_d26_mWA5_ch02:0.591/0.520, gWA_sBM_cAll_d26_mWA4_ch02:0.587/0.486]
+music | bpm=121.0 | speed=1.00x | amp=0.73 | rms/gate=0.1484/0.0020 | beat=1 accepted=1 conf=0.81 contrast=0.56 result=too-early | bright=0.23 | bands=0.75/0.23/0.02 | rhythm=0.49 | offbeat=0.50
+Motion switch complete: gWA_sBM_cAll_d26_mWA5_ch02 (GMR artifact)
+match | accepted | confidence=0.95 | genre=WA:0.73 | bpm=121.0 | tracks=[JB3:0.64, JB0:0.63, JB5:0.60] | motion=gWA_sBM_cAll_d25_mWA3_ch02:0.60 | tags=[Reggae---Rocksteady, Reggae---Reggae, Funk / Soul---Funk]
+music | bpm=121.0 | speed=1.00x | amp=0.89 | rms/gate=0.1334/0.0020 | beat=1 accepted=1 conf=0.78 contrast=0.56 result=accepted | bright=0.21 | bands=0.45/0.52/0.02 | rhythm=0.53 | offbeat=0.50
+match | accepted | confidence=0.92 | genre=WA:0.74 | bpm=121.0 | tracks=[JB3:0.64, JB0:0.62, LO2:0.60] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.60 | tags=[Reggae---Rocksteady, Reggae---Reggae, Blues---Country Blues]
+music | bpm=121.0 | speed=1.00x | amp=0.81 | rms/gate=0.1065/0.0020 | beat=1 accepted=1 conf=0.80 contrast=0.68 result=too-early | bright=0.25 | bands=0.65/0.33/0.02 | rhythm=0.50 | offbeat=0.50
+match | accepted | confidence=0.94 | genre=WA:0.75 | bpm=121.0 | tracks=[JB3:0.64, JB0:0.62, LO2:0.60] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.60 | tags=[Reggae---Rocksteady, Reggae---Reggae, Reggae---Ska]
+music | bpm=121.0 | speed=1.00x | amp=0.92 | rms/gate=0.1287/0.0020 | beat=1 accepted=1 conf=0.75 contrast=0.47 result=too-early | bright=0.19 | bands=0.24/0.75/0.01 | rhythm=0.50 | offbeat=0.44
+match | accepted | confidence=0.96 | genre=WA:0.77 | bpm=121.0 | tracks=[JB3:0.64, LO2:0.61, JB0:0.61] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.61 | tags=[Reggae---Rocksteady, Reggae---Reggae, Reggae---Ska]
+music | bpm=121.0 | speed=1.00x | amp=0.81 | rms/gate=0.0874/0.0020 | beat=1 accepted=1 conf=0.89 contrast=0.79 result=accepted | bright=0.24 | bands=0.57/0.41/0.02 | rhythm=0.49 | offbeat=0.44
+Switching (forced_end): gWA_sBM_cAll_d26_mWA5_ch02 -> gWA_sBM_cAll_d26_mWA4_ch02 entry=0.3152 blend=0.496s entry_score=0.169
+match | accepted | confidence=0.96 | genre=WA:0.78 | bpm=121.0 | tracks=[JB3:0.62, LO2:0.61, JB0:0.60] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.61 | tags=[Reggae---Rocksteady, Reggae---Reggae, Reggae---Ska]
+music | bpm=121.0 | speed=1.00x | amp=0.96 | rms/gate=0.1818/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.21 result=accepted | bright=0.25 | bands=0.26/0.66/0.08 | rhythm=0.50 | offbeat=0.54
+Motion switch complete: gWA_sBM_cAll_d26_mWA4_ch02 (GMR artifact)
+match | accepted | confidence=0.96 | genre=WA:0.78 | bpm=121.0 | tracks=[JB3:0.61, LO2:0.60, JB0:0.60] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.61 | tags=[Reggae---Rocksteady, Latin---Mariachi, Reggae---Reggae]
+music | bpm=121.0 | speed=1.00x | amp=0.82 | rms/gate=0.1341/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.91 result=accepted | bright=0.32 | bands=0.47/0.41/0.13 | rhythm=0.49 | offbeat=0.55
+match | accepted | confidence=0.96 | genre=WA:0.76 | bpm=121.0 | tracks=[JB3:0.61, JB0:0.60, LO2:0.59] | motion=gWA_sBM_cAll_d26_mWA5_ch02:0.61 | tags=[Latin---Mariachi, Latin---Ranchera, Reggae---Rocksteady]
+music | bpm=121.0 | speed=1.00x | amp=0.87 | rms/gate=0.1479/0.0020 | beat=1 accepted=1 conf=0.99 contrast=0.18 result=accepted | bright=0.25 | bands=0.41/0.53/0.05 | rhythm=0.50 | offbeat=0.51

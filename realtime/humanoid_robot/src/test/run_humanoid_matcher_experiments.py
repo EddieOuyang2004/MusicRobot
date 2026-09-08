@@ -15,6 +15,7 @@ import json
 import math
 import os
 import platform
+import shutil
 import shlex
 import subprocess
 import sys
@@ -70,6 +71,7 @@ DEFAULT_OUTPUT = TEST_DIR / "output" / "humanoid_matcher_experiment"
 MATCHER_ENTRYPOINT = SRC_DIR / "realtime_music_humanoid_matcher.py"
 STITCHED_MANIFEST = HUMANOID_DIR / "data" / "test_audio" / "aistpp_stitched_test.json"
 AUDIO_SUFFIXES = {".wav", ".mp3", ".flac", ".ogg", ".opus", ".m4a"}
+TRACE_DURATION_TOLERANCE_SECONDS = 0.1
 
 
 def parse_args() -> argparse.Namespace:
@@ -90,7 +92,18 @@ def parse_args() -> argparse.Namespace:
         default="none",
     )
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Reuse only complete, validated run artifacts and retry everything else.",
+    )
     parser.add_argument("--max-runs", type=int)
+    parser.add_argument(
+        "--max-attempts",
+        type=int,
+        default=2,
+        help="Maximum attempts for each incomplete run (default: 2).",
+    )
     parser.add_argument("--max-seconds", type=float)
     parser.add_argument("--no-audio-evaluation", action="store_true")
     return parser.parse_args()
@@ -102,6 +115,19 @@ def file_sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def atomic_replace(source: Path, destination: Path, attempts: int = 20) -> None:
+    """Replace a file atomically, tolerating short Windows scanner locks."""
+
+    for attempt in range(max(attempts, 1)):
+        try:
+            os.replace(source, destination)
+            return
+        except PermissionError:
+            if attempt + 1 >= attempts:
+                raise
+            time.sleep(0.05)
 
 
 def package_version(name: str) -> str | None:
@@ -119,6 +145,7 @@ def command_output(command: list[str]) -> str | None:
             check=False,
             capture_output=True,
             text=True,
+            errors="replace",
             timeout=10,
         )
     except (OSError, subprocess.SubprocessError):
@@ -162,6 +189,14 @@ def environment_manifest(
                 "sha256": file_sha256(path) if path.is_file() else None,
             }
     git_status = command_output(["git", "status", "--short"])
+    implementation_paths = {
+        "catalog_matcher": SRC_DIR / "music_motion_catalog.py",
+        "realtime_matcher": MATCHER_ENTRYPOINT,
+        "realtime_dancer": SRC_DIR / "realtime_music_humanoid_dancer.py",
+        "robot_motion": SRC_DIR / "robot_motion.py",
+        "experiment_metrics": TEST_DIR / "humanoid_matcher_experiment_metrics.py",
+        "experiment_runner": Path(__file__).resolve(),
+    }
     return {
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "git_commit": command_output(["git", "rev-parse", "HEAD"]),
@@ -171,6 +206,11 @@ def environment_manifest(
         "python": platform.python_version(),
         "processor": platform.processor(),
         "logical_cpu_count": os.cpu_count(),
+        "windows_power_scheme": (
+            command_output(["powercfg", "/getactivescheme"])
+            if os.name == "nt"
+            else None
+        ),
         "gpu": command_output(
             [
                 "nvidia-smi",
@@ -191,6 +231,9 @@ def environment_manifest(
             ),
         },
         "models": models,
+        "implementation_sha256": {
+            name: file_sha256(path) for name, path in implementation_paths.items()
+        },
         "protocol": {"path": str(protocol_path), "sha256": file_sha256(protocol_path)},
         "output_schema": {
             "path": str(DEFAULT_SCHEMA),
@@ -518,6 +561,25 @@ def literature_music_ids(catalog: MusicCatalog, clips_per_genre: int) -> list[st
     ]
 
 
+def literature_items(
+    catalog: MusicCatalog,
+    clips_per_genre: int,
+) -> list[tuple[str, Path, str]]:
+    """Freeze each literature music ID to one deterministic ground-truth motion."""
+
+    items = []
+    for music_id in literature_music_ids(catalog, clips_per_genre):
+        motions = sorted(
+            profile.motion_id
+            for profile in catalog.motions.values()
+            if profile.music_id == music_id and profile.preflight_passed
+        )
+        if not motions:
+            raise ValueError(f"No preflight-passed motion for literature item {music_id}")
+        items.append((music_id, track_audio_path(catalog, music_id), motions[0]))
+    return items
+
+
 def run_matrix(
     suite: str,
     catalog: MusicCatalog,
@@ -526,14 +588,21 @@ def run_matrix(
 ) -> list[dict[str, Any]]:
     seeds = list(protocol["seeds"])
     full_condition = {"name": "full", "arguments": []}
+    ground_truth_by_source: dict[str, str] = {}
     if suite == "smoke":
         music_ids = literature_music_ids(catalog, 1)[:1]
         sources = [(music_ids[0], track_audio_path(catalog, music_ids[0]))]
         conditions = [full_condition]
         seeds = seeds[:1]
     elif suite == "literature":
-        music_ids = literature_music_ids(catalog, protocol["literature"]["clips_per_genre"])
-        sources = [(music_id, track_audio_path(catalog, music_id)) for music_id in music_ids]
+        fixed_items = literature_items(
+            catalog,
+            protocol["literature"]["clips_per_genre"],
+        )
+        sources = [(music_id, audio) for music_id, audio, _motion_id in fixed_items]
+        ground_truth_by_source = {
+            music_id: motion_id for music_id, _audio, motion_id in fixed_items
+        }
         conditions = [full_condition]
     elif suite == "full":
         sources = [
@@ -559,7 +628,14 @@ def run_matrix(
     else:
         return []
     return [
-        {"condition": condition["name"], "condition_arguments": condition["arguments"], "seed": seed, "source_id": source_id, "audio": audio}
+        {
+            "condition": condition["name"],
+            "condition_arguments": condition["arguments"],
+            "seed": seed,
+            "source_id": source_id,
+            "audio": audio,
+            "ground_truth_motion_id": ground_truth_by_source.get(source_id),
+        }
         for condition in conditions
         for seed in seeds
         for source_id, audio in sources
@@ -582,12 +658,161 @@ def write_repeated_audio(
         raise ValueError(f"Cannot repeat empty audio: {source}")
     repeated = np.resize(np.asarray(samples, dtype=np.float32), required)
     pcm = np.round(np.clip(repeated, -1.0, 1.0) * 32767.0).astype("<i2")
-    with wave.open(str(destination), "wb") as handle:
+    temporary = destination.with_suffix(".tmp.wav")
+    with wave.open(str(temporary), "wb") as handle:
         handle.setnchannels(1)
         handle.setsampwidth(2)
         handle.setframerate(sample_rate)
         handle.writeframes(pcm.tobytes())
+    atomic_replace(temporary, destination)
     return destination
+
+
+def prepare_short_audio_inputs(
+    matrix: list[dict[str, Any]],
+    output_dir: Path,
+    *,
+    required_seconds: float,
+    sample_rate: int,
+    dry_run: bool,
+) -> list[dict[str, Any]]:
+    """Repeat only source files that cannot cover the registered run duration."""
+
+    duration_cache: dict[Path, float] = {}
+    repeated_cache: dict[Path, Path] = {}
+    generated_root = output_dir / "generated_streams"
+    for item in matrix:
+        source = Path(item["audio"]).resolve()
+        if source not in duration_cache:
+            samples = load_audio_mono(source, sample_rate)
+            if not samples.size:
+                raise ValueError(f"Cannot evaluate empty audio: {source}")
+            duration_cache[source] = len(samples) / float(sample_rate)
+        source_duration = duration_cache[source]
+        item["required_duration_seconds"] = float(required_seconds)
+        item["source_audio_duration_seconds"] = float(source_duration)
+        item["original_audio"] = source
+        if source_duration + TRACE_DURATION_TOLERANCE_SECONDS >= required_seconds:
+            item["audio_was_repeated"] = False
+            continue
+        if source not in repeated_cache:
+            digest = hashlib.sha256(str(source).encode("utf-8")).hexdigest()[:10]
+            destination = generated_root / (
+                f"{source.stem}_{digest}_{required_seconds:g}s_repeated.wav"
+            )
+            if not dry_run:
+                write_repeated_audio(
+                    source,
+                    destination,
+                    seconds=required_seconds + 1.0,
+                    sample_rate=sample_rate,
+                )
+            repeated_cache[source] = destination
+        item["audio"] = repeated_cache[source]
+        item["audio_was_repeated"] = True
+    return matrix
+
+
+def _finite_csv_float(row: Mapping[str, str], key: str) -> float | None:
+    try:
+        value = float(row.get(key, ""))
+    except (TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) else None
+
+
+def validate_run_artifacts(
+    trace: Path,
+    timing: Path,
+    pose: Path,
+    log: Path,
+    *,
+    minimum_duration_seconds: float | None = None,
+) -> tuple[bool, list[str]]:
+    """Return whether a run has every non-empty, parseable canonical artifact."""
+
+    errors = []
+    try:
+        with trace.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            first = next(reader, None)
+            if first is None or "audio_time_seconds" not in (reader.fieldnames or []):
+                errors.append("trace has no data rows or required header")
+            elif minimum_duration_seconds is not None:
+                trace_times = [_finite_csv_float(first, "audio_time_seconds")]
+                trace_times.extend(
+                    _finite_csv_float(row, "audio_time_seconds") for row in reader
+                )
+                finite_times = [value for value in trace_times if value is not None]
+                maximum_time = max(finite_times, default=0.0)
+                if (
+                    maximum_time + TRACE_DURATION_TOLERANCE_SECONDS
+                    < float(minimum_duration_seconds)
+                ):
+                    errors.append(
+                        f"trace ends at {maximum_time:.3f}s; expected at least "
+                        f"{float(minimum_duration_seconds):.3f}s"
+                    )
+    except (OSError, UnicodeError) as error:
+        errors.append(f"trace: {error}")
+    try:
+        timing_data = json.loads(timing.read_text(encoding="utf-8"))
+        if int(timing_data.get("iterations", 0)) <= 0:
+            errors.append("timing iterations is not positive")
+    except (OSError, UnicodeError, ValueError, TypeError) as error:
+        errors.append(f"timing: {error}")
+    try:
+        with np.load(pose, allow_pickle=False) as archive:
+            required = {"time_seconds", "joint_positions", "motion_ids"}
+            if not required <= set(archive.files):
+                errors.append("pose archive is missing required arrays")
+            elif len(archive["time_seconds"]) < 2:
+                errors.append("pose archive has fewer than two frames")
+            elif minimum_duration_seconds is not None:
+                maximum_time = float(np.max(archive["time_seconds"]))
+                if (
+                    maximum_time + TRACE_DURATION_TOLERANCE_SECONDS
+                    < float(minimum_duration_seconds)
+                ):
+                    errors.append(
+                        f"pose ends at {maximum_time:.3f}s; expected at least "
+                        f"{float(minimum_duration_seconds):.3f}s"
+                    )
+    except (OSError, ValueError, TypeError) as error:
+        errors.append(f"pose: {error}")
+    if not log.is_file():
+        errors.append("log file is missing")
+    return not errors, errors
+
+
+def archive_incomplete_run_artifacts(stem: str, paths: Iterable[Path], runs_root: Path) -> Path:
+    """Move a previous failed/incomplete attempt aside before retrying it."""
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
+    # Keep the full run key in filenames, not twice in the archive path:
+    # long ablation names otherwise exceed Windows' legacy MAX_PATH limit.
+    archive_key = hashlib.sha256(stem.encode("utf-8")).hexdigest()[:16]
+    destination = runs_root / "failed_attempts" / archive_key / timestamp
+    destination.mkdir(parents=True, exist_ok=False)
+    for path in paths:
+        if path.exists():
+            shutil.move(str(path), str(destination / path.name))
+    return destination
+
+
+def experiment_subprocess_env() -> dict[str, str]:
+    """Match redirected Python stdout/stderr to the UTF-8 experiment logs."""
+    env = os.environ.copy()
+    # The parent's TextIO encoding does not configure a child's inherited fd.
+    env["PYTHONIOENCODING"] = "utf-8"
+    # Realtime runs already parallelise PLP and retrieval at the process level.
+    # Prevent BLAS/OpenMP inside either worker from oversubscribing the machine
+    # and pre-empting the latency-critical control process.
+    env["OMP_NUM_THREADS"] = "1"
+    env["OPENBLAS_NUM_THREADS"] = "1"
+    env["MKL_NUM_THREADS"] = "1"
+    env["NUMEXPR_NUM_THREADS"] = "1"
+    return env
 
 
 def execute_runs(
@@ -597,12 +822,65 @@ def execute_runs(
     *,
     max_seconds: float,
     dry_run: bool,
+    resume: bool,
+    suite: str,
+    max_attempts: int,
+    artifact_validator=None,
+    before_run=None,
+    require_completed_status: bool = False,
+    stop_on_failure: bool = False,
+    control_rate_hz: float = 120.0,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    validator = artifact_validator or validate_run_artifacts
     results = []
     failures = []
     runs_root = output_dir / "runs"
     runs_root.mkdir(parents=True, exist_ok=True)
+    previous_status_path = output_dir / "run_status.json"
+    attempt_history: list[dict[str, Any]] = []
+    previous_run_by_key: dict[str, dict[str, Any]] = {}
+    if previous_status_path.is_file():
+        try:
+            previous_status = json.loads(previous_status_path.read_text(encoding="utf-8"))
+            if previous_status.get("suite") == suite:
+                attempt_history.extend(previous_status.get("attempt_history", []))
+                previous_run_by_key = {
+                    str(run.get("run_key")): run
+                    for run in previous_status.get("runs", [])
+                    if run.get("run_key")
+                }
+        except (OSError, ValueError, TypeError):
+            pass
+
+    def atomic_status_write() -> None:
+        status_path = output_dir / "run_status.json"
+        temporary = status_path.with_suffix(".json.tmp")
+        persisted_results = results
+        if require_completed_status:
+            # An interruption while replaying the completed prefix must not
+            # erase status/provenance for valid later runs in the same suite.
+            visited = {record['run_key'] for record in results}
+            persisted_results = [*results, *(record for key, record in previous_run_by_key.items() if key not in visited)]
+        payload = {
+            "schema_version": 1,
+            "suite": suite,
+            "expected_runs": len(matrix),
+            "updated_utc": datetime.now(timezone.utc).isoformat(),
+            "runs": persisted_results,
+            "failures": failures,
+            "attempt_history": attempt_history,
+        }
+        temporary.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        atomic_replace(temporary, status_path)
+
     for index, item in enumerate(matrix):
+        if before_run is not None:
+            before_run()
+        if require_completed_status:
+            print(f"[{suite} {index + 1}/{len(matrix)}] {item['condition']} seed={item['seed']} {item['source_id']}", flush=True)
         stem = f"{index:04d}_{item['condition']}_s{item['seed']}_{item['source_id']}"
         trace = runs_root / f"{stem}.csv"
         timing = runs_root / f"{stem}_timing.json"
@@ -620,13 +898,15 @@ def execute_runs(
             "--max-seconds",
             str(max_seconds),
             "--control-rate-hz",
-            "120",
+            str(float(control_rate_hz)),
             "--runtime-collision-check",
             "always",
             "--match-window-seconds",
             "6",
             "--match-interval-seconds",
             "1",
+            "--experiment-warmup-seconds",
+            "6",
             "--initial-motion-seed",
             str(item["seed"]),
             "--trace-csv",
@@ -644,31 +924,130 @@ def execute_runs(
             "timing": str(timing),
             "log": str(log),
             "pose": str(pose),
+            "run_key": stem,
         }
         if dry_run:
             record.update({"status": "dry_run", "returncode": None})
             results.append(record)
+            atomic_status_write()
             continue
-        started = time.perf_counter()
-        with log.open("w", encoding="utf-8") as handle:
-            completed = subprocess.run(
-                command,
-                cwd=ROOT,
-                stdout=handle,
-                stderr=subprocess.STDOUT,
-                check=False,
-                text=True,
+        if resume:
+            valid, validation_errors = validator(
+                trace,
+                timing,
+                pose,
+                log,
+                minimum_duration_seconds=float(
+                    item.get("required_duration_seconds", max_seconds)
+                ),
             )
-        record.update(
-            {
-                "status": "completed" if completed.returncode == 0 else "failed",
-                "returncode": completed.returncode,
-                "wall_seconds": time.perf_counter() - started,
-            }
-        )
+            previous_record = previous_run_by_key.get(stem, {})
+            if require_completed_status and (
+                previous_record.get("status") not in {"completed", "reused"}
+                or previous_record.get("cohort_identity") != item.get("cohort_identity")
+                or previous_record.get("prepared_audio_sha256") != item.get("prepared_audio_sha256")
+                or previous_record.get("command") != record["command"]
+            ):
+                valid = False
+                validation_errors.append("No completed status with matching cohort and command")
+            if require_completed_status and valid:
+                actual_hashes = {key: file_sha256(Path(record[key])) for key in ("trace", "timing", "pose", "log")}
+                if previous_record.get("artifact_sha256") != actual_hashes:
+                    valid = False
+                    validation_errors.append("Artifact hashes differ from completed status")
+                else:
+                    record["artifact_sha256"] = actual_hashes
+            if valid:
+                record.update(
+                    {
+                        "status": "reused",
+                        "returncode": 0,
+                        "validation": "complete",
+                    }
+                )
+                results.append(record)
+                atomic_status_write()
+                continue
+            if any(path.exists() for path in (trace, timing, pose, log)):
+                record["previous_artifact_errors"] = validation_errors
+                previous_record = previous_run_by_key.get(stem)
+                if previous_record and previous_record.get("status") != "dry_run":
+                    attempt_history.append(copy.deepcopy(previous_record))
+                archive_path = archive_incomplete_run_artifacts(
+                    stem,
+                    (trace, timing, pose, log),
+                    runs_root,
+                )
+                record["archived_previous_artifacts"] = str(archive_path)
+                attempt_history.append(
+                    {
+                        "run_key": stem,
+                        "status": "incomplete_previous_attempt",
+                        "artifact_errors": validation_errors,
+                        "archive": str(archive_path),
+                        "recorded_utc": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+        record["status"] = "running"
+        record["started_utc"] = datetime.now(timezone.utc).isoformat()
         results.append(record)
-        if completed.returncode != 0:
+        atomic_status_write()
+        for attempt in range(1, max(int(max_attempts), 1) + 1):
+            record["attempt"] = attempt
+            record["status"] = "running"
+            record["started_utc"] = datetime.now(timezone.utc).isoformat()
+            atomic_status_write()
+            started = time.perf_counter()
+            with log.open("w", encoding="utf-8") as handle:
+                completed = subprocess.run(
+                    command,
+                    cwd=ROOT,
+                    stdout=handle,
+                    stderr=subprocess.STDOUT,
+                    check=False,
+                    text=True,
+                    env=experiment_subprocess_env(),
+                )
+            record.update(
+                {
+                    "status": "completed" if completed.returncode == 0 else "failed",
+                    "returncode": completed.returncode,
+                    "wall_seconds": time.perf_counter() - started,
+                    "finished_utc": datetime.now(timezone.utc).isoformat(),
+                }
+            )
+            valid, validation_errors = validator(
+                trace,
+                timing,
+                pose,
+                log,
+                minimum_duration_seconds=float(
+                    item.get("required_duration_seconds", max_seconds)
+                ),
+            )
+            if completed.returncode == 0 and not valid:
+                record["status"] = "invalid"
+                record["artifact_errors"] = validation_errors
+            if record["status"] == "completed" and require_completed_status:
+                record["artifact_sha256"] = {
+                    key: file_sha256(Path(record[key])) for key in ("trace", "timing", "pose", "log")}
+            atomic_status_write()
+            if record["status"] == "completed":
+                break
+            attempt_record = copy.deepcopy(record)
+            if attempt < max(int(max_attempts), 1):
+                archive_path = archive_incomplete_run_artifacts(
+                    stem,
+                    (trace, timing, pose, log),
+                    runs_root,
+                )
+                attempt_record["archive"] = str(archive_path)
+            attempt_history.append(attempt_record)
+        if record["status"] not in {"completed", "reused"}:
             failures.append(record)
+        atomic_status_write()
+        if failures and stop_on_failure:
+            break
     return results, failures
 
 
@@ -685,8 +1064,18 @@ def acceptance_report(timing: Mapping[str, Any], protocol: Mapping[str, Any]) ->
         ]
         return max(values, default=None)
 
-    def add_check(name: str, observed: float | None, *, relation: str = "max") -> None:
-        limit = float(constraints[name])
+    def add_check(
+        name: str,
+        observed: float | None,
+        *,
+        relation: str = "max",
+        limit_override: float | None = None,
+    ) -> None:
+        limit = (
+            float(constraints[name])
+            if limit_override is None
+            else float(limit_override)
+        )
         tolerance = max(abs(limit) * 1e-9, 1e-9)
         if observed is None:
             passed = False
@@ -733,6 +1122,19 @@ def acceptance_report(timing: Mapping[str, Any], protocol: Mapping[str, Any]) ->
     )
     return {
         "checks": checks,
+        "intervention_diagnostics": {
+            "collision_dynamics_infeasible_max": maximum(
+                "collision_dynamics_infeasible"
+            ),
+            "collision_projection_fallbacks_max": maximum(
+                "collision_projection_fallbacks"
+            ),
+            "interpretation": (
+                "Intervention counters describe safe fallback use; the safety "
+                "contract is evaluated on final emitted pose clearance, joint "
+                "limits, speed and acceleration."
+            ),
+        },
         "all_evaluated": bool(checks) and all(check["evaluated"] for check in checks),
         "all_evaluated_passed": bool(checks) and all(check["passed"] for check in checks),
         "note": "Unevaluated constraints are not silently counted as passes.",
@@ -761,6 +1163,23 @@ def stitched_change_spec(path: Path = STITCHED_MANIFEST) -> tuple[list[float], l
     return change_times, genres
 
 
+def repeated_stitched_changes(duration: float, path: Path = STITCHED_MANIFEST):
+    times, genres = stitched_change_spec(path)
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    segments = manifest["segments"]
+    period = sum(float(s["duration_seconds"]) for s in segments) - float(manifest.get("crossfade_seconds", 0)) * (len(segments) - 1)
+    if period <= 0:
+        raise ValueError("Invalid stitched period")
+    first = Path(segments[0]["source"]).stem[1:3]
+    events = []
+    for cycle in range(int(duration / period) + 1):
+        if cycle:
+            events.append((cycle * period, first))
+        events.extend((cycle * period + t, genre) for t, genre in zip(times, genres))
+    events = sorted((t, g) for t, g in events if 0 < t < duration)
+    return [t for t, _ in events], [g for _, g in events]
+
+
 def response_reports(
     run_results: Iterable[Mapping[str, Any]],
     protocol: Mapping[str, Any],
@@ -771,7 +1190,8 @@ def response_reports(
         source_id = str(run.get("source_id", ""))
         expected_genres: list[str] | None = None
         if source_id in {"aistpp_stitched_test", "aistpp_stitched_longrun"}:
-            change_times, expected_genres = stitched_change_spec()
+            change_times, expected_genres = repeated_stitched_changes(
+                float(run.get("required_duration_seconds", run.get("duration", 40))))
         else:
             change_times = []
             change_manifest = (
@@ -853,22 +1273,45 @@ def ablation_report(
 
     records: dict[tuple[str, int, str], dict[str, float]] = {}
     for run in run_results:
-        if run.get("status") != "completed":
+        if run.get("status") not in {"completed", "reused"}:
             continue
         trace_path = Path(str(run.get("trace", "")))
         timing_path = Path(str(run.get("timing", "")))
         pose_path = Path(str(run.get("pose", "")))
         if not (trace_path.is_file() and timing_path.is_file() and pose_path.is_file()):
             continue
-        trace = aggregate_trace_csv(trace_path, cluster_by_motion)
+        trace = aggregate_trace_csv(
+            trace_path,
+            cluster_by_motion,
+            start_seconds=float(protocol["match_window_seconds"]),
+        )
         timing = json.loads(timing_path.read_text(encoding="utf-8"))
         pose = aggregate_pose_npz(
             pose_path,
             evaluation_fps=float(protocol["literature"]["evaluation_fps"]),
             cluster_by_motion=cluster_by_motion,
+            start_seconds=float(protocol["match_window_seconds"]),
+        )
+        expected_genres = set(
+            str(value)
+            for value in protocol.get("cc0_labels", {})
+            .get(str(run["source_id"]), {})
+            .get("expected_genres", [])
+        )
+        with trace_path.open("r", encoding="utf-8", newline="") as handle:
+            match_genres = [
+                row.get("top_genre", "")
+                for row in csv.DictReader(handle)
+                if row.get("event") == "match"
+            ]
+        genre_recall_at_1 = (
+            sum(value in expected_genres for value in match_genres) / len(match_genres)
+            if expected_genres and match_genres
+            else math.nan
         )
         records[(str(run["condition"]), int(run["seed"]), str(run["source_id"]))] = {
-            "bas_harmonic": float(pose["beat"]["bas_harmonic"]),
+            "genre_recall_at_1": float(genre_recall_at_1),
+            "bas_harmonic": float(pose["beat"]["bas_harmonic"]) if pose["beat"]["bas_harmonic"] is not None else math.nan,
             "normalized_selection_entropy": float(
                 trace["selection"]["normalized_selection_entropy"]
             ),
@@ -895,8 +1338,15 @@ def ablation_report(
         )
         condition_report: dict[str, Any] = {"pairs": len(paired_keys), "metrics": {}}
         for metric in metrics:
-            ablated = [records[(condition, seed, source)][metric] for seed, source in paired_keys]
-            full = [records[("full", seed, source)][metric] for seed, source in paired_keys]
+            # Seeds are repeated measurements, not independent music samples.
+            ablated, full = [], []
+            for source in sorted({source for _, source in paired_keys}):
+                pairs = [(records[(condition, seed, source)][metric], records[("full", seed, source)][metric])
+                         for seed, candidate in paired_keys if candidate == source]
+                pairs = [(a, b) for a, b in pairs if math.isfinite(a) and math.isfinite(b)]
+                if pairs:
+                    ablated.append(float(np.mean([a for a, _ in pairs])))
+                    full.append(float(np.mean([b for _, b in pairs])))
             test = paired_permutation_test(ablated, full)
             key = f"{condition}:{metric}"
             raw_p_values[key] = float(test["p_value"])
@@ -924,9 +1374,23 @@ def ablation_report(
     deadline_increase = -float(
         authored.get("deadline_miss_ratio", {}).get("mean_difference", math.nan)
     )
+    def directional_check(condition: str, metric: str, relation: str) -> dict[str, Any]:
+        comparison = comparisons.get(condition, {}).get("metrics", {}).get(metric, {})
+        difference = float(comparison.get("mean_difference", math.nan))
+        passed = math.isfinite(difference) and (
+            difference < 0.0 if relation == "ablation_lower" else difference > 0.0
+        ) and float(comparison.get("holm_adjusted_p_value", 1.0)) < 0.05
+        return {
+            "condition": condition,
+            "metric": metric,
+            "difference": difference if math.isfinite(difference) else None,
+            "difference_direction": "ablation_minus_full",
+            "expected": relation,
+            "passed": passed,
+        }
     return {
         "evaluated": bool(comparisons),
-        "paired_unit": "source_id + seed",
+        "paired_unit": "source_id, averaging matched seeds before testing",
         "difference_direction": "ablation_minus_full",
         "comparisons": comparisons,
         "quality_checks": {
@@ -940,6 +1404,18 @@ def ablation_report(
                 "limit": float(quality["beat_sync_max_deadline_miss_increase"]),
                 "passed": bool(math.isfinite(deadline_increase)) and deadline_increase <= float(quality["beat_sync_max_deadline_miss_increase"]),
             },
+            "full_recall_exceeds_legacy": directional_check(
+                "legacy_retrieval", "genre_recall_at_1", "ablation_lower"
+            ),
+            "beat_sync_bas_exceeds_authored": directional_check(
+                "authored_timing", "bas_harmonic", "ablation_lower"
+            ),
+            "full_transition_jerk_below_fixed_entry": directional_check(
+                "fixed_entry_simple_transition", "joint_jerk_p95_rad_s3", "ablation_higher"
+            ),
+            "diversity_entropy_exceeds_no_diversity": directional_check(
+                "no_diversity", "normalized_selection_entropy", "ablation_lower"
+            ),
         },
     }
 
@@ -1256,7 +1732,13 @@ def main() -> int:
     failures = []
     for path in args.trace:
         try:
-            trace_reports.append(aggregate_trace_csv(path.resolve(), cluster_by_motion))
+            trace_reports.append(
+                aggregate_trace_csv(
+                    path.resolve(),
+                    cluster_by_motion,
+                    start_seconds=float(protocol["match_window_seconds"]),
+                )
+            )
         except (OSError, ValueError) as error:
             failures.append({"path": str(path), "error": f"{type(error).__name__}: {error}"})
     timing = aggregate_timing_reports(path.resolve() for path in args.timing)
@@ -1269,6 +1751,7 @@ def main() -> int:
                     path.resolve(),
                     evaluation_fps=float(protocol["literature"]["evaluation_fps"]),
                     cluster_by_motion=cluster_by_motion,
+                    start_seconds=float(protocol["match_window_seconds"]),
                 )
             )
         except (OSError, ValueError) as error:
@@ -1280,19 +1763,6 @@ def main() -> int:
         protocol,
         args.cc0_root.resolve(),
     )
-    if args.execute_suite == "longrun":
-        long_seconds = float(args.max_seconds or 600.0)
-        long_audio = output_dir / "generated_streams" / "aistpp_stitched_longrun.wav"
-        if not args.dry_run:
-            write_repeated_audio(
-                Path(matrix[0]["audio"]),
-                long_audio,
-                seconds=long_seconds + float(protocol["match_window_seconds"]),
-                sample_rate=int(catalog.metadata["extractor"]["sample_rate"]),
-            )
-        for item in matrix:
-            item["audio"] = long_audio
-            item["source_id"] = "aistpp_stitched_longrun"
     if args.max_runs is not None:
         matrix = matrix[: max(args.max_runs, 0)]
     default_seconds = {
@@ -1300,15 +1770,45 @@ def main() -> int:
         "literature": protocol["literature"]["clip_seconds"] + protocol["match_window_seconds"],
         "full": 30.0,
         "ablation": 40.0,
-        "longrun": 600.0,
+        "longrun": (
+            protocol["longrun"]["stable_seconds"]
+            + protocol["longrun"]["warmup_seconds"]
+        ),
         "none": 0.0,
     }[args.execute_suite]
+    effective_seconds = float(args.max_seconds or default_seconds)
+    if args.execute_suite == "longrun" and matrix:
+        long_audio = output_dir / "generated_streams" / "aistpp_stitched_longrun.wav"
+        if not args.dry_run:
+            write_repeated_audio(
+                Path(matrix[0]["audio"]),
+                long_audio,
+                seconds=effective_seconds + 1.0,
+                sample_rate=int(catalog.metadata["extractor"]["sample_rate"]),
+            )
+        for item in matrix:
+            item["original_audio"] = item["audio"]
+            item["audio"] = long_audio
+            item["source_id"] = "aistpp_stitched_longrun"
+            item["audio_was_repeated"] = True
+            item["required_duration_seconds"] = effective_seconds
+    elif matrix:
+        prepare_short_audio_inputs(
+            matrix,
+            output_dir,
+            required_seconds=effective_seconds,
+            sample_rate=int(catalog.metadata["extractor"]["sample_rate"]),
+            dry_run=args.dry_run,
+        )
     run_results, run_failures = execute_runs(
         matrix,
         output_dir,
         catalog_path,
-        max_seconds=args.max_seconds or default_seconds,
+        max_seconds=effective_seconds,
         dry_run=args.dry_run,
+        resume=args.resume,
+        suite=args.execute_suite,
+        max_attempts=args.max_attempts,
     ) if matrix else ([], [])
     failures.extend(run_failures)
 
@@ -1317,13 +1817,19 @@ def main() -> int:
         new_timings = [Path(item["timing"]) for item in run_results if Path(item["timing"]).is_file()]
         new_poses = [Path(item["pose"]) for item in run_results if Path(item["pose"]).is_file()]
         trace_reports.extend(
-            aggregate_trace_csv(path, cluster_by_motion) for path in new_traces
+            aggregate_trace_csv(
+                path,
+                cluster_by_motion,
+                start_seconds=float(protocol["match_window_seconds"]),
+            )
+            for path in new_traces
         )
         pose_reports.extend(
             aggregate_pose_npz(
                 path,
                 evaluation_fps=float(protocol["literature"]["evaluation_fps"]),
                 cluster_by_motion=cluster_by_motion,
+                start_seconds=float(protocol["match_window_seconds"]),
             )
             for path in new_poses
         )

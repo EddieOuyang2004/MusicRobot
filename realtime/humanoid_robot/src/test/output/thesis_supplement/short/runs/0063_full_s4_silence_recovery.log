@@ -1,0 +1,97 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d11_mPO1_ch09.pkl with constant root Z offset +0.918100 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\matcher_change_streams\silence_recovery.wav (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gPO_sFM_cAll_d11_mPO1_ch09
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=0.66x | amp=1.08 | rms/gate=0.2748/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.50 result=too-early | bright=0.12 | bands=0.89/0.09/0.01 | rhythm=0.15 | offbeat=0.52
+music | bpm=156.2 | speed=1.40x | amp=0.69 | rms/gate=0.0299/0.0020 | beat=1 accepted=1 conf=0.89 contrast=0.40 result=too-early | bright=0.28 | bands=0.38/0.54/0.07 | rhythm=0.24 | offbeat=0.54
+music | bpm=178.6 | speed=1.32x | amp=0.73 | rms/gate=0.1880/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.50 result=too-early | bright=0.26 | bands=0.66/0.20/0.11 | rhythm=0.31 | offbeat=0.31
+music | bpm=125.0 | speed=1.15x | amp=0.84 | rms/gate=0.2566/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.20 result=too-early | bright=0.11 | bands=0.91/0.07/0.01 | rhythm=0.34 | offbeat=0.31
+music | bpm=125.0 | speed=1.00x | amp=0.63 | rms/gate=0.0289/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.29 result=too-early | bright=0.27 | bands=0.30/0.63/0.06 | rhythm=0.37 | offbeat=0.29
+music | bpm=163.0 | speed=0.79x | amp=0.77 | rms/gate=0.2371/0.0020 | beat=1 accepted=1 conf=0.38 contrast=0.50 result=too-early | bright=0.24 | bands=0.66/0.23/0.08 | rhythm=0.38 | offbeat=0.33
+music | bpm=163.0 | speed=1.25x | amp=0.92 | rms/gate=0.3347/0.0020 | beat=1 accepted=1 conf=0.48 contrast=0.38 result=too-early | bright=0.12 | bands=0.93/0.06/0.01 | rhythm=0.38 | offbeat=0.42
+match | accepted | confidence=0.62 | genre=BR:0.73 | bpm=107.1 | tracks=[BR0:0.97, BR1:0.71, BR4:0.66] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.93 | tags=[Electronic---Drum n Bass, Electronic---Downtempo, Hip Hop---Trip Hop]
+match | accepted | confidence=0.49 | genre=BR:0.71 | bpm=107.1 | tracks=[BR0:0.97, BR1:0.70, BR4:0.65] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.92 | tags=[Electronic---Drum n Bass, Electronic---Downtempo, Hip Hop---Trip Hop]
+music | bpm=163.0 | speed=1.48x | amp=0.82 | rms/gate=0.1870/0.0020 | beat=1 accepted=1 conf=0.93 contrast=0.47 result=too-early | bright=0.23 | bands=0.69/0.21/0.03 | rhythm=0.43 | offbeat=0.33
+match | accepted | confidence=0.72 | genre=MH:0.71 | bpm=107.1 | tracks=[BR0:0.96, BR1:0.70, BR4:0.65] | motion=gMH_sBM_cAll_d23_mMH1_ch01:0.62 | tags=[Electronic---Drum n Bass, Electronic---Downtempo, Hip Hop---Instrumental]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch03.pkl with constant root Z offset +0.853115 m.
+music | bpm=156.2 | speed=0.97x | amp=0.58 | rms/gate=0.0995/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.59 result=too-early | bright=0.35 | bands=0.54/0.29/0.14 | rhythm=0.49 | offbeat=0.35
+match | accepted | confidence=0.64 | genre=BR:0.76 | bpm=107.1 | tracks=[BR0:0.93, BR1:0.70, LH0:0.64] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.90 | tags=[Electronic---Drum n Bass, Electronic---Dubstep, Electronic---Downtempo]
+music | bpm=170.5 | speed=1.00x | amp=0.85 | rms/gate=0.1118/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.71 result=too-early | bright=0.27 | bands=0.84/0.10/0.04 | rhythm=0.48 | offbeat=0.28
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gMH_sBM_cAll_d23_mMH1_ch01.pkl with constant root Z offset +0.926840 m.
+match | accepted | confidence=0.83 | genre=BR:0.78 | bpm=107.1 | tracks=[BR0:0.86, JS3:0.69, BR1:0.65] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.85 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=208.3 | speed=1.02x | amp=0.96 | rms/gate=0.3215/0.0020 | beat=1 accepted=1 conf=0.80 contrast=0.56 result=accepted | bright=0.27 | bands=0.86/0.06/0.03 | rhythm=0.45 | offbeat=0.16
+match | accepted | confidence=0.59 | genre=JS:0.73 | bpm=107.1 | tracks=[JS3:0.86, BR0:0.72, LH0:0.62] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.82 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d05_mBR0_ch05.pkl with constant root Z offset +1.305134 m.
+music | bpm=220.6 | speed=1.06x | amp=0.54 | rms/gate=0.0000/0.0020 | beat=1 accepted=0 conf=0.65 contrast=0.12 result=weak-overload-beat | bright=0.29 | bands=0.14/0.59/0.10 | rhythm=0.45 | offbeat=0.20
+match | accepted | confidence=0.82 | genre=JS:0.80 | bpm=110.3 | tracks=[JS3:0.94, WA0:0.62, JS5:0.61] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJS_sBM_cAll_d01_mJS3_ch04.pkl with constant root Z offset +0.917895 m.
+demo | bpm=220.6 | speed=0.84x | amp=0.04 | rms/gate=0.0000/0.0020 | beat=1 accepted=1 conf=0.45 contrast=0.06 result=too-early | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.02 | offbeat=0.00
+match | accepted | confidence=0.79 | genre=JS:0.83 | bpm=110.3 | tracks=[JS3:0.91, WA0:0.63, JS5:0.60] | motion=gJS_sBM_cAll_d01_mJS3_ch04:0.87 | tags=[Electronic---Glitch, Electronic---Dubstep, Electronic---Drum n Bass]
+Pending motion (relevance): gJS_sBM_cAll_d01_mJS3_ch04 score=0.867 music=0.907 held=3 bar(s) pool=[gJS_sBM_cAll_d01_mJS3_ch04:0.855/0.900, gJS_sBM_cAll_d01_mJS3_ch08:0.848/0.900, gJS_sFM_cAll_d02_mJS3_ch04:0.844/0.900, gJS_sBM_cAll_d03_mJS3_ch04:0.842/0.900]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gJS_sBM_cAll_d01_mJS3_ch08.pkl with constant root Z offset +0.954102 m.
+demo | bpm=220.6 | speed=0.86x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=too-early | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+match | accepted | confidence=0.70 | genre=PO:0.78 | bpm=110.3 | tracks=[JS3:0.87, WA0:0.63, JS5:0.60] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.64 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Electro]
+demo | bpm=-- | speed=0.99x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=too-early | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+match | accepted | confidence=0.91 | genre=PO:0.80 | bpm=110.3 | tracks=[JS3:0.78, WA0:0.60, JS5:0.60] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.65 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---House]
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=too-early | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+match | accepted | confidence=0.35 | genre=BR:0.85 | bpm=110.3 | tracks=[JS3:0.64, JB4:0.58, JB2:0.57] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.70 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---House]
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=too-early | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+match | accepted | confidence=0.69 | genre=BR:0.73 | bpm=187.5 | tracks=[JB0:0.62, JB4:0.61, JB5:0.61] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.65 | tags=[Rock---Grindcore, Rock---Punk, Rock---Noisecore]
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=too-early | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+match | held:weak_beat_evidence | confidence=0.08 | genre=BR:0.56 | bpm=0.0 | tracks=[BR4:0.58, LH5:0.58, JS3:0.58] | motion=-- | tags=[Stage & Screen---Theme, Electronic---Vaporwave, Electronic---Synthwave]
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=too-early | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+match | held:weak_beat_evidence | confidence=0.08 | genre=BR:0.56 | bpm=0.0 | tracks=[BR4:0.58, LH5:0.58, JS3:0.58] | motion=-- | tags=[Stage & Screen---Theme, Electronic---Vaporwave, Electronic---Synthwave]
+music | bpm=-- | speed=1.00x | amp=0.32 | rms/gate=0.3496/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=too-early | bright=0.14 | bands=0.18/0.21/0.04 | rhythm=0.10 | offbeat=0.00
+match | accepted | confidence=0.68 | genre=BR:0.80 | bpm=170.5 | tracks=[JB4:0.60, JB5:0.59, JB0:0.59] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.66 | tags=[Electronic---Hardcore, Electronic---Techno, Electronic---Experimental]
+music | bpm=-- | speed=0.55x | amp=0.86 | rms/gate=0.2059/0.0020 | beat=1 accepted=1 conf=0.61 contrast=0.50 result=accepted | bright=0.33 | bands=0.68/0.22/0.07 | rhythm=0.02 | offbeat=0.00
+match | accepted | confidence=0.29 | genre=BR:0.84 | bpm=98.7 | tracks=[JS3:0.63, JB4:0.60, WA2:0.60] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.69 | tags=[Electronic---Glitch, Electronic---Dubstep, Electronic---Electro]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d05_mBR1_ch01.pkl with constant root Z offset +1.167913 m.
+music | bpm=-- | speed=0.55x | amp=0.61 | rms/gate=0.0760/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.50 result=accepted | bright=0.44 | bands=0.09/0.64/0.27 | rhythm=0.02 | offbeat=0.00
+match | accepted | confidence=0.85 | genre=PO:0.76 | bpm=98.7 | tracks=[JS3:0.75, WA0:0.60, WA2:0.59] | motion=gPO_sBM_cAll_d10_mPO3_ch01:0.63 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---House]
+music | bpm=105.6 | speed=0.55x | amp=0.77 | rms/gate=0.2408/0.0020 | beat=1 accepted=1 conf=0.92 contrast=0.20 result=accepted | bright=0.33 | bands=0.58/0.32/0.08 | rhythm=0.03 | offbeat=0.83
+match | accepted | confidence=0.87 | genre=PO:0.81 | bpm=110.3 | tracks=[JS3:0.85, WA0:0.62, JS5:0.61] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.67 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---House]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d10_mPO3_ch01.pkl with constant root Z offset +0.821108 m.
+music | bpm=110.3 | speed=0.55x | amp=0.68 | rms/gate=0.1030/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.64 result=accepted | bright=0.32 | bands=0.73/0.16/0.09 | rhythm=0.04 | offbeat=1.00
+match | accepted | confidence=0.87 | genre=PO:0.81 | bpm=110.3 | tracks=[JS3:0.89, WA0:0.64, MH4:0.62] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.66 | tags=[Electronic---Dubstep, Electronic---Glitch, Pop---K-pop]
+Pending motion (diversity): gPO_sBM_cAll_d12_mPO4_ch02 score=0.650 music=0.568 held=5 bar(s) pool=[gPO_sBM_cAll_d12_mPO4_ch02:0.650/0.568, gPO_sBM_cAll_d10_mPO3_ch01:0.641/0.587]
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO4_ch02.pkl with constant root Z offset +0.809989 m.
+Switching (bar): gPO_sFM_cAll_d11_mPO1_ch09 -> gPO_sBM_cAll_d12_mPO4_ch02 entry=0.1921 blend=0.544s entry_score=0.105
+music | bpm=110.3 | speed=0.60x | amp=0.79 | rms/gate=0.1685/0.0020 | beat=1 accepted=1 conf=0.57 contrast=0.55 result=accepted | bright=0.23 | bands=0.80/0.15/0.02 | rhythm=0.06 | offbeat=0.67
+match | accepted | confidence=0.91 | genre=PO:0.84 | bpm=110.3 | tracks=[JS3:0.88, KR2:0.72, WA0:0.64] | motion=gPO_sBM_cAll_d12_mPO4_ch02:0.65 | tags=[Electronic---Dubstep, Electronic---Glitch, Pop---K-pop]
+Motion switch complete: gPO_sBM_cAll_d12_mPO4_ch02 (GMR artifact)
+music | bpm=121.0 | speed=0.84x | amp=0.85 | rms/gate=0.2185/0.0020 | beat=1 accepted=1 conf=0.85 contrast=0.88 result=too-early | bright=0.27 | bands=0.75/0.18/0.07 | rhythm=0.11 | offbeat=0.50
+match | accepted | confidence=0.93 | genre=PO:0.83 | bpm=101.4 | tracks=[KR2:0.83, JS3:0.81, WA0:0.62] | motion=gPO_sBM_cAll_d12_mPO3_ch02:0.60 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---House]
+music | bpm=197.4 | speed=0.91x | amp=0.66 | rms/gate=0.1276/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.27 result=accepted | bright=0.26 | bands=0.60/0.35/0.05 | rhythm=0.14 | offbeat=0.38
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO3_ch02.pkl with constant root Z offset +0.839105 m.
+match | accepted | confidence=0.93 | genre=PO:0.81 | bpm=101.4 | tracks=[KR2:0.92, JS3:0.72, WA0:0.61] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.61 | tags=[Electronic---Dubstep, Pop---K-pop, Electronic---Glitch]
+music | bpm=197.4 | speed=1.20x | amp=0.66 | rms/gate=0.0345/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.91 result=accepted | bright=0.35 | bands=0.55/0.27/0.17 | rhythm=0.25 | offbeat=0.28
+match | accepted | confidence=0.93 | genre=PO:0.80 | bpm=101.4 | tracks=[KR2:0.96, JS3:0.61, PO1:0.61] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.63 | tags=[Pop---K-pop, Electronic---House, Electronic---Big Beat]
+music | bpm=197.4 | speed=1.55x | amp=0.87 | rms/gate=0.2013/0.0020 | beat=1 accepted=1 conf=0.80 contrast=0.50 result=too-early | bright=0.28 | bands=0.87/0.08/0.04 | rhythm=0.42 | offbeat=0.00
+match | accepted | confidence=0.95 | genre=PO:0.79 | bpm=101.4 | tracks=[KR2:0.97, PO1:0.60, KR3:0.59] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.62 | tags=[Electronic---Big Beat, Electronic---House, Electronic---Hip-House]
+Pending motion (relevance): gPO_sFM_cAll_d12_mPO1_ch16 score=0.623 music=0.599 held=2 bar(s) pool=[gPO_sFM_cAll_d12_mPO1_ch16:0.621/0.599, gPO_sBM_cAll_d11_mPO1_ch02:0.619/0.599, gPO_sFM_cAll_d11_mPO1_ch09:0.618/0.599, gPO_sBM_cAll_d11_mPO1_ch07:0.617/0.599, gPO_sBM_cAll_d11_mPO1_ch08:0.616/0.599]
+music | bpm=197.4 | speed=1.54x | amp=0.78 | rms/gate=0.2008/0.0020 | beat=1 accepted=1 conf=0.60 contrast=0.62 result=too-early | bright=0.28 | bands=0.73/0.17/0.06 | rhythm=0.46 | offbeat=0.20
+match | accepted | confidence=0.96 | genre=PO:0.80 | bpm=101.4 | tracks=[KR2:0.98, PO1:0.62, KR3:0.60] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.63 | tags=[Electronic---House, Electronic---Hip-House, Electronic---Big Beat]
+music | bpm=208.3 | speed=0.98x | amp=0.75 | rms/gate=0.1586/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.94 result=too-early | bright=0.24 | bands=0.80/0.15/0.04 | rhythm=0.48 | offbeat=0.16
+match | accepted | confidence=0.93 | genre=PO:0.80 | bpm=101.4 | tracks=[KR2:0.96, PO1:0.61, KR3:0.59] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.63 | tags=[Electronic---Downtempo, Electronic---House, Electronic---Hip-House]
+music | bpm=197.4 | speed=1.00x | amp=0.74 | rms/gate=0.0810/0.0020 | beat=1 accepted=1 conf=0.92 contrast=0.32 result=accepted | bright=0.20 | bands=0.91/0.06/0.01 | rhythm=0.48 | offbeat=0.24
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d12_mPO1_ch16.pkl with constant root Z offset +0.871332 m.
+Switching (forced_end): gPO_sBM_cAll_d12_mPO4_ch02 -> gPO_sFM_cAll_d12_mPO1_ch16 entry=0.7810 blend=0.456s entry_score=0.072
+match | accepted | confidence=0.94 | genre=PO:0.84 | bpm=101.4 | tracks=[KR2:0.93, PO1:0.71, WA1:0.61] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.70 | tags=[Electronic---House, Electronic---Electro, Electronic---Downtempo]
+music | bpm=178.6 | speed=0.90x | amp=0.89 | rms/gate=0.1900/0.0020 | beat=1 accepted=1 conf=0.98 contrast=0.76 result=accepted | bright=0.24 | bands=0.83/0.06/0.05 | rhythm=0.46 | offbeat=0.34
+Motion switch complete: gPO_sFM_cAll_d12_mPO1_ch16 (GMR artifact)
+match | accepted | confidence=0.91 | genre=PO:0.91 | bpm=101.4 | tracks=[KR2:0.87, PO1:0.80, WA1:0.62] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.75 | tags=[Electronic---Dubstep, Electronic---House, Electronic---Downtempo]
+music | bpm=178.6 | speed=1.60x | amp=0.66 | rms/gate=0.1065/0.0020 | beat=1 accepted=1 conf=0.72 contrast=0.26 result=too-early | bright=0.20 | bands=0.86/0.11/0.01 | rhythm=0.45 | offbeat=0.03
+match | accepted | confidence=0.94 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.90, KR2:0.78, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.83 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---House]
+music | bpm=178.6 | speed=1.60x | amp=0.82 | rms/gate=0.1588/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.68 result=too-early | bright=0.28 | bands=0.81/0.13/0.03 | rhythm=0.47 | offbeat=0.00
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO1_ch02.pkl with constant root Z offset +0.844758 m.
+match | accepted | confidence=0.93 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.92, KR2:0.72, WA0:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.84 | tags=[Electronic---Glitch, Electronic---Dubstep, Electronic---Drum n Bass]
+music | bpm=178.6 | speed=1.09x | amp=0.73 | rms/gate=0.0782/0.0020 | beat=1 accepted=1 conf=0.58 contrast=0.41 result=too-early | bright=0.19 | bands=0.90/0.07/0.01 | rhythm=0.47 | offbeat=0.13
+match | accepted | confidence=0.91 | genre=PO:0.88 | bpm=89.3 | tracks=[PO1:0.97, JS1:0.66, KR2:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.87 | tags=[Electronic---Glitch, Electronic---Dubstep, Electronic---House]
+music | bpm=187.5 | speed=0.99x | amp=0.88 | rms/gate=0.1953/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.88 result=too-early | bright=0.26 | bands=0.88/0.05/0.03 | rhythm=0.46 | offbeat=0.17
+match | accepted | confidence=0.85 | genre=PO:0.88 | bpm=89.3 | tracks=[PO1:0.96, WA0:0.65, KR2:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.87 | tags=[Electronic---Glitch, Electronic---Dubstep, Electronic---House]
+music | bpm=170.5 | speed=0.55x | amp=0.61 | rms/gate=0.1259/0.0020 | beat=1 accepted=1 conf=0.54 contrast=0.06 result=too-early | bright=0.31 | bands=0.63/0.23/0.11 | rhythm=0.42 | offbeat=0.00
+match | accepted | confidence=0.79 | genre=PO:0.83 | bpm=91.5 | tracks=[PO1:0.98, WA0:0.66, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Glitch, Electronic---Dubstep, Electronic---House]
+music | bpm=178.6 | speed=0.75x | amp=0.89 | rms/gate=0.4284/0.0020 | beat=1 accepted=1 conf=0.84 contrast=0.85 result=accepted | bright=0.27 | bands=0.84/0.11/0.04 | rhythm=0.40 | offbeat=0.00

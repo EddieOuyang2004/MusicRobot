@@ -1,0 +1,103 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d11_mPO1_ch09.pkl with constant root Z offset +0.918100 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\test_audio\cc0_matcher_set\09_funk_funky_energy_loop.mp3 (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gPO_sFM_cAll_d11_mPO1_ch09
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=0.88x | amp=0.58 | rms/gate=0.0343/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.50 result=accepted | bright=0.30 | bands=0.74/0.15/0.09 | rhythm=0.18 | offbeat=0.08
+music | bpm=-- | speed=0.77x | amp=0.68 | rms/gate=0.0770/0.0020 | beat=1 accepted=1 conf=0.92 contrast=0.50 result=accepted | bright=0.20 | bands=0.86/0.11/0.03 | rhythm=0.14 | offbeat=0.50
+music | bpm=90.4 | speed=0.73x | amp=0.70 | rms/gate=0.1104/0.0020 | beat=1 accepted=1 conf=0.70 contrast=0.60 result=accepted | bright=0.28 | bands=0.72/0.20/0.08 | rhythm=0.20 | offbeat=0.34
+music | bpm=93.8 | speed=1.24x | amp=0.89 | rms/gate=0.0872/0.0020 | beat=1 accepted=1 conf=0.72 contrast=0.79 result=accepted | bright=0.13 | bands=0.98/0.02/0.00 | rhythm=0.20 | offbeat=0.33
+music | bpm=129.3 | speed=1.11x | amp=0.57 | rms/gate=0.0367/0.0020 | beat=1 accepted=0 conf=0.72 contrast=0.33 result=weak-overload-beat | bright=0.29 | bands=0.65/0.28/0.07 | rhythm=0.22 | offbeat=0.25
+music | bpm=133.9 | speed=1.31x | amp=0.84 | rms/gate=0.0895/0.0020 | beat=1 accepted=1 conf=0.70 contrast=0.32 result=accepted | bright=0.15 | bands=0.97/0.03/0.00 | rhythm=0.28 | offbeat=0.24
+match | accepted | confidence=0.90 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.65, JB0:0.62, LO4:0.61] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.68 | tags=[Rock---Alternative Rock, Rock---Psychedelic Rock, Rock---Indie Rock]
+music | bpm=133.9 | speed=1.48x | amp=0.78 | rms/gate=0.0861/0.0020 | beat=1 accepted=0 conf=0.58 contrast=0.50 result=weak-overload-beat | bright=0.15 | bands=0.98/0.02/0.00 | rhythm=0.30 | offbeat=0.44
+match | accepted | confidence=0.91 | genre=BR:1.00 | bpm=117.2 | tracks=[BR3:0.65, JB0:0.62, BR4:0.61] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.67 | tags=[Rock---Alternative Rock, Rock---Psychedelic Rock, Rock---Indie Rock]
+music | bpm=144.2 | speed=0.55x | amp=0.76 | rms/gate=0.0772/0.0020 | beat=1 accepted=1 conf=0.92 contrast=0.75 result=accepted | bright=0.16 | bands=0.97/0.03/0.00 | rhythm=0.35 | offbeat=0.45
+match | accepted | confidence=0.87 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.68, BR4:0.62, BR0:0.62] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.70 | tags=[Electronic---Downtempo, Rock---Alternative Rock, Electronic---Trip Hop]
+music | bpm=170.5 | speed=0.55x | amp=0.78 | rms/gate=0.0737/0.0020 | beat=1 accepted=1 conf=0.97 contrast=0.35 result=accepted | bright=0.19 | bands=0.95/0.03/0.01 | rhythm=0.45 | offbeat=0.26
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.68, BR4:0.61, JB2:0.61] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.70 | tags=[Electronic---Downtempo, Rock---Hardcore, Rock---Alternative Rock]
+music | bpm=170.5 | speed=0.55x | amp=0.82 | rms/gate=0.0402/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.32 result=too-early | bright=0.21 | bands=0.94/0.04/0.01 | rhythm=0.44 | offbeat=0.19
+match | accepted | confidence=0.87 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.66, JB2:0.60, JB0:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.69 | tags=[Rock---Hardcore, Rock---Math Rock, Rock---Alternative Rock]
+Pending motion (relevance): gBR_sBM_cAll_d06_mBR3_ch01 score=0.689 music=0.658 held=3 bar(s) pool=[gBR_sBM_cAll_d06_mBR3_ch01:0.699/0.672, gBR_sBM_cAll_d06_mBR3_ch02:0.690/0.672, gBR_sBM_cAll_d04_mBR3_ch02:0.675/0.672, gBR_sBM_cAll_d04_mBR3_ch01:0.670/0.672]
+music | bpm=178.6 | speed=1.36x | amp=0.82 | rms/gate=0.0917/0.0020 | beat=1 accepted=1 conf=0.21 contrast=0.76 result=low-confidence | bright=0.26 | bands=0.85/0.10/0.05 | rhythm=0.44 | offbeat=0.28
+match | accepted | confidence=0.91 | genre=BR:1.00 | bpm=117.2 | tracks=[BR3:0.62, JB0:0.61, JB2:0.60] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.67 | tags=[Rock---Hardcore, Rock---Math Rock, Rock---Alternative Rock]
+music | bpm=178.6 | speed=0.56x | amp=0.91 | rms/gate=0.1218/0.0020 | beat=1 accepted=1 conf=0.49 contrast=0.65 result=too-early | bright=0.12 | bands=0.97/0.03/0.00 | rhythm=0.45 | offbeat=0.33
+match | accepted | confidence=0.91 | genre=BR:1.00 | bpm=117.2 | tracks=[JB0:0.62, BR3:0.62, JB2:0.60] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.67 | tags=[Rock---Hardcore, Rock---Alternative Rock, Rock---Math Rock]
+music | bpm=125.0 | speed=1.19x | amp=0.73 | rms/gate=0.0917/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.68 result=accepted | bright=0.18 | bands=0.91/0.05/0.04 | rhythm=0.43 | offbeat=0.43
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=117.2 | tracks=[JB0:0.63, BR3:0.62, JB2:0.59] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.67 | tags=[Rock---Alternative Rock, Rock---Hardcore, Rock---Math Rock]
+Switching (bar): gPO_sFM_cAll_d11_mPO1_ch09 -> gBR_sBM_cAll_d06_mBR3_ch01 entry=0.3709 blend=0.576s entry_score=0.111
+music | bpm=104.2 | speed=1.60x | amp=0.85 | rms/gate=0.0926/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.71 result=accepted | bright=0.10 | bands=0.98/0.02/0.00 | rhythm=0.45 | offbeat=0.24
+match | accepted | confidence=0.90 | genre=BR:1.00 | bpm=113.6 | tracks=[BR3:0.63, JB0:0.62, LO3:0.59] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.68 | tags=[Rock---Alternative Rock, Electronic---Downtempo, Rock---Hardcore]
+Motion switch complete: gBR_sBM_cAll_d06_mBR3_ch01 (GMR artifact)
+music | bpm=104.2 | speed=0.68x | amp=0.83 | rms/gate=0.0803/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.24 result=accepted | bright=0.10 | bands=0.99/0.00/0.00 | rhythm=0.43 | offbeat=0.23
+match | accepted | confidence=0.90 | genre=BR:1.00 | bpm=113.6 | tracks=[BR3:0.64, JB0:0.61, BR0:0.59] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.68 | tags=[Rock---Alternative Rock, Electronic---Downtempo, Rock---Punk]
+music | bpm=113.6 | speed=0.55x | amp=0.77 | rms/gate=0.0784/0.0020 | beat=1 accepted=1 conf=0.64 contrast=0.09 result=accepted | bright=0.13 | bands=0.99/0.01/0.00 | rhythm=0.45 | offbeat=0.26
+match | accepted | confidence=0.87 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.66, BR0:0.61, LO4:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.69 | tags=[Rock---Alternative Rock, Rock---Hardcore, Rock---Nu Metal]
+music | bpm=113.6 | speed=0.97x | amp=0.74 | rms/gate=0.0702/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.24 result=accepted | bright=0.15 | bands=0.98/0.01/0.00 | rhythm=0.46 | offbeat=0.32
+match | accepted | confidence=0.88 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.66, JB0:0.61, BR0:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.69 | tags=[Rock---Hardcore, Rock---Alternative Rock, Rock---Nu Metal]
+music | bpm=178.6 | speed=1.52x | amp=0.77 | rms/gate=0.0758/0.0020 | beat=1 accepted=1 conf=0.85 contrast=0.21 result=accepted | bright=0.24 | bands=0.92/0.06/0.02 | rhythm=0.47 | offbeat=0.50
+Switching (forced_end): gBR_sBM_cAll_d06_mBR3_ch01 -> gBR_sBM_cAll_d04_mBR0_ch03 entry=0.0612 blend=0.528s entry_score=0.154
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.66, BR0:0.60, JB0:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.69 | tags=[Rock---Hardcore, Rock---Alternative Rock, Rock---Punk]
+Motion switch complete: gBR_sBM_cAll_d04_mBR0_ch03 (GMR artifact)
+music | bpm=178.6 | speed=1.16x | amp=0.64 | rms/gate=0.0131/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.32 result=accepted | bright=0.36 | bands=0.54/0.23/0.22 | rhythm=0.49 | offbeat=0.27
+match | accepted | confidence=0.88 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.65, JB0:0.61, BR0:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.68 | tags=[Rock---Hardcore, Rock---Alternative Rock, Rock---Punk]
+music | bpm=178.6 | speed=0.61x | amp=0.90 | rms/gate=0.0961/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.47 result=accepted | bright=0.18 | bands=0.95/0.04/0.01 | rhythm=0.49 | offbeat=0.29
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.65, JB0:0.63, BR4:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.68 | tags=[Rock---Alternative Rock, Rock---Punk, Rock---Hardcore]
+music | bpm=187.5 | speed=1.26x | amp=0.71 | rms/gate=0.0073/0.0020 | beat=1 accepted=1 conf=0.41 contrast=0.44 result=accepted | bright=0.20 | bands=0.86/0.04/0.10 | rhythm=0.49 | offbeat=0.04
+match | accepted | confidence=0.88 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.65, JB0:0.62, BR0:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.68 | tags=[Rock---Alternative Rock, Rock---Punk, Rock---Indie Rock]
+music | bpm=144.2 | speed=0.55x | amp=0.85 | rms/gate=0.1061/0.0020 | beat=1 accepted=1 conf=0.66 contrast=0.88 result=accepted | bright=0.15 | bands=0.97/0.02/0.01 | rhythm=0.49 | offbeat=0.02
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.65, JB0:0.61, BR4:0.61] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.68 | tags=[Rock---Alternative Rock, Rock---Punk, Electronic---Downtempo]
+music | bpm=117.2 | speed=0.55x | amp=0.82 | rms/gate=0.0825/0.0020 | beat=1 accepted=1 conf=0.67 contrast=0.44 result=accepted | bright=0.11 | bands=0.99/0.00/0.00 | rhythm=0.48 | offbeat=0.32
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.65, JB0:0.62, JB2:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.69 | tags=[Rock---Alternative Rock, Electronic---Downtempo, Electronic---Trip Hop]
+Pending motion (diversity): gBR_sBM_cAll_d06_mBR3_ch02 score=0.677 music=0.653 held=3 bar(s) pool=[gBR_sBM_cAll_d06_mBR3_ch01:0.685/0.653, gBR_sBM_cAll_d06_mBR3_ch02:0.677/0.653, gBR_sBM_cAll_d04_mBR3_ch02:0.663/0.653, gBR_sBM_cAll_d04_mBR3_ch01:0.657/0.653]
+music | bpm=110.3 | speed=0.67x | amp=0.74 | rms/gate=0.0987/0.0020 | beat=1 accepted=1 conf=0.69 contrast=0.62 result=accepted | bright=0.15 | bands=0.97/0.02/0.00 | rhythm=0.47 | offbeat=0.34
+match | accepted | confidence=0.88 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.67, JB2:0.61, JB0:0.61] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.70 | tags=[Electronic---Downtempo, Rock---Alternative Rock, Electronic---Illbient]
+Switching (bar): gBR_sBM_cAll_d04_mBR0_ch03 -> gBR_sBM_cAll_d06_mBR3_ch02 entry=0.5220 blend=0.416s entry_score=0.125
+Motion switch complete: gBR_sBM_cAll_d06_mBR3_ch02 (GMR artifact)
+music | bpm=163.0 | speed=1.31x | amp=0.72 | rms/gate=0.0554/0.0020 | beat=1 accepted=1 conf=0.98 contrast=0.47 result=too-early | bright=0.16 | bands=0.98/0.01/0.01 | rhythm=0.42 | offbeat=0.25
+match | accepted | confidence=0.92 | genre=BR:1.00 | bpm=93.8 | tracks=[BR3:0.63, JB2:0.62, JB0:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.69 | tags=[Electronic---Downtempo, Electronic---Illbient, Electronic---Experimental]
+music | bpm=178.6 | speed=0.96x | amp=0.62 | rms/gate=0.0425/0.0020 | beat=1 accepted=1 conf=0.63 contrast=0.24 result=too-early | bright=0.20 | bands=0.94/0.05/0.01 | rhythm=0.42 | offbeat=0.19
+match | accepted | confidence=0.90 | genre=BR:1.00 | bpm=93.8 | tracks=[BR3:0.64, JB2:0.62, BR0:0.61] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.69 | tags=[Electronic---Downtempo, Electronic---Illbient, Electronic---Experimental]
+music | bpm=178.6 | speed=1.04x | amp=0.71 | rms/gate=0.0864/0.0020 | beat=1 accepted=1 conf=0.85 contrast=0.15 result=too-early | bright=0.13 | bands=0.97/0.02/0.00 | rhythm=0.43 | offbeat=0.27
+match | accepted | confidence=0.92 | genre=BR:1.00 | bpm=93.8 | tracks=[JB2:0.61, BR3:0.61, JB0:0.60] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.67 | tags=[Rock---Hardcore, Rock---Alternative Rock, Rock---Math Rock]
+Switching (forced_end): gBR_sBM_cAll_d06_mBR3_ch02 -> gBR_sBM_cAll_d06_mBR3_ch01 entry=0.6233 blend=0.504s entry_score=0.082
+music | bpm=170.5 | speed=0.84x | amp=0.80 | rms/gate=0.0874/0.0020 | beat=1 accepted=1 conf=0.54 contrast=0.47 result=accepted | bright=0.22 | bands=0.86/0.11/0.03 | rhythm=0.41 | offbeat=0.29
+match | accepted | confidence=0.93 | genre=BR:1.00 | bpm=117.2 | tracks=[BR3:0.61, JB2:0.61, JB0:0.61] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.67 | tags=[Rock---Alternative Rock, Rock---Hardcore, Rock---Punk]
+Motion switch complete: gBR_sBM_cAll_d06_mBR3_ch01 (GMR artifact)
+music | bpm=156.3 | speed=1.60x | amp=0.85 | rms/gate=0.1422/0.0020 | beat=1 accepted=1 conf=0.25 contrast=0.56 result=low-confidence | bright=0.16 | bands=0.97/0.02/0.01 | rhythm=0.42 | offbeat=0.36
+match | accepted | confidence=0.87 | genre=BR:1.00 | bpm=93.8 | tracks=[BR3:0.68, BR0:0.64, BR4:0.63] | motion=gBR_sBM_cAll_d05_mBR1_ch01:0.71 | tags=[Electronic---Downtempo, Electronic---Breaks, Electronic---Trip Hop]
+Switching (forced_end): gBR_sBM_cAll_d06_mBR3_ch01 -> gBR_sBM_cAll_d04_mBR0_ch03 entry=0.0612 blend=0.384s entry_score=0.154
+music | bpm=156.3 | speed=0.55x | amp=0.90 | rms/gate=0.1185/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.56 result=accepted | bright=0.19 | bands=0.87/0.09/0.04 | rhythm=0.40 | offbeat=0.23
+match | accepted | confidence=0.90 | genre=BR:1.00 | bpm=113.6 | tracks=[BR3:0.67, BR0:0.61, BR4:0.60] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.69 | tags=[Electronic---Downtempo, Rock---Alternative Rock, Electronic---Trip Hop]
+Motion switch complete: gBR_sBM_cAll_d04_mBR0_ch03 (GMR artifact)
+music | bpm=170.5 | speed=0.55x | amp=0.96 | rms/gate=0.0926/0.0020 | beat=1 accepted=1 conf=0.42 contrast=0.35 result=accepted | bright=0.15 | bands=0.98/0.01/0.01 | rhythm=0.42 | offbeat=0.15
+match | accepted | confidence=0.91 | genre=BR:1.00 | bpm=113.6 | tracks=[BR3:0.65, JB0:0.61, BR0:0.60] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.68 | tags=[Rock---Alternative Rock, Electronic---Downtempo, Rock---Punk]
+music | bpm=170.5 | speed=0.55x | amp=0.77 | rms/gate=0.0831/0.0020 | beat=1 accepted=1 conf=0.66 contrast=0.71 result=accepted | bright=0.14 | bands=0.96/0.04/0.00 | rhythm=0.41 | offbeat=0.13
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.67, JB0:0.61, BR0:0.61] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.70 | tags=[Rock---Alternative Rock, Electronic---Downtempo, Rock---Punk]
+music | bpm=156.2 | speed=0.82x | amp=0.72 | rms/gate=0.0641/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.26 result=accepted | bright=0.13 | bands=0.98/0.01/0.00 | rhythm=0.44 | offbeat=0.28
+match | accepted | confidence=0.90 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.66, JB0:0.62, JB2:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.69 | tags=[Rock---Alternative Rock, Electronic---Downtempo, Rock---Hardcore]
+music | bpm=156.2 | speed=1.09x | amp=0.67 | rms/gate=0.0540/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.59 result=accepted | bright=0.14 | bands=0.98/0.01/0.00 | rhythm=0.44 | offbeat=0.43
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=150.0 | tracks=[BR3:0.65, JB0:0.62, JB2:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.68 | tags=[Rock---Hardcore, Rock---Alternative Rock, Rock---Math Rock]
+music | bpm=178.6 | speed=1.14x | amp=0.70 | rms/gate=0.0570/0.0020 | beat=1 accepted=1 conf=0.65 contrast=0.18 result=accepted | bright=0.24 | bands=0.86/0.11/0.02 | rhythm=0.40 | offbeat=0.35
+match | accepted | confidence=0.88 | genre=BR:0.98 | bpm=150.0 | tracks=[JB0:0.63, BR3:0.63, JB2:0.60] | motion=gBR_sBM_cAll_d06_mBR3_ch01:0.67 | tags=[Rock---Hardcore, Rock---Punk, Rock---Alternative Rock]
+Pending motion (diversity): gBR_sBM_cAll_d04_mBR3_ch02 score=0.658 music=0.644 held=3 bar(s) pool=[gBR_sBM_cAll_d06_mBR3_ch01:0.681/0.644, gBR_sBM_cAll_d06_mBR3_ch02:0.671/0.644, gBR_sBM_cAll_d04_mBR3_ch02:0.658/0.644, gBR_sBM_cAll_d04_mBR3_ch01:0.653/0.644]
+music | bpm=170.5 | speed=1.29x | amp=0.53 | rms/gate=0.0217/0.0020 | beat=1 accepted=1 conf=0.44 contrast=0.44 result=accepted | bright=0.39 | bands=0.38/0.43/0.19 | rhythm=0.40 | offbeat=0.23
+Switching (bar): gBR_sBM_cAll_d04_mBR0_ch03 -> gBR_sBM_cAll_d04_mBR3_ch02 entry=0.5239 blend=0.352s entry_score=0.159
+match | accepted | confidence=0.91 | genre=BR:0.97 | bpm=117.2 | tracks=[JB0:0.63, BR3:0.61, JB2:0.60] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.67 | tags=[Rock---Punk, Rock---Hardcore, Rock---Alternative Rock]Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d06_mBR3_ch01.pkl with constant root Z offset +0.832762 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d06_mBR3_ch02.pkl with constant root Z offset +0.833412 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR3_ch02.pkl with constant root Z offset +0.907898 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch03.pkl with constant root Z offset +0.853115 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d04_mBR0_ch05.pkl with constant root Z offset +0.855082 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gBR_sBM_cAll_d05_mBR1_ch01.pkl with constant root Z offset +1.167913 m.
+
+Motion switch complete: gBR_sBM_cAll_d04_mBR3_ch02 (GMR artifact)
+music | bpm=197.4 | speed=1.13x | amp=0.88 | rms/gate=0.0938/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.79 result=accepted | bright=0.13 | bands=0.96/0.03/0.00 | rhythm=0.41 | offbeat=0.27
+match | accepted | confidence=0.89 | genre=BR:1.00 | bpm=117.2 | tracks=[JB0:0.64, BR3:0.63, JB2:0.60] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.68 | tags=[Rock---Alternative Rock, Rock---Hardcore, Rock---Punk]
+music | bpm=234.4 | speed=1.48x | amp=0.60 | rms/gate=0.0060/0.0020 | beat=1 accepted=1 conf=0.66 contrast=0.21 result=too-early | bright=0.27 | bands=0.63/0.32/0.06 | rhythm=0.39 | offbeat=0.00
+match | accepted | confidence=0.91 | genre=BR:0.99 | bpm=117.2 | tracks=[JB0:0.65, BR3:0.62, JB2:0.59] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.68 | tags=[Rock---Alternative Rock, Rock---Psychedelic Rock, Rock---Stoner Rock]
+music | bpm=234.4 | speed=0.55x | amp=0.92 | rms/gate=0.0902/0.0020 | beat=1 accepted=1 conf=1.00 contrast=0.91 result=accepted | bright=0.15 | bands=0.98/0.02/0.00 | rhythm=0.38 | offbeat=0.65
+Switching (forced_end): gBR_sBM_cAll_d04_mBR3_ch02 -> gBR_sBM_cAll_d04_mBR0_ch03 entry=0.3992 blend=0.384s entry_score=0.111
+match | accepted | confidence=0.92 | genre=BR:1.00 | bpm=117.2 | tracks=[JB0:0.63, BR3:0.61, JB2:0.59] | motion=gBR_sBM_cAll_d04_mBR0_ch03:0.68 | tags=[Rock---Alternative Rock, Rock---Doom Metal, Rock---Stoner Rock]
+Pending motion (relevance): gBR_sBM_cAll_d04_mBR0_ch03 score=0.684 music=0.592 held=1 bar(s) pool=[gBR_sBM_cAll_d04_mBR0_ch03:0.681/0.590, gBR_sBM_cAll_d04_mBR0_ch05:0.654/0.590, gBR_sBM_cAll_d05_mBR0_ch05:0.651/0.590, gBR_sBM_cAll_d05_mBR0_ch03:0.647/0.590, gBR_sBM_cAll_d05_mBR0_ch09:0.645/0.590]

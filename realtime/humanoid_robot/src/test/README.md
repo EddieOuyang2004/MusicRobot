@@ -155,3 +155,63 @@ Each report directory contains the immutable manifest/report schema, five CSV
 tables (the four main tables plus ablations), and—when the corresponding runs
 exist—PNG figures for latency CDF, BAS distribution, selection coverage,
 speed/jerk, and change-response milestones.
+
+## Formal thesis run
+
+The complete serial, restartable experiment is orchestrated by
+`run_thesis_experiments.ps1`. From the repository root run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File `
+  realtime/humanoid_robot/src/test/run_thesis_experiments.ps1 `
+  -Stage all -Resume
+```
+
+Raw data are fixed at
+`realtime/humanoid_robot/src/test/output/thesis_final/`; validated thesis
+inputs are fixed at `docs/thesis/experiment_results/`. The stages are `preflight`,
+`offline`, `literature`, `full`, `ablation`, `longrun`, `features`, and
+`consolidate`. They may be run separately with `-Stage`; rerunning with
+`-Resume` validates trace, timing, pose and log artifacts before skipping a
+run. An incomplete attempt is moved into a timestamped `failed_attempts`
+directory and retained in `run_status.json` before retry.
+
+The literature feature stage uses a pinned copy of the official AIST++ kinetic
+and manual feature implementations at commit
+`2dd7b3e946b794fd0081c98e2e2433545abf8b87`. It reconstructs the selected
+motions from recorded motion IDs, phases and transition blends after the
+six-second warm-up, resamples the following 20 seconds to 60 FPS, and emits
+72-dimensional kinetic and 32-dimensional geometric features. Extractor source
+hashes and reconstruction metadata accompany the NPZ bundle.
+
+The long-run process duration is 606 seconds: six seconds of window warm-up
+followed by a continuous 600-second evaluation interval. All formal process
+runs are serial, headless, 120 Hz, use runtime collision checking on every
+frame, and use the CPU ONNX provider. Use `-DryRun` to exercise orchestration
+without launching the formal MuJoCo workload; dry-run records can never produce
+the readiness marker.
+
+When a registered source clip is shorter than its suite duration, the runner
+creates a deterministic repeated WAV under that suite's `generated_streams`
+directory. Original AIST++ and CC0 files are never modified. Resume validation
+checks both trace and pose coverage (with a 0.1-second final-frame tolerance),
+so an older run that stopped at source EOF is archived and rerun automatically.
+
+`consolidate` checks expected run counts, artifact integrity, absence of
+unresolved failures/dry runs, cross-suite commit/catalog/model/protocol/schema
+hashes, provider identity, and feature shapes. It writes
+`docs/thesis/experiment_results/READY_FOR_THESIS` only when the complete data
+set is internally consistent. Chapter 6 must read
+`consolidated_results.json`; a failed real-time or safety criterion remains a
+reported failure and does not prevent complete results from being analysed.
+
+### Causal thesis supplement (measurement revision 2)
+
+After the original thesis suites have finished, use the independent `supplement`
+stage, not `all`, for the causal measurement revision. It runs one 10-second smoke
+and then 135 serial formal runs, with version-checked resume and immutable input
+hashes. All experiment runs are started by the user. See
+[THESIS_SUPPLEMENT.md](THESIS_SUPPLEMENT.md) for the exact PowerShell command,
+failure recovery, output locations and metric caveats. The `reanalyse` stage is
+offline-only and writes `docs/thesis/experiment_results/reanalysis_v2/`; original
+results and their completion marker remain unchanged.

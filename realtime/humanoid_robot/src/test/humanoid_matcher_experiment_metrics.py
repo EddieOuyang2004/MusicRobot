@@ -378,7 +378,7 @@ def physical_foot_contact(
     *,
     fps: float,
 ) -> float:
-    """EDGE-style COM-acceleration/foot-speed consistency (lower is better)."""
+    """Legacy COM/foot-speed proxy; NOT the official EDGE PFC definition."""
 
     com = np.asarray(center_of_mass, dtype=np.float64)
     feet = np.stack((left_foot, right_foot), axis=1).astype(np.float64)
@@ -395,6 +395,35 @@ def physical_foot_contact(
         acceleration_scale, 1e-8
     )
     return float(np.mean(weight * minimum_foot_speed))
+
+
+def edge_pfc_g1_adapted(root: np.ndarray, left: np.ndarray, right: np.ndarray) -> float:
+    """EDGE eval_pfc.py algebra on a 30 FPS grid, with one G1 anchor per foot.
+
+    Reference: https://github.com/Stanford-TML/EDGE/blob/main/eval/eval_pfc.py
+    Unlike the SMPL evaluator's ankle/toe minima, G1 provides one body origin
+    per side. This is explicitly an adaptation, not directly comparable PFC.
+    """
+    acceleration = np.diff(root, n=2, axis=0).copy()
+    acceleration[:, 2] = np.maximum(acceleration[:, 2], 0)
+    magnitude = np.linalg.norm(acceleration, axis=1)
+    if not magnitude.size or np.max(magnitude) <= 1e-12:
+        return 0.0  # Explicit extension for the official script's 0/0 case.
+    left_step = np.linalg.norm(np.diff(left[:, :2], axis=0)[1:], axis=1)
+    right_step = np.linalg.norm(np.diff(right[:, :2], axis=0)[1:], axis=1)
+    return float(np.mean(left_step * right_step * magnitude / np.max(magnitude)) * 10000)
+
+
+def timed_derivatives(values: np.ndarray, times: np.ndarray) -> tuple[np.ndarray, ...]:
+    """Forward differences at midpoint clocks, with no nominal-rate substitution."""
+    if len(times) < 4 or np.any(np.diff(times) <= 0):
+        raise ValueError("At least four strictly increasing actual timestamps required")
+    result = []
+    for _ in range(3):
+        values = np.diff(values, axis=0) / np.diff(times)[:, None]
+        times = (times[1:] + times[:-1]) / 2
+        result.append(values)
+    return tuple(result)
 
 
 def foot_skating_metrics(
@@ -482,12 +511,19 @@ def _float(row: Mapping[str, str], key: str) -> float | None:
 def aggregate_trace_csv(
     path: Path | str,
     cluster_by_motion: Mapping[str, str] | None = None,
+    *,
+    start_seconds: float = 0.0,
 ) -> dict[str, Any]:
     """Aggregate a production matcher trace without treating frames as IID."""
 
     trace_path = Path(path)
     with trace_path.open("r", encoding="utf-8", newline="") as handle:
-        rows = list(csv.DictReader(handle))
+        all_rows = list(csv.DictReader(handle))
+    rows = [
+        row
+        for row in all_rows
+        if (_float(row, "audio_time_seconds") or 0.0) >= float(start_seconds)
+    ]
     switches = [row for row in rows if row.get("event") == "switch_start"]
     completed = [row for row in rows if row.get("event") == "switch_complete"]
     motions = [row.get("current_motion_id", "") for row in rows]
@@ -502,6 +538,7 @@ def aggregate_trace_csv(
 
     return {
         "trace": str(trace_path),
+        "evaluation_start_seconds": float(start_seconds),
         "rows": len(rows),
         "duration_seconds": max(values("audio_time_seconds"), default=0.0),
         "matches": sum(row.get("event") == "match" for row in rows),
@@ -568,6 +605,7 @@ def aggregate_pose_npz(
     *,
     evaluation_fps: float = 60.0,
     cluster_by_motion: Mapping[str, str] | None = None,
+    start_seconds: float = 0.0,
 ) -> dict[str, Any]:
     """Compute robot-domain rhythm, contact, continuity and diversity metrics."""
 
@@ -591,6 +629,10 @@ def aggregate_pose_npz(
         times = np.asarray(archive["time_seconds"], dtype=np.float64)
         joints = np.asarray(archive["joint_positions"], dtype=np.float64)
         bodies = np.asarray(archive["body_positions"], dtype=np.float64)
+        # MuJoCo body 0 is the stationary world, not the robot root.
+        # The detector subtracts body 0, so pass pelvis-first model bodies.
+        if "body_names" in archive and str(archive["body_names"][0]) == "world":
+            bodies = bodies[:, 1:]
         com = np.asarray(archive["center_of_mass"], dtype=np.float64)
         left = np.asarray(archive["left_foot_position"], dtype=np.float64)
         right = np.asarray(archive["right_foot_position"], dtype=np.float64)
@@ -601,10 +643,33 @@ def aggregate_pose_npz(
             archive["accepted_causal_beat_times_seconds"], dtype=np.float64
         )
         source_rate = float(archive["control_rate_hz"].item())
+        actual_clock = int(archive["schema_version"].item()) >= 2 if "schema_version" in archive else False
+        root = com.copy()
+        if actual_clock:
+            times = np.asarray(archive["wall_time_seconds"], dtype=np.float64)
+            if np.any(np.diff(times) <= 0):
+                raise ValueError("Non-monotonic output wall clock")
+            events = np.asarray(archive["beat_events"], dtype=np.float64).reshape(-1, 4)
+            music_beats = events[:, 1]  # Actual delivery, not backdated beat peaks.
+            root = np.asarray(archive["final_qpos"], dtype=np.float64)[:, :3]
+
+    keep = times >= float(start_seconds)
+    times = times[keep]
+    joints = joints[keep]
+    bodies = bodies[keep]
+    com = com[keep]
+    root = root[keep]
+    left = left[keep]
+    right = right[keep]
+    left_height = left_height[keep]
+    right_height = right_height[keep]
+    motion_ids = [motion_id for motion_id, retained in zip(motion_ids, keep) if retained]
+    music_beats = music_beats[music_beats >= float(start_seconds)]
 
     if times.size < 2:
         return {
             "pose_npz": str(pose_path),
+            "evaluation_start_seconds": float(start_seconds),
             "frames": int(times.size),
             "duration_seconds": 0.0,
             "beat": bidirectional_beat_metrics([], []),
@@ -630,13 +695,27 @@ def aggregate_pose_npz(
     joint_velocity = np.diff(joints, axis=0) / dt
     joint_acceleration = np.diff(joint_velocity, axis=0) / dt
     joint_jerk = np.diff(joint_acceleration, axis=0) / dt
+    if actual_clock:
+        joint_velocity, joint_acceleration, joint_jerk = timed_derivatives(joints, times)
     # The recorded body origins sit above the sole.  Contact and skating must
     # therefore use the model-derived support heights rather than body-origin Z.
     contact_left = left.copy()
     contact_right = right.copy()
     contact_left[:, 2] = left_height
     contact_right[:, 2] = right_height
-    skating = foot_skating_metrics(contact_left, contact_right, fps=source_rate)
+    skating = foot_skating_metrics(
+        resample(contact_left) if actual_clock else contact_left,
+        resample(contact_right) if actual_clock else contact_right,
+        fps=evaluation_fps if actual_clock else source_rate)
+    pfc_grid = np.arange(times[0], times[-1], 1 / 30)
+    def at_30(array: np.ndarray) -> np.ndarray:
+        return np.column_stack([np.interp(pfc_grid, times, array[:, j]) for j in range(3)])
+    beat_metrics = bidirectional_beat_metrics(music_beats, dance_beats)
+    if not len(music_beats):
+        for key in ("bas_music_to_dance", "bas_dance_to_music", "bas_harmonic",
+                    "beat_timing_mae_seconds", "beat_timing_p95_seconds",
+                    "missed_music_beat_rate", "extra_dance_beat_rate"):
+            beat_metrics[key] = None
     support_height = np.minimum(left_height, right_height)
     collapsed_motion_ids = [
         motion_id
@@ -645,16 +724,20 @@ def aggregate_pose_npz(
     ]
     return {
         "pose_npz": str(pose_path),
+        "evaluation_start_seconds": float(start_seconds),
         "schema_version": EXPERIMENT_SCHEMA_VERSION,
         "kinematic_preview_only": True,
         "frames": int(times.size),
         "duration_seconds": float(times[-1] - times[0]),
         "source_control_rate_hz": source_rate,
         "evaluation_fps": float(evaluation_fps),
-        "beat": bidirectional_beat_metrics(music_beats, dance_beats),
+        "time_basis": "actual_monotonic_wall" if actual_clock else "audio_blocks; derivatives_nominal_only; actual_time_unrecoverable",
+        "beat_input_mode": "causal_delivery" if actual_clock else "preanalysed_replay",
+        "beat": beat_metrics,
         "selection": selection_diversity(collapsed_motion_ids, cluster_by_motion),
         "physical": {
-            "pfc": physical_foot_contact(com, left, right, fps=source_rate),
+            "pfc_legacy_proxy": physical_foot_contact(com, left, right, fps=source_rate) if not actual_clock else None,
+            "pfc_edge_g1_adapted_30fps": edge_pfc_g1_adapted(at_30(root), at_30(left), at_30(right)) if actual_clock else None,
             **skating,
             "minimum_foot_support_height_m": float(np.min(support_height)),
             "ground_penetration_max_m": float(max(-np.min(support_height), 0.0)),
@@ -731,6 +814,7 @@ def response_latency_from_trace(
     path: Path | str,
     change_times_seconds: Sequence[float],
     expected_genres: Sequence[str] | None = None,
+    *, clock_field: str = "audio_time_seconds",
 ) -> dict[str, Any]:
     """Measure audio-change -> match/pending/switch/blend/stable milestones."""
 
@@ -741,12 +825,13 @@ def response_latency_from_trace(
         raise ValueError("expected_genres must match change_times_seconds")
 
     def time_of(row: Mapping[str, str]) -> float:
-        return float(row.get("audio_time_seconds", "nan"))
+        return float(row.get(clock_field, "nan"))
 
     changes = []
     for index, change_time in enumerate(change_times_seconds):
         expected = expected_genres[index] if expected_genres is not None else None
-        eligible = [row for row in rows if time_of(row) >= float(change_time)]
+        next_change = change_times_seconds[index + 1] if index + 1 < len(change_times_seconds) else math.inf
+        eligible = [row for row in rows if float(change_time) <= time_of(row) < next_change]
         if expected:
             matching_results = [
                 row
@@ -760,7 +845,7 @@ def response_latency_from_trace(
         after_match = [
             row
             for row in eligible
-            if match_time is None or time_of(row) >= match_time
+            if match_time is not None and time_of(row) >= match_time
         ]
         pending = next(
             (row for row in after_match if bool(row.get("pending_motion_id"))),

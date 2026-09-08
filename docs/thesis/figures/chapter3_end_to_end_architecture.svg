@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="950" viewBox="0 0 1000 950">
+<desc>Offline audio and motion preparation supplies a frozen catalogue. Online retrieval, preparation and beat-synchronous commitment feed continuous G1 kinematic playback.</desc>
+<rect x="0" y="0" width="1000" height="950" rx="0" fill="#FFFFFF" stroke="#FFFFFF"/>
+<rect x="20" y="78" width="960" height="280" rx="14" fill="#F3F7FB" stroke="#CFDCE9"/>
+<text x="40" y="106" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="start" fill="#32679B">01  OFFLINE PREPARATION</text>
+<text x="610" y="106" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#526477">Whole-clip analysis and catalogue admission</text>
+<rect x="40" y="130" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#32679B"/>
+<text x="140" y="156" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#32679B">AIST++ music</text>
+<text x="140" y="178" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Paired audio tracks</text>
+<text x="140" y="196" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Track and segment identity</text>
+<rect x="280" y="130" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#32679B"/>
+<text x="380" y="156" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#32679B">Audio descriptors</text>
+<text x="380" y="178" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Embedding + rhythm / timbre</text>
+<text x="380" y="196" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Optional style activations</text>
+<rect x="520" y="130" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#32679B"/>
+<text x="620" y="156" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#32679B">Searchable audio bank</text>
+<text x="620" y="178" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Segments linked to tracks</text>
+<text x="620" y="196" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Reference normalisation</text>
+<rect x="40" y="250" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#32679B"/>
+<text x="140" y="276" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#32679B">SMPL motion</text>
+<text x="140" y="298" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Paired human trajectories</text>
+<text x="140" y="316" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Source motion identity</text>
+<rect x="280" y="250" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#32679B"/>
+<text x="380" y="276" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#32679B">Motion analysis</text>
+<text x="380" y="298" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Key poses and motion profiles</text>
+<text x="380" y="316" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Activity and regularity</text>
+<rect x="520" y="250" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#32679B"/>
+<text x="620" y="276" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#32679B">GMR to Unitree G1</text>
+<text x="620" y="298" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Canonical named-joint motion</text>
+<text x="620" y="316" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Kinematic preflight</text>
+<rect x="760" y="161" width="200" height="143" rx="10" fill="#DFECF8" stroke="#32679B"/>
+<text x="860" y="190" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#32679B">FROZEN CATALOGUE</text>
+<text x="860" y="215" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Audio index + statistics</text>
+<text x="860" y="236" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Motion profiles + key poses</text>
+<text x="860" y="257" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Validated G1 trajectories</text>
+<text x="860" y="278" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Joined IDs + provenance</text>
+<polyline points="240,171 280,171" fill="none" stroke="#32679B" stroke-width="1.7"/>
+<polygon points="280,171 272.0,167.5 272.0,174.5" fill="#32679B"/>
+<polyline points="480,171 520,171" fill="none" stroke="#32679B" stroke-width="1.7"/>
+<polygon points="520,171 512.0,167.5 512.0,174.5" fill="#32679B"/>
+<polyline points="240,291 280,291" fill="none" stroke="#32679B" stroke-width="1.7"/>
+<polygon points="280,291 272.0,287.5 272.0,294.5" fill="#32679B"/>
+<polyline points="480,291 520,291" fill="none" stroke="#32679B" stroke-width="1.7"/>
+<polygon points="520,291 512.0,287.5 512.0,294.5" fill="#32679B"/>
+<polyline points="720,171 740,171 740,202 760,202" fill="none" stroke="#32679B" stroke-width="1.7"/>
+<polygon points="760,202 752.0,198.5 752.0,205.5" fill="#32679B"/>
+<polyline points="720,291 740,291 740,265 760,265" fill="none" stroke="#32679B" stroke-width="1.7"/>
+<polygon points="760,265 752.0,261.5 752.0,268.5" fill="#32679B"/>
+<rect x="20" y="393" width="960" height="306" rx="14" fill="#F1F8F6" stroke="#C9DFD9"/>
+<text x="40" y="423" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="start" fill="#247B78">02  ONLINE PERCEPTION AND DECISION</text>
+<text x="650" y="423" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="start" fill="#526477">Causal audio and bounded background work</text>
+<rect x="40" y="450" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="140" y="476" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Live audio</text>
+<text x="140" y="498" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Microphone or file stream</text>
+<text x="140" y="516" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Rolling audio buffer</text>
+<rect x="280" y="450" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="380" y="476" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Query features</text>
+<text x="380" y="498" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Matched offline extractor</text>
+<text x="380" y="516" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Rolling-window descriptors</text>
+<rect x="520" y="450" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="620" y="476" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Hierarchical retrieval</text>
+<text x="620" y="498" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Segments to tracks to motions</text>
+<text x="620" y="516" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Similarity + compatibility</text>
+<rect x="760" y="450" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="860" y="476" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Stable selection</text>
+<text x="860" y="498" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Evidence and hysteresis</text>
+<text x="860" y="516" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Relevance / diversity policy</text>
+<polyline points="240,491 280,491" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="280,491 272.0,487.5 272.0,494.5" fill="#247B78"/>
+<polyline points="480,491 520,491" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="520,491 512.0,487.5 512.0,494.5" fill="#247B78"/>
+<polyline points="720,491 760,491" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="760,491 752.0,487.5 752.0,494.5" fill="#247B78"/>
+<rect x="40" y="584" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="140" y="610" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Rhythm analysis</text>
+<text x="140" y="632" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Short-block onset / activity</text>
+<text x="140" y="650" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Accepted beat events</text>
+<rect x="280" y="584" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="380" y="610" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Commit + entry search</text>
+<text x="380" y="632" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Beat / readiness gate</text>
+<text x="380" y="650" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Entry pose + blend duration</text>
+<rect x="520" y="584" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="620" y="610" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Ready motion pool</text>
+<text x="620" y="632" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Completed candidates only</text>
+<text x="620" y="650" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Bounded cache</text>
+<rect x="760" y="584" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#247B78"/>
+<text x="860" y="610" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#247B78">Candidate preparation</text>
+<text x="860" y="632" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Load, ground and adapt</text>
+<text x="860" y="650" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Build entry-state features</text>
+<polyline points="140,532 140,584" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="140,584 143.5,576.0 136.5,576.0" fill="#247B78"/>
+<polyline points="860,532 860,584" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="860,584 863.5,576.0 856.5,576.0" fill="#247B78"/>
+<text x="870" y="562" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="start" fill="#247B78">Pending ID</text>
+<polyline points="760,625 720,625" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="720,625 728.0,628.5 728.0,621.5" fill="#247B78"/>
+<polyline points="520,625 480,625" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="480,625 488.0,628.5 488.0,621.5" fill="#247B78"/>
+<polyline points="240,625 280,625" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="280,625 272.0,621.5 272.0,628.5" fill="#247B78"/>
+<polyline points="805,304 805,377 620,377 620,450" fill="none" stroke="#32679B" stroke-width="1.7" stroke-dasharray="5 4"/>
+<polygon points="620,450 623.5,442.0 616.5,442.0" fill="#32679B"/>
+<text x="465" y="380" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#32679B">Index + profiles</text>
+<polyline points="960,232 990,232 990,625 960,625" fill="none" stroke="#32679B" stroke-width="1.7" stroke-dasharray="5 4"/>
+<polygon points="960,625 968.0,628.5 968.0,621.5" fill="#32679B"/>
+<rect x="20" y="744" width="960" height="180" rx="14" fill="#FCF8F0" stroke="#E7D8BF"/>
+<text x="280" y="774" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="start" fill="#A36A24">03  CONTINUOUS PLAYBACK AND OUTPUT</text>
+<rect x="40" y="793" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="140" y="819" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#A36A24">Beat-phase playback</text>
+<text x="140" y="841" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Active / target sampling</text>
+<text x="140" y="859" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Gradual speed / phase control</text>
+<rect x="280" y="793" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="380" y="819" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#A36A24">Continuous transition</text>
+<text x="380" y="841" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Root alignment + pose blend</text>
+<text x="380" y="859" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Atomic state handover</text>
+<rect x="520" y="793" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="620" y="819" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#A36A24">Output conditioning</text>
+<text x="620" y="841" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Stateful joint limits</text>
+<text x="620" y="859" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Optional collision handling</text>
+<rect x="760" y="793" width="200" height="82" rx="10" fill="#FFFFFF" stroke="#A36A24"/>
+<text x="860" y="819" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#A36A24">Unitree G1 / MuJoCo</text>
+<text x="860" y="841" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">29-DoF pose output</text>
+<text x="860" y="859" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="400" text-anchor="middle" fill="#203348">Kinematic preview</text>
+<polyline points="240,834 280,834" fill="none" stroke="#A36A24" stroke-width="1.7"/>
+<polygon points="280,834 272.0,830.5 272.0,837.5" fill="#A36A24"/>
+<polyline points="480,834 520,834" fill="none" stroke="#A36A24" stroke-width="1.7"/>
+<polygon points="520,834 512.0,830.5 512.0,837.5" fill="#A36A24"/>
+<polyline points="720,834 760,834" fill="none" stroke="#A36A24" stroke-width="1.7"/>
+<polygon points="760,834 752.0,830.5 752.0,837.5" fill="#A36A24"/>
+<polyline points="380,666 380,722 200,722 200,793" fill="none" stroke="#247B78" stroke-width="1.7"/>
+<polygon points="200,793 203.5,785.0 196.5,785.0" fill="#247B78"/>
+<text x="397" y="725" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" fill="#247B78">Committed motion, entry phase and transition duration</text>
+<polyline points="100,666 100,793" fill="none" stroke="#247B78" stroke-width="1.7" stroke-dasharray="5 4"/>
+<polygon points="100,793 103.5,785.0 96.5,785.0" fill="#247B78"/>
+<text x="38" y="719" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" text-anchor="start" fill="#247B78">Beat events</text>
+</svg>

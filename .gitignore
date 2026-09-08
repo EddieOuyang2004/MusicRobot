@@ -14,3 +14,5 @@ realtime/humanoid_robot/assets/SMPL_python*.zip
 realtime/humanoid_robot/.deps/
 realtime/humanoid_robot/.venv-gmr/
 realtime/humanoid_robot/models/
+realtime/humanoid_robot/src/test/output/thesis_final/
+docs/thesis/experiment_results/

@@ -140,8 +140,29 @@ class RealtimeLoopScheduler:
         self.enabled = bool(enabled)
         self.next_deadline: float | None = None
         self.work_seconds: deque[float] = deque(maxlen=200_000)
+        self.output_interval_seconds: deque[float] = deque(maxlen=200_000)
         self.deadline_misses = 0
+        self.skipped_periods = 0
         self.iterations = 0
+        self.last_output_time: float | None = None
+
+    def time_since_last_output(self, now: float | None = None) -> float:
+        """Return the real output interval available to the next limiter step."""
+
+        current = time.perf_counter() if now is None else float(now)
+        if self.last_output_time is None:
+            return self.period
+        return max(current - self.last_output_time, 1e-9)
+
+    def record_output(self, emitted_at: float | None = None) -> float:
+        """Record an emitted command and return its actual wall-clock interval."""
+
+        current = time.perf_counter() if emitted_at is None else float(emitted_at)
+        interval = self.time_since_last_output(current)
+        if self.last_output_time is not None:
+            self.output_interval_seconds.append(interval)
+        self.last_output_time = current
+        return interval
 
     def wait(self, work_started: float) -> None:
         now = time.perf_counter()
@@ -158,7 +179,20 @@ class RealtimeLoopScheduler:
             return
         self.deadline_misses += 1
         missed = math.floor((now - self.next_deadline) / self.period) + 1
-        self.next_deadline += missed * self.period
+        self.skipped_periods += missed
+        # Do not emit a catch-up frame immediately after an overrun. Restart the
+        # release clock so the next cycle has a full period available.
+        self.next_deadline = now + self.period
+        time.sleep(self.period)
+
+    def reset_statistics(self) -> None:
+        """Start a new measurement interval without disturbing wall-clock scheduling."""
+
+        self.work_seconds.clear()
+        self.output_interval_seconds.clear()
+        self.deadline_misses = 0
+        self.skipped_periods = 0
+        self.iterations = 0
 
     def summary(self) -> dict[str, float | int]:
         samples_ms = np.asarray(self.work_seconds, dtype=np.float64) * 1_000.0
@@ -166,15 +200,37 @@ class RealtimeLoopScheduler:
         def percentile(quantile: float) -> float:
             return float(np.percentile(samples_ms, quantile)) if samples_ms.size else 0.0
 
+        intervals_ms = np.asarray(
+            self.output_interval_seconds, dtype=np.float64
+        ) * 1_000.0
+
+        def interval_percentile(quantile: float) -> float:
+            return (
+                float(np.percentile(intervals_ms, quantile))
+                if intervals_ms.size
+                else 0.0
+            )
+
         return {
             "control_rate_hz": 1.0 / self.period,
             "iterations": self.iterations,
             "deadline_misses": self.deadline_misses,
             "deadline_miss_ratio": self.deadline_misses / max(self.iterations, 1),
+            "skipped_control_periods": self.skipped_periods,
             "work_ms_p50": percentile(50.0),
             "work_ms_p95": percentile(95.0),
             "work_ms_p99": percentile(99.0),
             "work_ms_max": float(np.max(samples_ms)) if samples_ms.size else 0.0,
+            "output_interval_samples": int(intervals_ms.size),
+            "output_interval_ms_min": (
+                float(np.min(intervals_ms)) if intervals_ms.size else 0.0
+            ),
+            "output_interval_ms_p50": interval_percentile(50.0),
+            "output_interval_ms_p95": interval_percentile(95.0),
+            "output_interval_ms_p99": interval_percentile(99.0),
+            "output_interval_ms_max": (
+                float(np.max(intervals_ms)) if intervals_ms.size else 0.0
+            ),
         }
 
 
@@ -1055,7 +1111,11 @@ class MujocoHumanoidPlayer:
         self.collision_check_count = 0
         self.collision_projection_count = 0
         self.collision_anchor_recovery_count = 0
+        self.collision_projection_fallback_count = 0
+        self.collision_dynamics_infeasible_count = 0
+        self.last_collision_projection_scale = 1.0
         self.last_collision_safe_qpos: np.ndarray | None = None
+        self.collision_candidate_violation_count = 0
         expanded_collision_pairs = {
             tuple(sorted((first, second)))
             for first_group, second_group in collision_geom_pairs(self.model)
@@ -1231,6 +1291,18 @@ class MujocoHumanoidPlayer:
         tolerance: float = 1e-7,
     ) -> bool:
         mujoco.mj_forward(self.model, data)
+        return self._has_self_clearance_violation_after_forward(
+            data, minimum_distance, tolerance
+        )
+
+    def _has_self_clearance_violation_after_forward(
+        self,
+        data: mujoco.MjData,
+        minimum_distance: float,
+        tolerance: float = 1e-7,
+    ) -> bool:
+        """Check clearance when ``mj_forward`` has already populated geometry."""
+
         pairs = self.self_collision_geom_pairs
         if not len(pairs):
             return False
@@ -1259,11 +1331,24 @@ class MujocoHumanoidPlayer:
     def project_self_collision_safe(
         self,
         frame: RobotMotionFrame,
-        minimum_distance: float = DEFAULT_COLLISION_MIN_DISTANCE_M + COLLISION_CLEARANCE_BUFFER_M,
-        iterations: int = 14,
+        minimum_distance: float = (
+            DEFAULT_COLLISION_MIN_DISTANCE_M
+            + COLLISION_CLEARANCE_BUFFER_M
+            + 0.0005
+        ),
+        iterations: int = 8,
+        minimum_dynamic_scale: float = 0.0,
     ) -> RobotMotionFrame:
-        """Scale a realtime pose update back toward the last safe displayed pose."""
+        """Scale a pose toward the last safe output and verify the exact result.
+
+        ``minimum_distance`` includes a small enforcement margin.  The margin is
+        deliberately soft: when preserving it would require a discontinuous jump
+        or violate the output dynamics bounds, the exact emitted-pose contract is
+        still enforced without the extra 0.5 mm headroom.
+        """
         self.collision_check_count += 1
+        self.last_collision_projection_scale = 1.0
+        audit_distance = max(float(minimum_distance) - 0.0005, 0.0)
         scratch = self.collision_scratch
         scratch.qpos[:] = self.data.qpos
         self._write_frame(scratch, frame, count_limits=False)
@@ -1272,21 +1357,39 @@ class MujocoHumanoidPlayer:
             self.last_collision_safe_qpos = candidate_qpos
             return frame
 
+        self.collision_candidate_violation_count += 1
+        candidate_contract_safe = not self._has_self_clearance_violation(
+            scratch, audit_distance
+        )
         anchor_qpos = self.data.qpos.copy()
+        projection_distance = float(minimum_distance)
         scratch.qpos[:] = anchor_qpos
         if self._has_self_clearance_violation(scratch, minimum_distance):
-            fallback = self.last_collision_safe_qpos
-            if fallback is not None:
-                anchor_qpos = fallback.copy()
-                scratch.qpos[:] = anchor_qpos
-            if fallback is None or self._has_self_clearance_violation(
-                scratch,
-                minimum_distance,
-            ):
-                anchor_qpos = self.data.qpos.copy()
-                anchor_qpos[7:] = 0.0
-                scratch.qpos[:] = anchor_qpos
-            if self._has_self_clearance_violation(scratch, minimum_distance):
+            if not self._has_self_clearance_violation(scratch, audit_distance):
+                # The current command is contract-safe but has used some of the
+                # optional clearance headroom.  Keep it as the interpolation
+                # anchor; replacing it with an older margin-safe pose creates an
+                # unbounded joint discontinuity.
+                projection_distance = audit_distance
+            else:
+                fallback = self.last_collision_safe_qpos
+                if fallback is not None:
+                    anchor_qpos = fallback.copy()
+                    scratch.qpos[:] = anchor_qpos
+                if fallback is None or self._has_self_clearance_violation(
+                    scratch,
+                    audit_distance,
+                ):
+                    anchor_qpos = self.data.qpos.copy()
+                    anchor_qpos[7:] = 0.0
+                    scratch.qpos[:] = anchor_qpos
+                if not self._has_self_clearance_violation(
+                    scratch, audit_distance
+                ) and self._has_self_clearance_violation(
+                    scratch, minimum_distance
+                ):
+                    projection_distance = audit_distance
+            if self._has_self_clearance_violation(scratch, audit_distance):
                 # Keep the realtime loop alive even when an incompatible model
                 # provides no safe neutral anchor.  The policy benchmark will
                 # force the default mode to off if this path is observed.
@@ -1300,21 +1403,86 @@ class MujocoHumanoidPlayer:
         for _iteration in range(max(int(iterations), 1)):
             amount = 0.5 * (safe_amount + unsafe_amount)
             probe[:] = candidate_qpos
+            probe[:3] = anchor_qpos[:3] + amount * (
+                candidate_qpos[:3] - anchor_qpos[:3]
+            )
+            probe[3:7] = slerp_wxyz(
+                anchor_qpos[3:7], candidate_qpos[3:7], amount
+            )
             probe[7:] = anchor_qpos[7:] + amount * (candidate_qpos[7:] - anchor_qpos[7:])
             scratch.qpos[:] = probe
-            if self._has_self_clearance_violation(scratch, minimum_distance):
+            if self._has_self_clearance_violation(scratch, projection_distance):
                 unsafe_amount = amount
             else:
                 safe_amount = amount
         probe[:] = candidate_qpos
+        probe[:3] = anchor_qpos[:3] + safe_amount * (
+            candidate_qpos[:3] - anchor_qpos[:3]
+        )
+        probe[3:7] = slerp_wxyz(
+            anchor_qpos[3:7], candidate_qpos[3:7], safe_amount
+        )
         probe[7:] = anchor_qpos[7:] + safe_amount * (candidate_qpos[7:] - anchor_qpos[7:])
+
+        minimum_dynamic_scale = float(np.clip(minimum_dynamic_scale, 0.0, 1.0))
+        if safe_amount + 1e-12 < minimum_dynamic_scale:
+            if candidate_contract_safe:
+                # Preserve the already-limited command when only the optional
+                # margin conflicts with dynamics.  This keeps both hard safety
+                # contracts (clearance and joint derivatives) satisfiable.
+                probe[:] = candidate_qpos
+                safe_amount = 1.0
+            else:
+                # No point on the contract-safe segment also satisfies the
+                # acceleration interval. Clearance takes precedence; telemetry
+                # records the infeasibility rather than hiding it.
+                probe[:] = anchor_qpos
+                safe_amount = 0.0
+                self.collision_dynamics_infeasible_count += 1
+
+        scratch.qpos[:] = probe
+        if self._has_self_clearance_violation(scratch, audit_distance):
+            fallback_candidates = [anchor_qpos]
+            if self.last_collision_safe_qpos is not None:
+                fallback_candidates.append(self.last_collision_safe_qpos)
+            neutral_qpos = self.data.qpos.copy()
+            neutral_qpos[7:] = 0.0
+            fallback_candidates.append(neutral_qpos)
+            recovered = False
+            for fallback in fallback_candidates:
+                scratch.qpos[:] = fallback
+                if not self._has_self_clearance_violation(
+                    scratch, audit_distance
+                ):
+                    probe[:] = fallback
+                    safe_amount = 0.0
+                    recovered = True
+                    break
+            if not recovered:
+                # No compatible hard-clearance pose exists for this model/root.
+                # Keep the loop alive and expose the residual in final telemetry.
+                self.collision_projection_fallback_count += 1
+                return frame
+            # Validate the exact selected fallback rather than trusting a stale
+            # cached pose.  This is intentionally redundant: the final command
+            # safety contract must not depend on cache history.
+            scratch.qpos[:] = probe
+            if self._has_self_clearance_violation(scratch, audit_distance):
+                self.collision_projection_fallback_count += 1
+                return frame
+            self.collision_projection_fallback_count += 1
         projected_joints = {
             name: float(probe[qpos_id])
             for name, qpos_id in self.actuator_joint_qpos_ids.items()
         }
         self.last_collision_safe_qpos = probe.copy()
+        self.last_collision_projection_scale = safe_amount
         self.collision_projection_count += 1
-        return frame.with_joint_positions(projected_joints)
+        return RobotMotionFrame(
+            joint_positions=projected_joints,
+            root_position=probe[:3].copy(),
+            root_quaternion_wxyz=normalize_wxyz(probe[3:7]),
+        )
 
     def apply_collision_policy(
         self,
@@ -1322,10 +1490,13 @@ class MujocoHumanoidPlayer:
         mode: str,
         *,
         runtime_modified: bool,
+        minimum_dynamic_scale: float = 0.0,
     ) -> RobotMotionFrame:
         if mode == "off" or (mode == "auto" and not runtime_modified):
             return frame
-        return self.project_self_collision_safe(frame)
+        return self.project_self_collision_safe(
+            frame, minimum_dynamic_scale=minimum_dynamic_scale
+        )
 
     def support_height(self, data: mujoco.MjData | None = None) -> float:
         target = self.data if data is None else data
