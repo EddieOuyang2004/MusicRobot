@@ -1,6 +1,5 @@
 % Chapter 5 can be included from a larger thesis with \input or \include.
-% This chapter uses only citation keys already present in references.bib.
-% No Chapter 5 reference entries were added to references.bib.
+% Citation keys are maintained in references.bib.
 
 \chapter{Real-Time Music--Motion Matching and Continuous Control}
 \label{chap:realtime_matching_control}
@@ -41,16 +40,17 @@ The online method is organised around three different decisions:
 \section{Online Problem Formulation}
 \label{sec:ch5_problem}
 
-Let $x_{0:t}$ denote audio observed up to current time $t$, and let
+Let $\mathcal{A}_{\leq t}$ denote audio observed up to current time $t$, and let
 $\mathcal{M}=\{M_i\}_{i=1}^{N}$ be the finite catalogue of robot-ready
 motions. Each $M_i$ is associated with source music $u_i$, an authored tempo,
 an activity profile, key-pose phases, foot-contact states, and a G1 trajectory.
-The online system produces a piecewise trajectory
-$\widehat{M}(t)$ and its continuous phase $\phi(t)$ using only $x_{0:t}$:
+The online system selects motion $M_{i_t}$ and phase $\phi_t$, then produces
+the emitted configuration $\mathbf{q}^{\mathrm{out}}_t$ using only
+$\mathcal{A}_{\leq t}$ and stored state:
 
 \begin{equation}
-    \bigl(\widehat{M}(t),\phi(t)\bigr)
-    =\mathcal{F}\!\left(x_{0:t},\mathcal{M},\mathcal{H}_{t}\right),
+    \bigl(i_t,\phi_t,\mathbf{q}^{\mathrm{out}}_t\bigr)
+    =\mathcal{G}\!\left(\mathcal{A}_{\leq t},\mathcal{M},\mathcal{H}_{t}\right),
     \label{eq:ch5_causal_mapping}
 \end{equation}
 
@@ -58,7 +58,19 @@ where $\mathcal{H}_{t}$ contains the current motion, recent rankings, accepted
 beats, played-motion history, prepared candidates, and controller state. The
 history term makes explicit that selection is stateful. Applying a memoryless
 nearest-neighbour rule independently to every window would make
-$\widehat{M}(t)$ oscillate when several catalogue items have similar scores.
+$i_t$ oscillate when several catalogue items have similar scores.
+
+Throughout the thesis, $\mathcal{F}$ denotes audio feature extraction and
+$\mathcal{G}$ denotes stateful online control. The waveform history
+$\mathcal{A}_{\leq t}$ is distinct from its descriptor $\mathbf{x}_t$.
+The full catalogue $\mathcal{D}$ contains descriptors, trajectories $M_i$ and
+metadata $\mathbf{m}_i$; $\mathcal{M}$ is its trajectory collection, and
+$\mathcal{C}_t$ is the ranked motion candidate set. Thus $\mathbf{x}_i$ and
+$M_i$ denote different parts of an item, rather than alternative names for it.
+The index $i_t$ identifies the selected motion, $\phi_t$ is playback phase,
+and $\mathbf{q}^{\mathrm{out}}_t$ is the emitted robot configuration after
+blending and output constraints. The time subscript refers to the current
+update instant; $\Delta t$ is the elapsed time between updates.
 
 The method optimises no single end-to-end objective at runtime. Instead, it
 uses a sequence of constrained local objectives:
@@ -334,7 +346,7 @@ the currently playing motion. A relevance switch is armed only when
 for three consecutive completed retrievals with the same $i_t^{*}$. If the
 leader changes, the current motion becomes best, the score margin disappears,
 or the match is rejected, the streak is reset. A successful streak creates a
-\emph{pending relevance selection} It does not immediately alter playback.
+\emph{pending relevance selection}. It does not immediately alter playback.
 
 This hysteresis is important because overlapping audio windows are strongly
 correlated. Three wins should not be interpreted as three independent
@@ -352,7 +364,7 @@ considers the latest top five motions and retains only candidates satisfying
 \begin{equation}
 \begin{aligned}
     s_{\mathrm{final}}(i)&\geq s_{\mathrm{final}}(i^{*})-0.05,\\
-    s_{\mathrm{music}}(i)&\geq s_{\mathrm{music}}(i^{*})-0.08.
+    s_{\mathrm{track}}(u_i)&\geq s_{\mathrm{track}}(u_{i^{*}})-0.08.
 \end{aligned}
     \label{eq:ch5_diversity_eligibility}
 \end{equation}
@@ -415,10 +427,17 @@ calibrated floor. A short release interval prevents the activity state from
 chattering near the threshold. When audio is inactive, beat history is reset
 and motion amplitude returns gradually towards zero.
 
-Beat candidates are produced from a rolling-window predominant-local-pulse
-analysis, while block-level onset and loudness histories supply local event
-contrast. Dynamic beat tracking and event salience are established tools for
-relating musical time to control \cite{ellis2007beat}. In the present method,
+Beat candidates are produced by predominant local pulse (PLP) estimation,
+following Grosche and M\"uller \cite{grosche2010extracting}.
+The implementation uses the librosa library \cite{mcfee2015librosa}, applying
+\texttt{librosa.beat.plp} to a rolling history of already acquired audio.
+PLP combines locally estimated periodicities
+into a pulse curve; its peaks supply beat candidates. Block-level onset and
+loudness histories supply local event contrast. Analysis can revise estimates
+inside its available window, but the controller acts only when results are
+delivered and cannot revise emitted poses. This online PLP path is distinct
+from the dynamic-programming beat tracker used for catalogue descriptors
+\cite{ellis2007beat}. In the present method,
 each candidate has pulse confidence $c_p$ and recent-event contrast $c_x$. Its
 selection score is
 
@@ -734,7 +753,8 @@ last pose is held. An optional very small stationary breathing signal can avoid
 a perfectly frozen appearance without moving the root.
 
 At blend completion, the target sampler, phase controller, phase tracker, root
-references, and motion identifier are committed together. Only after this transfer does, the selection policy reset its held-bar count and record
+references, and motion identifier are committed together. Only after this
+transfer does the selection policy reset its held-bar count and record
 the new item in recency history. This avoids a mixed frame in which, for
 example, the new identifier is paired with the old controller state.
 
@@ -805,4 +825,3 @@ work, excludes failed candidates, and otherwise retains the last valid active
 state. It never responds to failure with an arbitrary catalogue item or
 synchronous retargeting. The trace supplies the intermediate measurements used
 by the experiments in the next chapter.
-

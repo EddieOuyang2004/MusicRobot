@@ -1,5 +1,4 @@
 % Chapter 3 can be included from a larger thesis with \input or \include.
-% The parent document must load the graphicx package.
 % This chapter uses only citation keys already present in references.bib.
 
 \chapter{Overall System Design}
@@ -8,7 +7,7 @@
 \section{Chapter Overview}
 \label{sec:design_overview}
 
-This chapter presents the system-level design of the Humanoid Matcher. The
+This chapter presents the system-level design of the BeatWeaver. The
 system receives a causal audio stream and produces a continuous sequence of
 poses for a 29-degree-of-freedom Unitree G1 model. It does not synthesise a new
 dance from scratch. Instead, it retrieves music-related motions from a
@@ -26,7 +25,7 @@ control, transition planning, and constrained pose output. A motion can enter
 the live candidate set only after its source, representation, and target-robot
 validity have been established.
 
-The Humanoid Matcher is therefore a hybrid system rather than an end-to-end
+The BeatWeaver is therefore a hybrid system rather than an end-to-end
 neural network. A pretrained music model supplies learned audio
 representations, explicit DSP features describe rhythm and activity,
 deterministic scoring ranks catalogue items, and state machines govern
@@ -50,13 +49,7 @@ pose after phase control, transition blending, and output checks.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{figures/chapter3_end_to_end_architecture.pdf}
-    \caption{End-to-end architecture of the Humanoid Matcher. Offline
-    preparation joins audio descriptors, motion profiles, and prevalidated G1
-    trajectories in a frozen catalogue. Online retrieval and candidate
-    preparation supply completed results to beat-synchronous commitment and
-    continuous playback. Solid arrows show processing flow; dashed arrows
-    show catalogue dependencies and beat-event input. The MuJoCo endpoint is
-    a kinematic preview.}
+    \caption{End-to-end architecture of the BeatWeaver}
     \label{fig:humanoid_matcher_architecture}
 \end{figure}
 
@@ -67,7 +60,7 @@ The main information flow is
     \mathcal{A}_{\leq t}
     &\longrightarrow \mathbf{x}_t
     \longrightarrow \mathcal{T}_t
-    \longrightarrow \mathcal{M}_t
+    \longrightarrow \mathcal{C}_t
     \longrightarrow d_t \\
     &\longrightarrow (i_t,\phi_t,T_t)
     \longrightarrow \mathbf{q}^{\mathrm{target}}_t
@@ -77,7 +70,7 @@ The main information flow is
 \end{equation}
 
 where $\mathbf{x}_t$ is the descriptor of the recent audio,
-$\mathcal{T}_t$ is the ranked track set, $\mathcal{M}_t$ is the ranked motion
+$\mathcal{T}_t$ is the ranked track set, $\mathcal{C}_t$ is the ranked motion
 set, and $d_t$ is the stateful selection decision. A committed switch specifies
 a target motion $i_t$, an entry phase $\phi_t$, and a transition duration $T_t$.
 $\mathbf{q}^{\mathrm{target}}_t$ is the music-timed and, where necessary,
@@ -133,7 +126,7 @@ Chapter~\ref{chap:offline_catalogue}.
 The online subsystem processes the same causal stream at two timescales. A
 longer rolling window supplies relatively stable evidence for music and motion
 retrieval, while short audio blocks supply activity, onset, and beat events for
-timing. 
+timing.
 
 Retrieval is hierarchical. Segment comparison first supplies local musical
 evidence, which is pooled at track level and may be restricted by style and
@@ -218,12 +211,7 @@ invalidated by newer retrieval evidence.
     \centering
     \includegraphics[width=\textwidth]{figures/chapter3_state_ownership_swimlanes.pdf}
     \caption{State ownership and asynchronous execution during a representative
-    prepared switch. Time progresses downward without implying measured task
-    durations. Solid arrows denote requests or control flow, and dashed
-    arrows denote completed-result handoffs. The selector, playback
-    controller, and output layer are logical owners coordinated by the
-    foreground loop. Normal prepared commitment is shown; terminal-motion
-    handling can initiate a prepared transition before clip completion.}
+    prepared switch}
     \label{fig:state_ownership_swimlanes}
 \end{figure}
 
@@ -238,7 +226,7 @@ file I/O.
 Diagnostics follow the same ownership boundaries. Retrieval exposes rankings
 and rejection reasons. Selection exposes evidence, pending reason, and
 readiness. Timing exposes accepted beats and remaining phase error. Transition
-planning exposes entry quality and blend progress, And output conditioning
+planning exposes entry quality and blend progress, and output conditioning
 exposes limiter and collision interventions. Chapter~\ref{chap:realtime_matching_control}
 defines the concrete trace fields used by later experiments.
 

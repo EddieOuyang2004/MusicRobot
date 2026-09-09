@@ -12,15 +12,15 @@
 
 Music-driven humanoid motion combines music information retrieval, character
 animation, online control, and robotics. Although all four fields model
-temporal behaviour, they impose different requirements: audio analysis extracts
+temporal behaviour, they impose different requirements. Audio analysis extracts
 musical structure, dance generation seeks plausible motion, real-time control
 requires causal and continuous responses, and humanoid deployment adds contact,
 kinematic, and feasibility constraints.
 
 This chapter reviews these areas in relation to causal selection and playback
 of robot-ready dance from streaming audio. It distinguishes offline generation,
-which may use a complete music sequence; streaming generation, which restricts
-access to future audio; and retrieval-and-control, which adapts motions from a
+which may use a complete music sequence. Streaming generation, which restricts
+access to future audio. And retrieval-and-control, which adapts motions from a
 finite database. BeatWeaver belongs to the third category, drawing on work in
 music-to-dance generation, beat tracking, motion graphs, motion matching, and
 humanoid retargeting. The review focuses on the trade-offs among novelty,
@@ -52,10 +52,24 @@ where $\mathbf{a}_{1:S}$ is an audio waveform and $\mathcal{F}$ may include a
 short-time Fourier transform, mel-frequency bands, spectral statistics,
 chroma, onset strength, or rhythm summaries. Libraries such as Essentia collect
 spectral, temporal, tonal, and high-level descriptors in a common analysis
-framework \cite{bogdanov2013essentia}. Such descriptors are computationally
+framework \cite{bogdanov2013essentia}. Librosa provides a Python implementation
+of reusable audio and music-analysis primitives \cite{mcfee2015librosa}.
+BeatWeaver uses librosa and NumPy for its DSP descriptors. The Essentia citation
+provides library context rather than implementation attribution. Such descriptors are computationally
 attractive because their meaning and cost are explicit. They can also be
 normalised independently, which is valuable when microphone gain, playback
 volume, or recording conditions change.
+
+Onset detection supplies evidence of local change, whereas beat tracking seeks
+a recurring temporal organisation of those changes. Bello et al. distinguish
+energy, spectral and phase-based onset cues, explaining why a single detection
+function cannot capture every kind of musical attack \cite{bello2005tutorial}.
+This motivates using onset density and spectral flux alongside estimated
+tempo. Harmonic/percussive separation supplies another complementary cue.
+FitzGerald uses median filtering along time and frequency to distinguish
+sustained harmonic structure from transient percussion \cite{fitzgerald2010harmonic}.
+BeatWeaver applies the librosa separation primitive to a mel representation
+to derive a percussive ratio. That ratio is an engineered activity cue.
 
 However, hand-designed features expose an important design tension. Global
 summary statistics are cheap and stable, but they can discard local structure.
@@ -101,8 +115,8 @@ embeddings. A typical content similarity is their cosine similarity,
 
 For motion control, this term is more naturally interpreted as evidence for a
 related musical neighbourhood than as direct evidence that a particular
-trajectory is executable. The distinction motivates hierarchical retrieval:
-first identify relevant music, then rank the motions associated with that music
+trajectory is executable. The distinction motivates hierarchical retrieval.
+First identify relevant music, then rank the motions associated with that music
 using motion-specific compatibility.
 
 \subsection{Beat and onset analysis under causal constraints}
@@ -117,6 +131,24 @@ hypothesis supported by recent events. For offline analysis, dynamic programming
 can optimise a sequence of beat times over a complete region. But a live controller
 cannot freely revise past beat decisions after the corresponding robot pose has
 already been emitted.
+
+Grosche and M\"uller's predominant local pulse (PLP) method estimates local
+periodicities from onset information and combines them into a pulse function
+\cite{grosche2010extracting}. It supplies the algorithmic basis for BeatWeaver's
+rolling-window beat candidates through librosa's PLP implementation. Computing
+PLP on acquired audio preserves the no-future-input constraint, but local
+analysis and asynchronous delivery still introduce delay. An estimated beat
+position and the time at which the controller receives it are consequently
+different quantities. This distinction motivates the delivered-event metric
+and explicit timing logs in Chapter~\ref{chap:experimental_evaluation}.
+
+Learned rhythm analysis offers a complementary direction. The madmom library
+includes neural and probabilistic methods for onset, beat, downbeat and metre
+analysis \cite{bock2016madmom}. Its distinction between those tasks highlights
+a limitation of treating every fourth accepted pulse as a bar boundary.
+Counting pulses does not itself estimate metre or downbeats. Madmom is a
+literature comparison and a possible future baseline. It is not the beat
+backend evaluated in this dissertation.
 
 Therefore, causal beat handling requires explicit confidence and latency
 policies. Strong percussive subdivisions can produce twice the intended control
@@ -151,8 +183,16 @@ especially relevant to retrieval-based work because multiple dance sequences
 can be associated with related musical material, permitting the catalogue to
 represent one-to-many music--motion relationships.
 
+AIST++ reconstructs human motion from the AIST Dance Video Database
+\cite{tsuchida2019aist}. The ten genre names and identifier codes used here are
+breaking (BR), house (HO), ballet jazz (JB), street jazz (JS), krump (KR),
+LA-style hip-hop (LH), locking (LO), middle hip-hop (MH), popping (PO), and
+waacking (WA). These are dataset dance categories, not an exhaustive taxonomy
+of music. The same codes label the genre retrieval results in
+Table~\ref{tab:ch6_genres}.
+
 Figure~\ref{fig:lit_aistpp_fact} shows the relationship between the two
-contributions that are often mentioned together: AIST++ provides paired music
+contributions that are often mentioned together. AIST++ provides paired music
 and reconstructed human motion, whereas FACT learns to generate future human
 poses from that data.
 
@@ -160,10 +200,7 @@ poses from that data.
     \centering
     \includegraphics[width=\textwidth]{figures/chapter2_aistpp_fact_overview.pdf}
     \caption{The AIST++ dataset and FACT generation setting, reproduced from
-    Fig.~1 of Li et al.~\cite{li2021ai}. Multi-view recordings and synchronised
-    music provide paired 3D human-motion sequences, and FACT generates dance
-    motion conditioned on music. The output remains a human or animated
-    character representation, so target-robot embodiment is a separate step.}
+    Fig.~1 of Li et al.~\cite{li2021ai}}
     \label{fig:lit_aistpp_fact}
 \end{figure}
 
@@ -184,6 +221,19 @@ not transfer to live music. Evaluations based only on reconstruction distance
 are therefore insufficient. Rhythmic alignment, distributional quality,
 diversity, transition continuity, and user judgement provide complementary
 evidence.
+
+Distributional evaluation also needs a stated representation and sampling
+protocol. Fr\'echet Inception Distance (FID), introduced by Heusel et al.,
+compares Gaussian feature distributions \cite{heusel2017gans}. AIST++/FACT and
+Bailando adapt this evaluation family to kinetic and geometric motion
+features. The corresponding diversity (Div) measures describe distances among
+motion feature vectors \cite{li2021ai,siyao2022bailando}. These scores capture
+distributional resemblance and spread rather than a unique correct choreography.
+Chong and Forsyth show that finite-sample FID estimates can have model-dependent
+bias \cite{chong2020effectively}. Thus matching sample counts is necessary but does not
+make a small reconstructed retrieval sample a leaderboard-equivalent benchmark.
+Chapter~\ref{chap:experimental_evaluation} defines both metrics, their feature
+spaces and their sampling and normalisation conventions explicitly.
 
 \subsection{Human-body and robot-motion representations}
 \label{subsec:lit_motion_representations}
@@ -222,7 +272,7 @@ FACT couples a full-attention cross-modal transformer with the AIST++ dataset
 to model long music and motion sequences \cite{li2021ai}. Its transformer-based
 formulation demonstrates that temporal context and cross-modal attention can
 capture dependencies beyond a local beat. At the same time, autoregressive
-generation exposes familiar difficulties: errors can accumulate over long
+generation exposes familiar difficulties. Errors can accumulate over long
 horizons, and a model conditioned on previously generated frames can become
 sensitive to its own imperfect history.
 
@@ -237,7 +287,7 @@ embodiment conversion problem.
 
 These methods establish two important ideas for the BeatWeaver. First,
 musical context beyond the instantaneous beat is necessary for coherent
-selection. Second, repeated motion patterns are not inherently undesirable.
+selection. Second, repeated motion patterns are not inherently undesirable, because
 dance contains motifs whose recurrence supports style and structure. A
 retrieval system can exploit this property directly, although its available
 motifs remain limited to the catalogue.
@@ -264,11 +314,7 @@ sparse temporal requirements that should survive the generation process.
     \centering
     \includegraphics[width=\textwidth]{figures/chapter2_beatit_conditioning.pdf}
     \caption{Beat-It's music, key-pose, and beat conditioning, reproduced from
-    Fig.~1 of Huang et al.~\cite{huang2024beat}. The figure makes explicit that
-    rhythmic constraints and selected poses guide the generated motion in
-    addition to the music signal. BeatWeaver addresses the inverse timing
-    problem: its motion already exists, so playback phase must be adapted to
-    incoming beats.}
+    Fig.~1 of Huang et al.~\cite{huang2024beat}}
     \label{fig:lit_beatit}
 \end{figure}
 
@@ -293,12 +339,12 @@ look-ahead, revision policy, and how committed motion history is handled.
 FineDance incorporates a retrieval mechanism to improve genre consistency and
 long-term coherence before or alongside generation \cite{li2023finedance}.
 This hybrid design points to a broader interpretation of retrieval. A database
-need not merely return a final clip; it can provide contextual priors, examples,
+need not merely return a final clip. It can provide contextual priors, examples,
 or candidates that are subsequently adapted. The quality of retrieval then
 depends on the correspondence between the query feature space and the desired
 motion property.
 
-In the BeatWeaver, retrieval has a stricter role: the selected item is a
+In the BeatWeaver, retrieval has a stricter role. The selected item is a
 prevalidated robot trajectory rather than a context example for a generator.
 This reduces representational freedom but strengthens motion provenance. Every
 candidate can be inspected offline, linked to its source audio and retargeting
@@ -309,7 +355,7 @@ strong provenance with finite coverage. Future systems may use retrieval to
 propose safe motion primitives and generation to adapt them within controlled
 bounds.
 
-\section{Real-Time Audio-Driven Character and Humanoid Control}
+\section{Real-Time Audio-Driven Control}
 \label{sec:lit_realtime_control}
 
 \subsection{Causality, latency, and committed history}
@@ -318,15 +364,20 @@ bounds.
 For an online system, causality can be expressed as
 
 \begin{equation}
-    \mathbf{q}_t
+    (i_t,\phi_t,\mathbf{q}^{\mathrm{out}}_t)
     = \mathcal{G}\!\left(\mathcal{A}_{\leq t-\delta},
-                         \mathbf{q}_{<t}\right),
+                         \mathcal{M},\mathcal{H}_t\right),
 \end{equation}
 
-where $\delta$ represents acquisition and processing delay. A strictly causal
+where $\delta$ represents acquisition and processing delay, $\mathcal{M}$ is
+the available motion collection, and $\mathcal{H}_t$ is controller history,
+including previously emitted configurations $\mathbf{q}^{\mathrm{out}}_{<t}$.
+The outputs are the selected motion index, phase and emitted configuration.
+Here $\mathcal{G}$ denotes online control, while $\mathcal{F}$ above denotes
+feature extraction. A strictly causal
 system has no access to $\mathcal{A}_{>t}$, and a bounded-latency system must
 also place a practical upper bound on $\delta$. In addition, previously emitted
-poses $\mathbf{q}_{<t}$ are committed: an algorithm may update its internal
+poses $\mathbf{q}^{\mathrm{out}}_{<t}$ are committed. An algorithm may update its internal
 belief about the music, but it cannot alter the robot's physical past.
 
 This formulation reveals three distinct latency sources. \emph{Perceptual
@@ -343,7 +394,7 @@ window is recomputed infrequently or if every change waits several bars.
 \emph{Do You Have Freestyle?} introduces RoboPerform, an audio-conditioned
 humanoid locomotion framework that aligns audio and motion representations and
 distils a mixture-of-experts teacher into a diffusion-based student policy
-\cite{li2026you}. A central contribution is retargeting-free control: the
+\cite{li2026you}. A central contribution is retargeting-free control. The
 student produces humanoid actions from audio rather than first generating an
 explicit human sequence and passing it through a separate retargeter. This can
 reduce accumulated error and latency across pipeline stages. The work also
@@ -352,12 +403,12 @@ directly relevant to humanoid performance than animation-only dance models.
 
 RoboPerform and the BeatWeaver address related goals through different
 assumptions. RoboPerform learns an action policy and can synthesise behaviour
-beyond a fixed set of stored trajectories. The matcher assumes that a library
+beyond a fixed set of stored trajectories. The BeatWeaver assumes that a library
 of actions has already been retargeted and checked. The former places more of
 the problem in representation learning and policy training. The latter places
 more of it in catalogue construction, similarity design, selection stability,
 and transition planning. The contrast is useful because it identifies two
-different ways of handling embodiment: learn it inside the policy, or validate
+different ways of handling embodiment. Learn it inside the policy, or validate
 it before retrieval.
 
 \subsection{Streaming diffusion forcing}
@@ -373,7 +424,7 @@ humanoid deployment, illustrating that streaming generation can be treated as
 a first-class problem rather than an offline model run on shorter windows.
 
 The importance of DiscoForcing to this dissertation is methodological. It
-provides a stronger standard for the term ``real time'': causal access,
+provides a stronger standard for the term ``real time''. Causal access,
 specified latency, continuous history, and online output should all be stated.
 The BeatWeaver does not use diffusion forcing, but it faces analogous
 stability questions. A generative model must decide how much noisy history to
@@ -405,7 +456,7 @@ discontinuity. This reframes motion synthesis as search over reusable examples.
 
 Motion graphs are conceptually relevant to a finite dance library, but a dance
 matcher introduces additional structure. Candidate transitions are not chosen
-only to follow a user-specified spatial path; they are conditioned by music,
+only to follow a user-specified spatial path. They are conditioned by music,
 beat boundaries, motion salience, and humanoid support state. Moreover, a
 transition graph built from every compatible frame pair may become large. The
 present system instead performs a local entry search when a motion switch is
@@ -421,10 +472,10 @@ and future trajectory best fit the current character state and desired control.
 Learned Motion Matching compresses this behaviour into neural networks while
 retaining the responsive, data-driven character of database search
 \cite{holden2020learned}. The work highlights the main strengths of example-based
-control: captured detail can be preserved, behaviour is guided by an explicit
+control. Captured detail can be preserved, behaviour is guided by an explicit
 query, and selection can respond continuously to an external target.
 
-The BeatWeaver uses the term \emph{matcher} in a related but more
+The BeatWeaver uses the term \emph{Weaver} in a related but more
 hierarchical sense. Its primary query is music rather than a desired locomotion
 trajectory, and it initially ranks complete motion candidates associated with
 catalogue tracks. Only after a candidate is selected does it search entry
@@ -494,7 +545,7 @@ over time. Database animation methods use automatically generated transitions
 to connect captured sequences \cite{kovar2023motion}. For a floating-base
 humanoid, the target motion should first be aligned to the current world root.
 Otherwise a locally smooth joint blend can still cause a global translation or
-yaw jump. Joint interpolation should also be careful to angular topology and use the
+yaw jump. Joint interpolation should also respect angular topology and take the
 shortest path for wrapped angles.
 
 The blend duration is not purely aesthetic. If the pose displacement for joint
@@ -523,8 +574,8 @@ central when interpreting MuJoCo output later in the dissertation.
 
 Music-conditioned generators often measure whether kinetic events coincide
 with musical beats, and Beat-It makes beats and key poses explicit conditioning
-variables \cite{huang2024beat}. A retrieval system faces the inverse problem:
-the motion already contains salient events, so playback timing must adapt those
+variables \cite{huang2024beat}. A retrieval system faces the inverse problem.
+The motion already contains salient events, so playback timing must adapt those
 events to the incoming beat stream.
 
 Instantaneously setting motion phase at every beat guarantees small phase error
@@ -546,7 +597,7 @@ The bounded rate prevents an accurate beat estimate from demanding an
 unacceptable motion speed. The controller must also distinguish beat tracking
 error from structural incompatibility. If a motion has too many or too few
 salient poses for the observed rhythm, phase correction alone cannot solve the
-problem, the motion should receive a lower compatibility score during
+problem. The motion should instead receive a lower compatibility score during
 selection.
 
 \section{Humanoid Motion Retargeting and Validation}
@@ -554,6 +605,14 @@ selection.
 
 \subsection{The embodiment gap}
 \label{subsec:lit_embodiment_gap}
+
+Gleicher's retargeting formulation treats changes of character proportions as
+a constrained motion-editing problem, preserving features of the source
+performance while adapting it to a different body \cite{gleicher1998retargetting}.
+This provides a foundation for the embodiment problem. Source pose similarity
+alone does not preserve a world-space contact when limb lengths change.
+For a robot, joint ranges and mechanical geometry add further constraints,
+which motivates separate fidelity and feasibility checks.
 
 Retargeting maps a source performance to a target body while attempting to
 preserve its semantic and perceptual character. For humanoid robots, this task
@@ -583,9 +642,7 @@ trajectory while balancing under contact and torque limits.
     \includegraphics[width=0.72\textwidth]{figures/chapter2_retargeting_gap.pdf}
     \caption{Ground penetration and self-intersection in retargeted humanoid
     references, reproduced from Fig.~2 of Araujo et
-    al.~\cite{araujo2025retargeting}. These examples show why visual and
-    kinematic preflight checks are necessary before a motion enters the online
-    catalogue.}
+    al.~\cite{araujo2025retargeting}}
     \label{fig:lit_retargeting_gap}
 \end{figure}
 
@@ -608,6 +665,15 @@ to the simulator state and invoking forward kinematics visualises the robot
 configuration and allows geometric checks, but it bypasses actuator dynamics,
 balance control, and disturbance response.
 
+DeepMimic demonstrates a different use of motion examples. Reinforcement
+learning trains a controller to imitate reference skills through physical
+simulation \cite{peng2018deepmimic}. The example trajectory guides behaviour,
+while the learned policy must produce actions under simulated dynamics. This
+distinguishes a reference library from an executable controller. BeatWeaver
+constructs and times robot references but does not train such a dynamics-based
+tracking policy, so its kinematic evaluation cannot establish the balance or
+disturbance-recovery capabilities studied in physics-based imitation.
+
 This distinction prevents an otherwise common category error. A motion displayed
 in a physics engine is not necessarily a physics-controlled motion. Kinematic
 preview remains valuable. It can reveal joint-order mistakes, orientation
@@ -627,10 +693,7 @@ avatar or humanoid control stack visible in one pipeline.
     \centering
     \includegraphics[width=\textwidth]{figures/chapter2_discoforcing_streaming.pdf}
     \caption{The DiscoForcing system pipeline, reproduced from Fig.~2 of Ji et
-    al.~\cite{ji2026discoforcing}. Live audio is encoded causally, motion is
-    generated with a streaming diffusion-forcing model, and the resulting
-    human representation is retargeted for avatar rendering or humanoid
-    control.}
+    al.~\cite{ji2026discoforcing}}
     \label{fig:lit_discoforcing}
 \end{figure}
 

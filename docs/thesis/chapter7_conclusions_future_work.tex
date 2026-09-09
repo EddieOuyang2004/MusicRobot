@@ -1,17 +1,17 @@
 % Chapter 7 can be included from a larger thesis with \input or \include.
 % Conclusions follow Chapter 6's checksum-verified 60 Hz v5 formal cohort.
-% Historical DSP-only, smoke and nominal-clock reports are not pooled with it.
 
 \chapter{Conclusions and Future Work}
 \label{chap:conclusions_future_work}
 
 This dissertation investigated how streaming music can guide the selection,
 timing and transition of humanoid dance drawn from a finite motion library.
-The resulting Humanoid Matcher connects offline AIST++ preparation and G1
+The resulting BeatWeaver connects offline AIST++ preparation and G1
 retargeting with online music retrieval, stateful motion selection and
 continuous kinematic playback. The experiments establish a working,
 inspectable integration with measurable rhythm alignment and a validated 60 Hz
-operating point, while also identifying an unmet 120 Hz target. This chapter summarises the
+operating point, while leaving the 120 Hz design target in
+Section~\ref{sec:intro_problem} unmet. This chapter summarises the
 work, states the limits of those conclusions and identifies the developments
 needed for broader musical coverage and physical robot execution.
 
@@ -28,7 +28,7 @@ Versioned artefacts, source and model hashes, validated caching and MuJoCo
 preflight made catalogue admission explicit. The recorded build contains
 411 admitted motions linked to 60 music identities and 348 audio segments.
 These checks establish representation and sampled kinematic validity for the
-stored clips; they do not certify every subsequent retiming or blend.
+stored clips. They do not certify every subsequent retiming or blend.
 
 \paragraph{Hierarchical music retrieval.}
 The final catalogue uses the Discogs EffNet ONNX representation, comprising a
@@ -40,7 +40,8 @@ as the final system. Online queries use six seconds of accumulated audio and
 the same extraction and normalisation contract as the reference catalogue.
 Segment evidence is pooled at track level, filtered by genre and abstention
 rules, and passed to motion ranking. Strict leave-one-music-out evaluation in
-Chapter~6 obtained genre Recall@1 of 0.317 and Recall@5 of 0.783. Thus the
+Chapter~6 obtained genre Recall@1 of \ChSixRecallOne{} and Recall@5 of
+\ChSixRecallFive{}. Thus the
 representation supplies useful shortlist evidence, although its leading result
 is frequently incorrect for unseen music.
 
@@ -52,9 +53,9 @@ margin provide relevance hysteresis, while a bounded-hold policy permits
 variation among similarly relevant motions. Prepared-candidate requirements
 separate selection intent from execution readiness. These mechanisms make
 repetition, rejection and switching decisions observable. Their implementation
-is a contribution of the work, but the replay ablations do not establish a
-statistically supported benefit for every component after multiplicity
-correction; in particular, a diversity benefit cannot be inferred merely from
+is a contribution of the work, but the formal experiment isolates only the
+full versus authored-timing comparison. It does not establish a separate
+benefit for retrieval scoring, selection policy or entry search. In particular, a diversity benefit cannot be inferred merely from
 the presence of a rotation policy.
 
 \paragraph{Beat-aware timing and gradual phase control.}
@@ -62,13 +63,13 @@ The timing controller distinguishes detected pulses from events accepted for
 motion alignment. Relative beat contrast and authored key-pose spacing guide
 beat acceptance, and bounded speed adaptation consumes phase error gradually
 instead of resetting the sampler instantaneously. In the matched causal short
-suite, harmonic beat alignment score (BAS) was 0.306 under authored timing and
-0.313 with the full controller. The source-averaged gain was 0.0067, with a
-95\% bootstrap interval of [-0.0078, 0.0228] and a Holm-adjusted $p$-value of
-1.0000. The formal experiment therefore does not establish a timing benefit
-under the specified delivered-beat metric. Nor does it establish accuracy
-against independently annotated musical beats or an improvement in perceived
-dance quality.
+suite, harmonic beat alignment score (BAS) was \ChSixAuthoredBas{} under
+authored timing and \ChSixFullBas{} with the full controller. The
+source-averaged gain was \ChSixBasGain{}, with a
+95\% bootstrap interval of [\ChSixBasGainLow{}, \ChSixBasGainHigh{}] and a
+Holm-adjusted $p$-value of
+\ChSixBasHolm{}. The formal experiment therefore does not establish a timing benefit
+under the specified delivered-beat metric.
 
 \paragraph{Continuous switching and output conditioning.}
 The transition mechanism searches neighbourhoods of salient target poses using
@@ -86,9 +87,9 @@ than evidence of dynamic balance or hardware safety.
 Retrieval and candidate preparation execute in bounded background workers,
 while the foreground loop consumes completed results and advances playback.
 The evaluation records rankings, beat delivery, preparation, transitions,
-final poses and actual output clocks. It also separates older preanalysed
-file replay from the causal supplement, which contains 130 formal short runs
-and five long runs. All 135 pass the registered real-time, readiness and final-
+final poses and actual output clocks. The formal matrix in
+Table~\ref{tab:ch6_protocol_matrix} contains 130 matched short runs and five
+long runs. All 135 pass the registered real-time, readiness and final-
 output gates at 60 Hz. A separate 120 Hz pilot passes only 6/21 runs, so the
 original frequency is not a reliable operating point on this platform. The
 overall achievement is therefore a reproducible retrieval-and-playback system
@@ -108,7 +109,7 @@ sampled geometry are valid. No physical Unitree G1 deployment has been evaluated
 in this dissertation.
 
 \paragraph{Operating-point and final-output limits.}
-The formal 60 Hz cohort passes all registered output constraints: maximum speed
+The formal 60 Hz cohort passes all registered output constraints. Maximum speed
 is 15.404 rad/s, maximum acceleration is 1673.415 rad/s$^2$, and both residual
 clearance and final joint-range violation counts are zero. Ready-pool underruns
 and hold-last events are also zero. These results apply to audited kinematic
@@ -116,10 +117,11 @@ poses on the recorded machine. They do not establish torque feasibility,
 balance, contact stability or physical-robot safety.
 
 For the causal full short suite, the median run-level control-work p99 is
-4.657 ms; the five long runs have a median of 8.724 ms. All 135 formal runs
+\ChSixFullWork{} ms. The five long runs have a median of \ChSixLongWork{} ms.
+All 135 formal runs
 remain below the 16.67 ms p99 limit and 0.01 deadline-miss-ratio limit, although
 the worst long run reaches 14.483 ms and 0.00693 respectively. In contrast, the
-separate 120 Hz pilot passes only 6/21 runs: its worst p99 is 15.572 ms against
+separate 120 Hz pilot passes only 6/21 runs. Its worst p99 is 15.572 ms against
 an 8.33 ms period and its worst miss ratio is 0.18544. The 60 Hz evidence is
 therefore empirical soft-real-time evidence for this platform, not a hard-
 real-time guarantee or evidence that the original 120 Hz target has been met.
@@ -129,8 +131,8 @@ The matcher adapts existing clips and cannot supply a movement vocabulary
 absent from the catalogue. Its coverage depends on the available AIST++ pairs,
 their retargeting quality and manually designed compatibility weights. Musical
 similarity is also an indirect proxy for choreographic suitability. Genre
-Recall@1 ranged from 1.000 for house to 0.000 for ballet jazz, street jazz and
-krump in the six-identities-per-genre evaluation. Broad Discogs-to-AIST++ label
+Recall@1 ranged from 1.000 for house (HO) to 0.000 for ballet jazz (JB), street jazz (JS) and
+krump (KR), using the genre key in Table~\ref{tab:ch6_genres}, in the six-identities-per-genre evaluation. Broad Discogs-to-AIST++ label
 mappings and early genre restriction can propagate a classification error into
 the motion candidate set. These results reveal substantial class differences,
 while the small number of identities per class limits generalisation.
@@ -163,12 +165,12 @@ SMPL FID/Div additionally depend on trace interpolation, source-motion reuse
 and cyclic reference construction. Near-zero reference variance makes some
 standardised geometric results ill-conditioned, so they cannot support an
 aesthetic ranking. The ten external CC0 recordings and synthetic negatives
-offer limited acoustic diversity; headless file-input trials do not reproduce
+offer limited acoustic diversity. Headless file-input trials do not reproduce
 microphone reverberation, clipping or room noise. Repeated seeds improve
 repeatability evidence without creating independent musical sources, and the
-causal long runs repeat only one stitched source. The causal supplement also
-retests only full versus authored timing, so the complete replay ablation matrix
-cannot be treated as causal online validation.
+causal long runs repeat only one stitched source. The formal ablation covers
+full versus authored timing; causal component tests for retrieval, diversity
+and transition entry remain future work.
 
 \section{Future Work}
 \label{sec:ch7_future_work}
@@ -197,8 +199,8 @@ lead to a documented beat-level fallback rather than an assumed downbeat.
 Evaluation should include triple metre, compound metre, tempo changes and weak
 percussion, using independently annotated beat and downbeat times alongside
 detector delivery latency. A complementary phase study should cover at least
-three distinct motions per genre, stratified by tempo and key-pose density;
-multiple windows or seeds of one motion should not count as additional motions.
+three distinct motions per genre, stratified by tempo and key-pose density.
+Multiple windows or seeds of one motion should not count as additional motions.
 
 \paragraph{Learned transition-entry scoring.}
 The current weighted entry cost offers a useful baseline for learning which
@@ -221,9 +223,9 @@ Searching compatible fragment sequences would permit finer responses to changes
 within a song and reuse a larger combination of existing motifs. A sparse
 transition graph or bounded-horizon search could balance music relevance,
 contact compatibility and motif continuity. Such an extension needs new checks
-for the joins and composed sequence: validating each fragment separately would
+for the joins and composed sequence. Validating each fragment separately would
 not establish that their concatenation is feasible. Diversity should remain
-subordinate to coherent phrasing rather than encourage rapid switching.
+subordinate to coherent musical phrasing.
 
 \paragraph{Contact-constrained tracking and balance.}
 Foot-contact states should become constraints on execution rather than only
@@ -252,8 +254,8 @@ A preference-aware selector could allow users to favour particular styles,
 energy levels or degrees of repetition within the feasible candidate set.
 Pairwise judgements of musical fit, transition naturalness and overall appeal
 would support both preference learning and a direct evaluation of dance quality.
-Weak-beat behaviour should similarly become a selectable, explicit response:
-for example, a controlled change to a low-activity motion followed by a gradual
+Weak-beat behaviour should similarly become a selectable, explicit response.
+For example, a controlled change to a low-activity motion followed by a gradual
 return when rhythmic evidence recovers. Additional real ambient, speech, noise
 and mixed recordings are needed to calibrate rejection and recovery separately.
 User preferences should influence the choice among feasible motions while

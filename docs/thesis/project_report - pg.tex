@@ -1,0 +1,148 @@
+\documentclass{report}
+\usepackage{setspace}
+%\usepackage{subfigure}
+
+\pagestyle{plain}
+\usepackage{amssymb,graphicx,color}
+\usepackage{amsfonts}
+\usepackage{latexsym}
+\usepackage{a4wide}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{booktabs}
+
+\newtheorem{theorem}{THEOREM}
+\newtheorem{lemma}[theorem]{LEMMA}
+\newtheorem{corollary}[theorem]{COROLLARY}
+\newtheorem{proposition}[theorem]{PROPOSITION}
+\newtheorem{remark}[theorem]{REMARK}
+\newtheorem{definition}[theorem]{DEFINITION}
+\newtheorem{fact}[theorem]{FACT}
+
+\newtheorem{problem}[theorem]{PROBLEM}
+\newtheorem{exercise}[theorem]{EXERCISE}
+\def \set#1{\{#1\} }
+
+\newenvironment{proof}{
+PROOF:
+\begin{quotation}}{
+$\Box$ \end{quotation}}
+
+
+
+\newcommand{\nats}{\mbox{\( \mathbb N \)}}
+\newcommand{\rat}{\mbox{\(\mathbb Q\)}}
+\newcommand{\rats}{\mbox{\(\mathbb Q\)}}
+\newcommand{\reals}{\mbox{\(\mathbb R\)}}
+\newcommand{\ints}{\mbox{\(\mathbb Z\)}}
+
+% Generated result macros from the checksum-verified 60 Hz v5 formal cohort.
+% Loaded here, not inside Chapter 6, so that Chapter 7 and the abstract quote
+% the same frozen values instead of restating them by hand.
+\input{experiment_results/reanalysis_rescue_60_v5/chapter6_numbers.tex}
+
+% hyperref must be loaded last. Provides \url in the source-code appendix.
+\usepackage[hidelinks]{hyperref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\title{  	{ \includegraphics[scale=.5]{ucl_logo.png}}\\
+{{\Huge A Real-Time Music-Conditioned Framework for Motion Retrieval, Retargeting, and Adaptive Humanoid Control}}
+		}
+\date{Submission date: 07/08/2026}
+\author{Chengjun Ouyang\thanks{
+{\bf Disclaimer:}
+This report is submitted as part requirement for the MSc Machine Learning at UCL. It is
+substantially the result of my own work except where explicitly indicated in the text.
+ The report may be freely copied and distributed provided the source is explicitly acknowledged
+}
+\\ \\
+MSc Machine Learning\\ \\
+Supervisor: Prof Chengxu Zhou}
+
+
+
+\begin{document}
+ 
+ \onehalfspacing
+\hypersetup{pageanchor=false}
+\maketitle
+% Front matter is numbered in roman so that Chapter 1 can start at arabic page 1
+% without reusing numbers already spent on the title, abstract and contents.
+% Page anchors are off here so hyperref does not emit duplicate page.1 targets.
+\hypersetup{pageanchor=false}
+\pagenumbering{roman}
+\begin{abstract}
+
+
+Live music-driven humanoid dance requires musical relevance, responsive timing,
+continuous motion transitions, and feasible robot configurations to be maintained
+under causal audio access and limited computation. This dissertation presents
+BeatWeaver, a retrieval-and-control system that adapts a finite library of
+dance trajectories to streaming music on a 29-degree-of-freedom Unitree G1 model.
+
+The offline pipeline combines paired AIST++ music and human motion, extracts
+salient key poses from whole-body velocity minima, and retargets SMPL sequences
+through General Motion Retargeting. Provenance checks and MuJoCo kinematic
+preflight produce a catalogue of 411 admitted motions associated with 60 music
+identities and 348 audio segments. Online, six-second rolling audio windows are
+gain-normalised and encoded using Discogs EffNet embeddings, style activations,
+and rhythm--timbre descriptors. Hierarchical retrieval combines musical similarity
+with tempo, key-pose-density, and activity compatibility. Temporal evidence and
+bounded-hold selection govern motion changes, while asynchronous retrieval and
+candidate preparation support continuous playback. Motion-aware beat acceptance
+and bounded phase correction adapt timing gradually. Transition-entry search
+uses joint pose, velocity, foot contact, and root state, followed by root-aligned
+blending and joint-dynamics and collision constraints.
+
+Strict leave-one-music-out evaluation achieves genre Recall@1 of 0.317 and
+Recall@5 of 0.783, indicating stronger shortlist relevance than top-one
+identification. In causal headless evaluation, all 135 formal runs, comprising
+130 matched full-system and authored-timing short runs and five approximately
+ten-minute full-system runs, satisfy the registered timing, readiness, and final
+kinematic-output criteria at 60 Hz. The worst run-level control-work p99 is
+14.483 ms, below the 16.67 ms budget, with no residual clearance or joint-range
+violations. A separate 120 Hz pilot passes only six of 21 runs. Harmonic beat
+alignment score relative to delivered online beat events is 0.313 with beat
+synchronisation and 0.306 with authored timing; the difference is not
+statistically significant after multiplicity correction.
+
+The results establish an inspectable integration of music retrieval and
+continuous humanoid playback with an empirically validated 60 Hz operating
+point. Musical generalisation and the benefit of beat synchronisation remain
+limited or unconfirmed. Validation concerns kinematic playback in MuJoCo;
+dynamic balance, physical robot execution, and human-perceived dance quality
+require further evaluation.
+
+\end{abstract}
+\tableofcontents
+
+\clearpage
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+
+
+
+\include{chapter1_introduction}
+\include{chapter2_literature_review}
+\include{chapter3_system_design}
+\include{chapter4_offline_catalogue}
+\include{chapter5_realtime_matching_control}
+\include{chapter6_experimental_evaluation}
+\include{chapter7_conclusions_future_work}
+
+
+   
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\appendix
+
+\input{appendix_source_code}
+
+\end{document}

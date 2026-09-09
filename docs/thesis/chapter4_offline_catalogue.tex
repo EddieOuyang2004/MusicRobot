@@ -8,7 +8,7 @@
 \section{Chapter Overview}
 \label{sec:offline_overview}
 
-The online Humanoid Matcher can make a reliable decision only if its candidate
+The BeatWeaver can make a reliable decision only if its candidate
 motions and reference music have already been converted into consistent,
 validated representations. This chapter describes that offline preparation
 process. The input is the paired music and motion data provided by AIST++, in
@@ -152,9 +152,12 @@ speed and activity. The project therefore computes complementary DSP features
 using short-time analysis with a 256-sample hop. The feature set includes tempo,
 beat strength, onset density, off-beat ratio, tempo stability, spectral flux,
 percussive ratio, three spectral-band energy ratios, mel-frequency cepstral
-coefficients (MFCCs), and spectral contrast. This follows the general practice
-of combining reusable music-analysis primitives with task-specific aggregation
-\cite{bogdanov2013essentia}.
+coefficients (MFCCs), and spectral contrast. These primitives are implemented
+with librosa and NumPy, including librosa's dynamic-programming beat tracker
+\cite{mcfee2015librosa,ellis2007beat}. The percussive ratio uses librosa's
+median-filter harmonic/percussive separation on the mel representation
+\cite{fitzgerald2010harmonic}. This is a task-specific descriptor aggregation;
+Essentia is not the DSP feature-extraction library used here.
 
 The scalar activity estimate is
 
@@ -339,7 +342,7 @@ attributes. Median velocity and weighted key-pose density are divided at the
 dataset tertiles. Regularity is divided at its median. The present catalogue's
 velocity cut points are approximately $1.10$ and $1.51\,\mathrm{m\,s^{-1}}$ on
 the equivalent-speed scale, while density cut points are approximately $0.59$
-and $0.85\,\mathrm{s^{-1}}$. These thresholds are derived from the catalogue. 
+and $0.85\,\mathrm{s^{-1}}$. These thresholds are derived from the catalogue.
 Their purpose is to support
 stratified diversity choices and interpretable diagnostics without requiring a
 learned motion-style classifier.
@@ -358,14 +361,7 @@ not evidence of dynamic tracking or contact stability.
     \centering
     \includegraphics[width=\textwidth]{figures/chapter4_smpl_g1_same_frame.pdf}
     \caption{Same-frame SMPL-to-G1 retargeting comparison for AIST++ sequence
-    \texttt{gBR\_sBM\_cAll\_d04\_mBR0\_ch01}. The neutral SMPL source mesh
-    (top) and stored GMR-retargeted G1 poses (bottom) are shown at zero-based
-    frames 269, 358, and 422 of the 60~fps sequence. Each column uses the same
-    frame, camera, and metric scale. For display, each body is independently
-    centred horizontally and grounded vertically; joint rotations are
-    unchanged, so absolute root translation and ground clearance are not
-    compared. Source and SMPL-model hashes were verified against the target
-    artefact.}
+    \texttt{gBR\_sBM\_cAll\_d04\_mBR0\_ch01}.}
     \label{fig:smpl_g1_same_frame}
 \end{figure}
 
@@ -394,7 +390,7 @@ MuJoCo model is $Z$-up. Positions and orientations are transformed by
 \end{equation}
 
 World rotations are converted to scalar-first quaternions
-$[q_w,q_x,q_y,q_z]$. Because $\mathbf{q}$ and $-\mathbf{q}$ encode the same
+$\mathbf{Q}=[Q_w,Q_x,Q_y,Q_z]$. Because $\mathbf{Q}$ and $-\mathbf{Q}$ encode the same
 rotation, quaternion signs are made temporally continuous. This apparently
 small step is essential: an untreated sign flip appears as a large angular
 change to interpolation and velocity calculations even though the physical
@@ -621,5 +617,4 @@ continuous-time dynamic feasibility. Likewise, validating individual clips
 does not validate every possible blend, loop seam, or playback-speed change.
 Finally, AIST++ pairings reflect the choreography in the dataset and may not
 cover arbitrary live music or all desired G1 behaviours.
-
 

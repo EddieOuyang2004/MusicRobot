@@ -1,0 +1,187 @@
+\begin{thebibliography}{10}
+
+\bibitem{alexanderson2023listen}
+Simon Alexanderson, Rajmund Nagy, Jonas Beskow, and Gustav~Eje Henter.
+\newblock Listen, denoise, action! audio-driven motion synthesis with diffusion
+  models.
+\newblock {\em ACM Transactions on Graphics (TOG)}, 42(4):1--20, 2023.
+
+\bibitem{alonso2022music}
+Pablo Alonso-Jim{\'e}nez, Xavier Serra, and Dmitry Bogdanov.
+\newblock Music representation learning based on editorial metadata from
+  discogs.
+\newblock In {\em Rao P, Murthy H, Srinivasamurthy A, Bittner R, Caro Repetto
+  R, Goto M, Serra X, Miron M, editors. Proceedings of the 23nd International
+  Society for Music Information Retrieval Conference (ISMIR 2022); 2022 Dec
+  4-8; Bengaluru, India.[Canada]: International Society for Music Information
+  Retrieval; 2022. p. 825-33.} International Society for Music Information
+  Retrieval (ISMIR), 2022.
+
+\bibitem{araujo2025retargeting}
+Joao~Pedro Araujo, Yanjie Ze, Pei Xu, Jiajun Wu, and C~Karen Liu.
+\newblock Retargeting matters: General motion retargeting for humanoid motion
+  tracking.
+\newblock {\em arXiv preprint arXiv:2510.02252}, 2025.
+
+\bibitem{bello2005onset}
+Juan~Pablo Bello, Laurent Daudet, Samer Abdallah, Chris Duxbury, Mike Davies,
+  and Mark~B. Sandler.
+\newblock A tutorial on onset detection in music signals.
+\newblock {\em IEEE Transactions on Speech and Audio Processing},
+  13(5):1035--1047, 2005.
+
+\bibitem{bock2016madmom}
+Sebastian B{\"o}ck, Filip Korzeniowski, Jan Schl{\"u}ter, Florian Krebs, and
+  Gerhard Widmer.
+\newblock {madmom}: A new {Python} audio and music signal processing library.
+\newblock In {\em Proceedings of the 24th ACM International Conference on
+  Multimedia}, pages 1174--1178, 2016.
+
+\bibitem{bogdanov2013essentia}
+Dmitry Bogdanov, Nicolas Wack, Emilia G{\'o}mez~Guti{\'e}rrez, Sankalp Gulati,
+  Perfecto Herrera~Boyer, Oscar Mayor, Gerard Roma~Trepat, Justin Salamon,
+  Jos{\'e}~Ricardo Zapata~Gonz{\'a}lez, and Xavier Serra.
+\newblock Essentia: An audio analysis library for music information retrieval.
+\newblock In {\em Britto A, Gouyon F, Dixon S, editors. 14th Conference of the
+  International Society for Music Information Retrieval (ISMIR); 2013 Nov 4-8;
+  Curitiba, Brazil.[place unknown]: ISMIR; 2013. p. 493-8.} International
+  Society for Music Information Retrieval (ISMIR), 2013.
+
+\bibitem{chong2020fid}
+Min~Jin Chong and David Forsyth.
+\newblock Effectively unbiased {FID} and inception score and where to find
+  them.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 6070--6079, 2020.
+
+\bibitem{ellis2007beat}
+Daniel~PW Ellis.
+\newblock Beat tracking by dynamic programming.
+\newblock {\em Journal of New Music Research}, 36(1):51--60, 2007.
+
+\bibitem{fitzgerald2010hpss}
+Derry FitzGerald.
+\newblock Harmonic/percussive separation using median filtering.
+\newblock In {\em Proceedings of the 13th International Conference on Digital
+  Audio Effects (DAFx-10)}, Graz, Austria, 2010.
+
+\bibitem{gleicher1998retargeting}
+Michael Gleicher.
+\newblock Retargeting motion to new characters.
+\newblock In {\em Proceedings of the 25th Annual Conference on Computer
+  Graphics and Interactive Techniques}, pages 33--42, 1998.
+
+\bibitem{grosche2011plp}
+Peter Grosche and Meinard M{\"u}ller.
+\newblock Extracting predominant local pulse information from music recordings.
+\newblock {\em IEEE Transactions on Audio, Speech, and Language Processing},
+  19(6):1688--1701, 2011.
+
+\bibitem{heusel2017fid}
+Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp
+  Hochreiter.
+\newblock {GANs} trained by a two time-scale update rule converge to a local
+  {Nash} equilibrium.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~30, 2017.
+
+\bibitem{holden2020learned}
+Daniel Holden, Oussama Kanoun, Maksym Perepichka, and Tiberiu Popa.
+\newblock Learned motion matching.
+\newblock {\em ACM Transactions on Graphics (ToG)}, 39(4):53--1, 2020.
+
+\bibitem{huang2024beat}
+Zikai Huang, Xuemiao Xu, Cheng Xu, Huaidong Zhang, Chenxi Zheng, Jing Qin, and
+  Shengfeng He.
+\newblock Beat-it: Beat-synchronized multi-condition 3d dance generation.
+\newblock In {\em European conference on computer vision}, pages 273--290.
+  Springer, 2024.
+
+\bibitem{ji2026discoforcing}
+Kaiyang Ji, Bingsheng Qian, Binghuan Wu, Kangyi Chen, Ye~Shi, and Jingya Wang.
+\newblock Discoforcing: A unified framework for real-time audio-driven
+  character control with diffusion forcing.
+\newblock {\em arXiv preprint arXiv:2605.28491}, 2026.
+
+\bibitem{kovar2002motion}
+Lucas Kovar, Michael Gleicher, and Fr{\'e}d{\'e}ric Pighin.
+\newblock Motion graphs.
+\newblock {\em ACM Transactions on Graphics}, 21(3):473--482, 2002.
+
+\bibitem{li2023finedance}
+Ronghui Li, Junfan Zhao, Yachao Zhang, Mingyang Su, Zeping Ren, Han Zhang,
+  Yansong Tang, and Xiu Li.
+\newblock Finedance: A fine-grained choreography dataset for 3d full body dance
+  generation.
+\newblock In {\em 2023 IEEE/CVF International Conference on Computer Vision
+  (ICCV)}, pages 10200--10209. IEEE, 2023.
+
+\bibitem{li2021ai}
+Ruilong Li, Shan Yang, David~A Ross, and Angjoo Kanazawa.
+\newblock {AI} choreographer: Music conditioned {3D} dance generation with
+  {AIST++}.
+\newblock In {\em 2021 IEEE/CVF International Conference on Computer Vision
+  (ICCV)}, pages 13381--13392. Ieee, 2021.
+
+\bibitem{li2026you}
+Zhe Li, Cheng Chi, Yangyang Wei, Boan Zhu, Tao Huang, Zhenguo Sun, Yibo Peng,
+  Pengwei Wang, Zhongyuan Wang, Fangzhou Liu, et~al.
+\newblock Do you have freestyle? expressive humanoid locomotion via audio
+  control.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 956--965, 2026.
+
+\bibitem{loper2015smpl}
+Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael~J
+  Black.
+\newblock {SMPL}: A skinned multi-person linear model.
+\newblock {\em ACM Transactions on Graphics}, 34(6):248:1--248:16, 2015.
+
+\bibitem{mcfee2024librosa}
+Brian McFee, Matt McVicar, Daniel Faronbi, Iran Roman, Matan Gover, Stefan
+  Balke, et~al.
+\newblock {librosa/librosa}: 0.10.2.post1.
+\newblock Zenodo, software release, 2024.
+\newblock Version 0.10.2.post1. \url{https://doi.org/10.5281/zenodo.11192913}.
+
+\bibitem{mcfee2015librosa}
+Brian McFee, Colin Raffel, Dawen Liang, Daniel P.~W. Ellis, Matt McVicar, Eric
+  Battenberg, and Oriol Nieto.
+\newblock {librosa}: Audio and music signal analysis in {Python}.
+\newblock In {\em Proceedings of the 14th Python in Science Conference}, pages
+  18--24, 2015.
+
+\bibitem{peng2018deepmimic}
+Xue~Bin Peng, Pieter Abbeel, Sergey Levine, and Michiel van~de Panne.
+\newblock {DeepMimic}: Example-guided deep reinforcement learning of
+  physics-based character skills.
+\newblock {\em ACM Transactions on Graphics}, 37(4):143:1--143:14, 2018.
+
+\bibitem{siyao2022bailando}
+Li~Siyao, Weijiang Yu, Tianpei Gu, Chunze Lin, Quan Wang, Chen Qian,
+  Chen~Change Loy, and Ziwei Liu.
+\newblock Bailando: 3d dance generation by actor-critic gpt with choreographic
+  memory.
+\newblock In {\em Proceedings of the IEEE/CVF conference on computer vision and
+  pattern recognition}, pages 11050--11059, 2022.
+
+\bibitem{todorov2012mujoco}
+Emanuel Todorov, Tom Erez, and Yuval Tassa.
+\newblock Mujoco: A physics engine for model-based control.
+\newblock In {\em 2012 IEEE/RSJ international conference on intelligent robots
+  and systems}, pages 5026--5033. IEEE, 2012.
+
+\bibitem{tseng2023edge}
+Jonathan Tseng, Rodrigo Castellon, and Karen Liu.
+\newblock Edge: Editable dance generation from music.
+\newblock In {\em Proceedings of the IEEE/CVF conference on computer vision and
+  pattern recognition}, pages 448--458, 2023.
+
+\bibitem{tsuchida2019aist}
+Shuhei Tsuchida, Satoru Fukayama, Masahiro Hamasaki, and Masataka Goto.
+\newblock {AIST} dance video database: Multi-genre, multi-dancer, and
+  multi-camera database for dance information processing.
+\newblock In {\em Proceedings of the 20th International Society for Music
+  Information Retrieval Conference}, pages 501--510, 2019.
+
+\end{thebibliography}

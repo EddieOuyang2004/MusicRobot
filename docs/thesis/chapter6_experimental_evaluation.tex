@@ -1,12 +1,12 @@
 % Numerical content is generated from the checksum-verified 60 Hz v5 formal result.
-% Existing references.bib entries are used without modification.
+% The generated \ChSix... result macros are loaded in the parent preamble so
+% that Chapter 7 and the abstract can quote the same frozen values.
 \chapter{Experimental Evaluation}
 \label{chap:experimental_evaluation}
-\input{experiment_results/reanalysis_rescue_60_v5/chapter6_numbers.tex}
 
 \section{Experimental Questions and Protocol}
 
-This chapter evaluates Humanoid Matcher as a retrieval-based music-to-motion
+This chapter evaluates BeatWeaver as a retrieval-based music-to-motion
 system with continuous kinematic playback. It separates the quality of the
 selected motion from the quality and timeliness of its execution. A fast
 catalogue search does not establish a fast musical response, and a bounded
@@ -23,8 +23,8 @@ Five research questions organise the evaluation:
           the specified kinematic and clearance constraints?
     \item RQ4: which computational stages dominate latency, and does the
           complete system meet its real-time operating targets?
-    \item RQ5: which component contributions are supported by controlled
-          ablations and long-duration operation?
+    \item RQ5: which component effects are supported by ablations and
+          long-duration operation?
 \end{enumerate}
 
 
@@ -39,15 +39,15 @@ track record and motion associated with the query music identity before ranking.
 The 60 music identities define the
 independent units of this retrieval evaluation.
 
-The literature-oriented subset freezes four music identities per genre. Each
-music identity is paired with its lexicographically first preflight-passed
-ground-truth motion. Five seeds yield 200 outputs. The evaluation excludes six
-seconds of warm-up and reconstructs the following 20 seconds at 60 frames per
-second. The full-system suite evaluates all 60 catalogue music identities and
-ten CC0 recordings at five seeds. Unlike strict leave-one-music-out retrieval,
-these runtime suites exercise the deployed catalogue without imposing an
-unseen-music exclusion on every run. They must not be interpreted as additional
-held-out retrieval tests.
+The offline motion-distribution subset freezes four music identities per genre.
+Each identity is paired with its lexicographically first preflight-passed
+ground-truth motion. Five seeds yield 200 reconstructed outputs, evaluated as
+five separate sets of 40 against the same 40 references. These outputs use
+preanalysed musical timing and trace-based SMPL reconstruction; they characterise
+motion features and do not measure online beat delivery or control deadlines.
+The evaluation excludes six seconds of warm-up and reconstructs the following
+20 seconds at 60 frames per second. The deployed catalogue is used without a
+leave-one-music-out exclusion, so this is not another held-out retrieval test.
 
 The causal short suite compares the full system with authored timing on the
 same 13 inputs: the stitched AIST++ recording, ten CC0 recordings, a tempo jump,
@@ -65,25 +65,62 @@ synthetic stress test, not coverage of recorded human speech or environmental
 sound. The window-level rejection scores below are descriptive. Adjacent windows
 are not treated as 750 independent recordings.
 
-The new causal formal experiments are serial, headless and configured for a
-60 Hz control loop, a six-second matching window and a one-second matching
-interval. Seeds are fixed to 0--4. A separate frozen 21-run pilot evaluates the
-original 120 Hz target: only six runs pass all gates, with worst control-work
-p99 of 15.572 ms and worst deadline-miss ratio of 0.18544. It is retained as a
-capacity test and is not pooled with the 60 Hz formal cohort. The recorded
+Table~\ref{tab:ch6_protocol_matrix} states the experimental units and run counts.
+The 135 formal runs are exactly $13\times2\times5+1\times1\times5$.
+The separate 120 Hz capacity pilot comprises 18 short runs: three inputs
+(stitched AIST++, silence/recovery, and a 90-to-150 BPM tempo jump), two
+conditions (full and authored timing), and seeds 0--2. Each uses 60 seconds of
+input, including six seconds of warm-up. Three full-system runs of the repeated
+stitched input use the same seeds and 306 seconds each, including warm-up.
+The 21-run denominator excludes the ten-second smoke check.
+
+\begin{table}[tb]
+\centering\small
+\begin{tabular}{p{0.29\linewidth}p{0.36\linewidth}rr}
+\toprule
+Evaluation & Inputs and conditions & Seeds & Count \\
+\midrule
+Offline retrieval & 60 held-out music identities & -- & 60 \\
+Offline rejection & 30 recordings; overlapping windows & -- & 750 \\
+Offline SMPL features & 40 music/reference pairs; reconstructed output & 0--4 & 200 \\
+120 Hz pilot, 60 s & 3 inputs; full and authored & 0--2 & 18 \\
+120 Hz pilot, 306 s & 1 stitched input; full & 0--2 & 3 \\
+60 Hz formal, 40 s & 13 inputs; full & 0--4 & 65 \\
+60 Hz formal, 40 s & Same 13 inputs; authored & 0--4 & 65 \\
+60 Hz formal, 606 s & 1 stitched input; full & 0--4 & 5 \\
+\bottomrule
+\end{tabular}
+\caption{Evaluation matrix. Counts are queries, windows, reconstructed outputs,
+or runtime runs as indicated. Runtime durations include six seconds of warm-up.
+Only the final three rows constitute the 135 formal runs.}
+\label{tab:ch6_protocol_matrix}
+\end{table}
+
+The runtime experiments are serial and headless, with a six-second matching
+window, one-second matching interval, collision checking and final-output
+auditing enabled. The pilot tests the 120 Hz design target stated in
+Section~\ref{sec:intro_problem}: control-work p99 below 8.33 ms and a
+deadline-miss ratio below 1\% for each run. Only six of its 21 runs pass all
+gates; the worst p99 is 15.572 ms and the worst miss ratio is 0.18544.
+The formal operating point was consequently set to 60 Hz before the formal
+matrix was executed. Its p99 budget is 16.67 ms; the 1\% miss threshold and
+final-output constraints remain the same. This is a reduced operating target,
+not evidence that the initial 120 Hz requirement was met. Different source
+coverage and durations also prevent treating the pilot and formal matrix as
+a paired estimate of the effect of frequency. Their results are not pooled.
+The recorded
 platform has 20 logical CPU cores and an RTX 3080,
 but ONNX inference uses \texttt{CPUExecutionProvider} exclusively. Python 3.11.14,
 NumPy 1.26.4, librosa 0.10.2.post1, ONNX Runtime 1.28.0, SciPy 1.11.4 and MuJoCo
-3.10.0 are recorded in the manifest. The GPU model is not evidence of GPU
-inference.
+3.10.0 are recorded in the manifest.
 
-Every supplemental run preserves its command, source identity, seed, trace,
-timing report, final-pose archive and log. The audit checks the registered run
+Every formal run preserves its command, source identity, seed, trace,
+timing report, final-pose archive and log. The audit checks the declared run
 matrix, artifact hashes, strictly increasing output clocks and consistent robot
-identity. All 538 frozen input-file hashes matched during the post-run audit.
-The supplemental index contained no failed attempts. Original and supplemental
-provenance are retained separately even though both record the same Git commit:
-the source-file hashes also capture uncommitted implementation changes.
+identity. All 538 frozen input-file hashes matched during the post-run audit,
+and the formal run index contained no failed attempts. Source-file hashes
+supplement the Git commit identifier to capture uncommitted implementation
+changes. Pilot and formal artifacts have separate manifests.
 
 \section{Evaluation Metrics}
 
@@ -93,7 +130,7 @@ Genre Recall@$K$, macro-$F_1$, mean reciprocal rank (MRR) and NDCG@5 measure
 catalogue matching. Source motion recall is retained only as an internal
 same-catalogue sanity check. It cannot establish generalisation because the
 target and candidates share catalogue provenance. CC0 genre labels are sets of
-acceptable catalogue genres, rather than an exhaustive taxonomy of the recordings.
+acceptable catalogue genres, rather than a complete taxonomy of the recordings.
 
 For runtime quality metrics, frames are first reduced to a run summary. Seeds
 are then averaged within each source recording. Confidence intervals use 2,000
@@ -117,21 +154,68 @@ The reverse score is calculated by exchanging the beat sets. Their harmonic
 mean is the main BAS summary. Robot output is resampled to 60 FPS. Motion beats
 are local minima of mean body-speed magnitude, with a minimum separation of
 0.20 seconds. The stationary MuJoCo world body is excluded and the pelvis is
-used as the positional reference. 
+used as the positional reference.
 
 For causal runs, $B_m$ contains the actual delivery times of all online detected
 beats, not retrospectively estimated beat times and not only the subset accepted
 by the phase controller. Consequently the score assesses alignment to delivered
 control information, not accuracy against an annotated musical beat ground truth.
 When no music beats are available, BAS is undefined and excluded from numerical
-averages with its missingness retained. Preanalysed replay uses its original beat
-records and is reported separately.
+averages with its missingness retained.
 
-Kinetic and geometric FID/Div are calculated in reconstructed AIST++/SMPL space
-using the pinned feature implementation. Each seed is evaluated against the same
-40 ground-truth items. Div uses all 780 unordered pairs. Both raw feature scale
-and standardisation using ground-truth means and standard deviations are made
-explicit. Robot-domain diversity additionally reports unique selected motions,
+Fr\'echet Inception Distance (FID) compares Gaussian approximations to reference
+and output feature distributions \cite{heusel2017gans}. Following the
+AIST++/FACT and Bailando evaluation convention \cite{li2021ai,siyao2022bailando},
+this chapter uses motion descriptors in place of image Inception features.
+The subscripts $k$ and $g$ identify kinetic and geometric feature spaces:
+the pinned AIST++ extractor returns 72 kinetic components (horizontal and
+vertical kinetic energy and an acceleration-based expenditure statistic for
+each of 24 joints) and 32 geometric components summarising body-configuration
+predicates. The extractor is fixed to
+\texttt{google/aistplusplus\_api} commit
+\texttt{2dd7b3e946b794fd0081c98e2e2433545abf8b87}; local changes concern imports
+and formatting only.
+
+For feature space $h\in\{k,g\}$, let $\boldsymbol{\mu}_{R,h}$ and
+$\boldsymbol{\Sigma}_{R,h}$ be the reference sample mean and covariance, and
+let $\boldsymbol{\mu}_{O,h}$ and $\boldsymbol{\Sigma}_{O,h}$ be their output
+counterparts. The reported distance is
+\begin{equation}
+\begin{split}
+\mathrm{FID}_h={}&\|\boldsymbol{\mu}_{R,h}-\boldsymbol{\mu}_{O,h}\|_2^2\\
+&+\operatorname{tr}\!\left(\boldsymbol{\Sigma}_{R,h}
++\boldsymbol{\Sigma}_{O,h}
+-2\left(\boldsymbol{\Sigma}_{R,h}^{1/2}\boldsymbol{\Sigma}_{O,h}
+\boldsymbol{\Sigma}_{R,h}^{1/2}\right)^{1/2}\right).
+\end{split}
+\label{eq:ch6_fid}
+\end{equation}
+Lower FID indicates closer feature distributions, not necessarily better
+musical correspondence. Diversity (Div) is the mean Euclidean distance among
+all distinct output feature-vector pairs, in the same evaluation family
+\cite{siyao2022bailando}:
+\begin{equation}
+\mathrm{Div}_h=\frac{2}{n(n-1)}\sum_{a<b}
+\|\mathbf{z}_{a,h}-\mathbf{z}_{b,h}\|_2,\qquad n=40.
+\label{eq:ch6_div}
+\end{equation}
+Here $\mathbf{z}_{a,h}$ is the descriptor of output $a$ in feature space $h$.
+Each seed uses all $\binom{40}{2}=780$ unordered pairs, with the reference
+Div calculated identically on the 40 ground-truth items. Larger Div means
+greater spread; it is interpreted relative to reference spread rather than
+maximised without regard to plausibility.
+
+Both metrics use reconstructed AIST++/SMPL motion, not G1 joint angles.
+Raw results use the extractor's native scale. Standardised results transform
+both sets using reference means and population standard deviations, with
+each denominator floored at $10^{-8}$. FID itself uses sample covariances.
+The kinetic covariance is necessarily rank deficient with only 40 samples in
+72 dimensions; the implementation uses a symmetric eigendecomposition with
+negative numerical eigenvalues clipped to zero. Finite-sample FID can be biased
+\cite{chong2020effectively}, so neither this stabilisation nor averaging five seeds
+establishes comparability with larger published benchmarks.
+
+Robot-domain diversity additionally reports unique selected motions,
 catalogue-cluster coverage and normalised selection entropy. This entropy is
 computed over \emph{selection episodes}, after collapsing consecutive identical
 motion IDs. It is not a dwell-time-weighted entropy. Catalogue clusters are
@@ -142,8 +226,6 @@ engineered motion descriptors, not human judgements of visual style.
 Final joint positions are read from MuJoCo qpos after limiting, collision
 projection and joint-range clipping. Velocity uses successive actual wall-clock
 differences. Acceleration and jerk use the corresponding midpoint clocks.
-The old cohort lacks such frame clocks, so its nominal-rate derivatives are
-diagnostics only. They are not reconstructed physical-time measurements.
 
 The safety audit distinguishes candidate clearance detections, corrective
 projections and violations remaining in the final pose. The configured clearance
@@ -153,8 +235,7 @@ Conversely, a correction count is not a residual violation count. Both are usefu
 but answer different questions.
 
 Physical Foot Contact (PFC) was introduced to assess dance plausibility
-\cite{tseng2023edge}. The old COM/foot-speed formula is retained only as a legacy
-proxy. The new G1 adaptation follows the official evaluator's algebra on a
+\cite{tseng2023edge}. The G1 adaptation follows the official evaluator's algebra on a
 30 FPS grid. The magnitude of root acceleration, after clamping its downward
 component, is normalised by its sequence maximum and multiplied by the horizontal
 displacements of the two feet. The result is averaged and scaled by $10^4$.
@@ -184,7 +265,10 @@ identification for previously unseen music.
 \centering\small
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/genre.tex}
 \caption{Per-genre leave-one-music-out results. Each genre has six music
-identities}
+identities. Codes: BR = breaking; HO = house; JB = ballet jazz;
+JS = street jazz; KR = krump; LH = LA-style hip-hop; LO = locking;
+MH = middle hip-hop; PO = popping; WA = waacking
+\cite{tsuchida2019aist,li2021ai}}
 \label{tab:ch6_genres}
 \end{table}
 
@@ -197,9 +281,7 @@ windows. Precision alone does not establish robust rejection.
 \begin{table}[tb]
 \centering\scriptsize
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/cczero.tex}
-\caption{Per-recording CC0 results from offline query evaluation. Genre hit rate
-uses the registered acceptable-genre sets. Ambient audio has no positive genre
-target. Overlapping windows within a recording are descriptive repeats.}
+\caption{Per-recording CC0 results from offline query evaluation}
 \label{tab:ch6_cczero}
 \end{table}
 
@@ -214,26 +296,25 @@ reliable to serve as an unqualified deployment guarantee.
 \begin{table}[tb]
 \centering\scriptsize
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/rhythm.tex}
-\caption{Source-averaged rhythm and adapted physical-contact scores. $N$ is the
-number of runs, not the bootstrap sample size. Replay and causal BAS use different
-beat-information protocols. Their difference is not a controlled causal effect.
-The long-run interval has only one source and is not a population-level CI.}
+\caption{Source-averaged rhythm and adapted physical-contact scores. ($N$ is the
+number of runs)}
 \label{tab:ch6_rhythm}
 \end{table}
 
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\linewidth]{figures/chapter6_rhythm_diversity.png}
-\caption{Distributions of run-level BAS and selection-episode entropy. }
+\caption{Distributions of run-level BAS and selection-episode entropy across
+the three formal conditions.}
 \label{fig:ch6_rhythm}
 \end{figure}
 
 Table~\ref{tab:ch6_rhythm} and Figure~\ref{fig:ch6_rhythm} expose variability
 that would be hidden by reporting a single BAS. The valid timing ablation is
 full versus authored within the causal short suite: sources, seeds, input lengths
-and measurement instruments are matched. Comparing the original replay cohort
-with the causal cohort would simultaneously change beat information, output-clock
-measurement and safety-audit overhead.
+and measurement instruments are matched. The offline reconstructed feature
+subset supplies a separate description of motion spread and is not included
+in this timing comparison.
 
 In the matched causal comparison, full-system harmonic BAS is
 \ChSixFullBas{}, compared with \ChSixAuthoredBas{} for authored timing.
@@ -250,9 +331,7 @@ improves BAS relative to authored timing under this delivered-beat metric.
 
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/groundtruth_div.tex}
 \caption{Reconstructed SMPL feature metrics: mean and standard deviation over
-five separate 40-output seed evaluations. Ground-truth Div is supplied as a
-reference, not a value to exceed. Raw and standardised feature scales must not
-be mixed in comparisons.}
+five separate 40-output seed evaluations.}
 \label{tab:ch6_features}
 \end{table}
 
@@ -283,10 +362,12 @@ published generation benchmarks.
 \caption{Left: mean catalogue-cluster coverage across five seeds per causal
 short-suite input, ordered by source ID. Right: empirical distributions of
 per-run maximum final-output speed. The dashed line is the 16 rad/s target.
-Coverage and command speed measure different aspects of system quality.}
+}
 \label{fig:ch6_coverage_safety}
 \end{figure}
 
+Figure~\ref{fig:ch6_coverage_safety} reports catalogue-cluster coverage per
+input alongside the per-run maximum final-output speed.
 Coverage complements entropy: an approximately uniform distribution over a small
 visited subset is not broad catalogue exploration. Likewise, low adapted PFC
 does not establish smooth transitions or balanced locomotion. These measures
@@ -309,7 +390,9 @@ the limiter in isolation. The logged position limits, clearance outcomes and
 dynamic bounds must each be judged separately.
 
 All 135 causal formal runs pass the registered final-output contract at 60 Hz.
-The maximum final speed is 15.4 rad/s in each condition, below the 16 rad/s
+The maximum final speed is \ChSixFullSpeed{} rad/s for the causal short full
+system, \ChSixAuthoredSpeed{} rad/s for authored timing and \ChSixLongSpeed{}
+rad/s for the long runs, in every case below the 16 rad/s
 limit; the largest acceleration reported in Table~\ref{tab:ch6_safety} is
 1673.4 rad/s$^2$, below the 2000 rad/s$^2$ limit. Residual-clearance and final
 joint-range violation counts are both zero. Candidate collision detections and
@@ -320,16 +403,17 @@ final-pose contract rather than an absence of interventions.
 \centering
 \includegraphics[width=\linewidth]{figures/chapter6_switch_dynamics.png}
 \caption{Actual-clock speed and jerk around the first post-warm-up switch in
-the fixed causal-full stitched seed-0 run. This is an illustrative trace, not an
-average over independent transitions. Logarithmic axes retain large excursions.}
+the fixed causal-full stitched seed-0 run}
 \label{fig:ch6_switch_dynamics}
 \end{figure}
 
-The corrected pipeline measures actual output intervals, constrains collision
+Figure~\ref{fig:ch6_switch_dynamics} shows the corresponding behaviour around a
+single switch, where the transition is the point at which entry error, blending
+and the output limiter interact most strongly. The output pipeline measures
+actual output intervals, constrains collision
 projection by the remaining dynamic envelope and audits the emitted MuJoCo state.
 The formal result supports RQ3 for the registered kinematic bounds at 60 Hz.
-It remains a kinematic result: no torque, contact-force, balance or hardware
-guarantee follows from these final-pose checks.
+
 
 \section{Inference Time and End-to-End Response}
 
@@ -348,9 +432,8 @@ percentiles.}
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\linewidth]{figures/chapter6_latency_cdf.png}
-\caption{Empirical CDFs of per-run latency summaries, not individual query or
-frame latencies. The right-hand reference line indicates the nominal 60 Hz
-control period.}
+\caption{Empirical CDFs of per-run query p95 and control-work p99, with the
+16.67 ms control-work target marked.}
 \label{fig:ch6_latency}
 \end{figure}
 
@@ -359,28 +442,24 @@ The causal short full-system median run-level query p95 is
 \ChSixFullWork{} ms (Table~\ref{tab:ch6_timing}). Retrieval latency and control
 deadline compliance are therefore separate outcomes. The long-run median p99
 is \ChSixLongWork{} ms and its median deadline-miss ratio is
-\ChSixLongMiss{}. No formal 60 Hz run fails either real-time gate. The worst
+\ChSixLongMiss{}. Figure~\ref{fig:ch6_latency} gives the full per-run
+distributions behind these medians, so that the margin to each target can be
+read rather than inferred from a central value.
+No formal 60 Hz run fails either real-time gate. The worst
 individual long run remains below the registered limits, at 14.483 ms p99 and
-0.00693 deadline-miss ratio. These are empirical Windows measurements rather
-than a hard real-time scheduling guarantee.
+0.00693 deadline-miss ratio.
 
 \begin{table}[p]
 \centering\small
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/stages.tex}
-\caption{Stage-resolved timing for the causal full short suite. Each percentile
-cell is the median across 65 runs of the within-run percentile, in ms. The last
-column is the largest recorded maximum across runs. Nested
-stages overlap, asynchronous stages execute concurrently with playback, and
-percentiles cannot be added to obtain a total.}
+\caption{Stage-resolved timing for the causal full short suite}
 \label{tab:ch6_stages}
 \end{table}
 
 \begin{table}[tb]
 \centering\small
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/startup.tex}
-\caption{Process-start measurements for the causal full short suite. These
-startup durations are distinct from steady control work and are not controlled
-OS-cache-cold measurements.}
+\caption{Process-start measurements for the causal full short suite}
 \label{tab:ch6_startup}
 \end{table}
 
@@ -394,21 +473,18 @@ contention or the need for a candidate to be ready when selected.
 \begin{table}[tb]
 \centering\small
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/readiness.tex}
-\caption{Whole-run operational readiness counters. An underrun means the ready
-pool is empty. A hold can occur even when other prepared motions exist. These
-counters are not the post-warm-up frame totals used in the safety table.}
+\caption{Whole-run operational readiness counters}
 \label{tab:ch6_readiness}
 \end{table}
 
 The recorded ready-pool underrun and hold-last totals are both zero across all
 135 causal formal runs (Table~\ref{tab:ch6_readiness}). The prepared-cache
 fallback therefore meets the registered operational readiness targets in this
-cohort, although it does not prove readiness for unseen catalogues or platforms.
+cohort.
 
-The supplemental final-output audit performs an additional clearance check,
-including forward kinematics. Its overhead is reported separately and remains
-inside total control work. Thus differences from the old headless measurements
-cannot be attributed solely to causal beat analysis. First-call/cold labels in
+The final-output audit performs an additional clearance check, including
+forward kinematics. Its overhead is reported separately and remains inside
+total control work. First-call/cold labels in
 some stage counters also do not establish an OS-cache-cold benchmark. Complete
 cold/warm distributions for every stage, and a separate mel-construction timer,
 are not uniformly available. The chapter reports the timing actually recorded.
@@ -426,9 +502,12 @@ not established from those counters alone.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\linewidth]{figures/chapter6_response_timeline.png}
-\caption{Deterministically selected illustration: causal full, stitched source,
-seed 0. Vertical lines mark source changes. Points mark observed milestones.
-Responses are censored at the next change. An absent point is not a zero delay.}
+\caption{Response milestones after each musical change in the causal-full
+stitched AIST++ run at seed 0. Grey vertical lines mark the change times; the
+five series give the first genre-compatible match, the pending selection,
+switch initiation, half blending and switch completion. The run is selected
+deterministically as the lexically first stitched source at seed 0, not chosen
+for a favourable response profile.}
 \label{fig:ch6_response}
 \end{figure}
 
@@ -452,42 +531,32 @@ a stricter future evaluation requirement.
 
 \section{Ablation Study}
 
-The replay ablations cover legacy retrieval, removal of motion compatibility,
-instantaneous top-one selection, removal of bounded-hold diversity, authored
-timing, fixed-entry/simple transitions, and disabling the output limiter. The
-last condition is restricted to headless diagnostics. Collision checking remains
-enabled. The causal supplement retests only the full/authored timing comparison,
-not the complete eight-condition matrix.
+The formal ablation compares full beat-synchronised control with authored
+timing on the same 13 inputs and five matched seeds. Authored timing disables
+beat-driven retiming while retaining retrieval, motion selection, transitions,
+collision checking and output constraints. The formal evaluation does not
+isolate the contributions of retrieval scoring, diversity selection, entry
+search or output limiting; those component benefits remain unestablished.
 
 \begin{table}[tb]
 \centering\small
 \input{experiment_results/reanalysis_rescue_60_v5/chapter6_tables/ablation.tex}
 \caption{Selected paired ablation comparisons after source-level seed averaging.
-$\Delta$ is ablation minus full. The Holm family includes all reported
-condition-by-metric tests within the relevant suite, not only the selected rows
-shown here. Replay jerk is a nominal-rate diagnostic.}
+($\Delta$ is ablation minus full) }
 \label{tab:ch6_ablation}
 \end{table}
 
-Table~\ref{tab:ch6_ablation} evaluates the registered component hypotheses with
-paired tests rather than treating 65 source/seed combinations as independent
-music samples. A BAS benefit requires a direction favouring the full system and
-support after multiplicity correction. A diversity benefit additionally needs
-increased coverage or entropy without more than a 5\% mean relevance loss. A
-beat-sync benefit must not increase deadline misses by more than one percentage
-point. Absence of significance is not proof of equivalence, but it also does not
-justify claiming a component effective because its mean moves in the expected
-direction. RQ5 is therefore answered per component and per cohort, rather than by
-declaring the entire architecture validated by the existence of an ablation.
-
-In the selected replay comparisons, the apparent directions of retrieval recall,
-selection entropy and nominal jerk do not survive Holm correction. In particular,
-removing the diversity policy does not produce evidence of lower entropy under
-this protocol. The causal authored comparison likewise supplies no corrected
-evidence of a BAS difference. Its source-mean deadline-miss ratio differs from
+Table~\ref{tab:ch6_ablation} reports paired timing comparisons after averaging
+matched seeds within each source. The 65 source/seed combinations are not
+treated as 65 independent musical inputs. The displayed tests retain Holm
+correction over the full set of recorded condition-by-metric tests in the
+short suite, rather than recomputing correction over only the displayed rows.
+There is no corrected evidence of a BAS difference. Absence of significance
+is not proof of equivalence. The source-mean deadline-miss ratio differs from
 full by \ChSixMissDifference{} (adjusted $p=\ChSixMissHolm{}$), and both
-conditions pass the absolute 60 Hz gates. Thus the experiment establishes
-neither a BAS benefit nor a deadline penalty for beat synchronisation.
+conditions pass the absolute 60 Hz gates. RQ5 is therefore answered for the
+timing condition and sustained operation, with the other component effects
+left open.
 Conditions were executed serially in a fixed matrix order, rather
 than randomised across time. Background-load drift remains a possible timing
 confound. Here ``causal'' describes audio availability, not a guarantee of
@@ -500,14 +569,9 @@ integrity and passed every evaluated real-time, readiness and final-output gate.
 Repeating a 39-second source
 for approximately ten minutes stresses recurrent switching and resource use,
 but supplies only one source distribution.
-
-The original long-run suite contains eight conditions, each at five seeds. Its
-worst result must not be reported as if it belonged to the full system. Likewise,
-the original full-system long runs cannot establish causal reliability because
-their beat information and instrumentation differ from the supplement. The
-causal long runs provide sustained evidence for the selected 60 Hz operating
-point. They do not rescue the separate 120 Hz pilot, whose 15/21 failures show
-that the original operating target is not reliable on this platform.
+The causal long runs provide sustained evidence for the selected 60 Hz operating
+point. The separate 120 Hz pilot has 15/21 failures, so the initial design target
+remains unmet on this platform.
 
 \section{Discussion by Research Question}
 
@@ -523,36 +587,9 @@ constraints at 60 Hz while preserving the distinction from dynamics and hardware
 safety. For RQ4, retrieval computation and asynchronous preparation are explicitly
 measurable, and the selected 60 Hz operating point passes the empirical control
 gates; the 120 Hz target does not. For RQ5, the paired
-statistics delimit the component claims that can be made. Replay ablations and
-causal timing ablations answer different experimental questions.
+statistics delimit the timing claim; the other component contributions have
+not been isolated by this formal matrix.
 
-The appropriate overall conclusion is consequently conditional: Humanoid Matcher
-is an auditable retrieval and playback pipeline that meets its registered
+Overall, BeatWeaver is an auditable retrieval and playback pipeline that meets its registered
 kinematic and empirical real-time contracts at 60 Hz on the measured platform.
-It is not a hard-real-time or physically safe humanoid dance controller, and the
-failed 120 Hz capacity test remains an engineering finding rather than evidence
-to exclude.
-
-\section{Limitations and Chapter Summary}
-
-The evaluation has no human preference study, no dynamics-based tracking controller
-and no hardware trial. BAS, FID/Div, foot-contact proxies and kinematic smoothness
-cannot fully assess naturalness, expressiveness or dance aesthetics. The ten CC0
-inputs and synthetic negatives provide limited external validity. Five seeds
-increase repeatability evidence but do not multiply the number of independent
-musical sources.
-
-Further limitations arise from measurement granularity. The original actual
-frame clocks cannot be recovered. Low-frequency traces approximate SMPL phase
-and transition reconstruction, Cyclic ground truth differs from continuous human
-choreography. And query-slot accounting is not identical to repeated submission
-attempt accounting. These are stated explicitly rather than hidden behind a
-single inference-time or quality number.
-
-This chapter establishes a reproducible record of what the system retrieves,
-how its outputs align with delivered beats, where its computation is spent, and
-which operating point satisfies the output and timing constraints. Future work
-should reduce collision-stage cost if 120 Hz remains a requirement, improve
-scheduled-slot and candidate attribution, broaden rejection recordings, and
-evaluate closed-loop tracking and human-perceived dance quality. Those extensions
-require new evidence. They are not implied by the present kinematic experiments.
+It is not a hard-real-time or physically safe humanoid dance controller.

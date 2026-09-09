@@ -33,25 +33,27 @@ class BeatReferenceTests(unittest.TestCase):
             np.testing.assert_allclose(sampled[:,0],root)
 
 
-@unittest.skipUnless((ROOT/'docs/thesis/experiment_results/reanalysis_v2/READY_FOR_THESIS').exists(),
+@unittest.skipUnless((ROOT/'docs/thesis/experiment_results/reanalysis_rescue_60_v5/READY_FOR_THESIS').exists(),
                      'Formal consolidated results are local artifacts')
 class ChapterExportTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.thesis=ROOT/'docs/thesis'
-        cls.results=cls.thesis/'experiment_results/reanalysis_v2'
+        cls.results=cls.thesis/'experiment_results/reanalysis_rescue_60_v5'
 
     def test_ready_and_export_hashes_match_results(self):
         digest=hashlib.sha256((self.results/'consolidated_results.json').read_bytes()).hexdigest()
-        marker=json.loads((self.results/'READY_FOR_THESIS').read_text())
-        export=json.loads((self.results/'chapter6_export_manifest.json').read_text())
+        marker=json.loads((self.results/'READY_FOR_THESIS').read_text(encoding='utf-8'))
+        export=json.loads((self.results/'chapter6_export_manifest.json').read_text(encoding='utf-8'))
         self.assertEqual(marker['results_sha256'],digest)
         self.assertEqual(export['consolidated_sha256'],digest)
-        self.assertEqual('pelvis_excluding_world_v1',marker['beat_reference_revision'])
+        self.assertEqual(135,marker['formal_supplement_runs'])
+        self.assertEqual(export['exporter_sha256'],hashlib.sha256(
+            (self.thesis/'scripts/export_chapter6.py').read_bytes()).hexdigest())
 
     def test_chapter_inputs_figures_citations_and_numbers_resolve(self):
-        chapter=(self.thesis/'chapter6_experimental_evaluation.tex').read_text()
-        bibliography=(self.thesis/'references.bib').read_text()
+        chapter=(self.thesis/'chapter6_experimental_evaluation.tex').read_text(encoding='utf-8')
+        bibliography=(self.thesis/'references.bib').read_text(encoding='utf-8')
         for relative in re.findall(r'\\input\{([^}]+)\}',chapter):
             self.assertTrue((self.thesis/relative).is_file(),relative)
         for relative in re.findall(r'\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}',chapter):
@@ -59,11 +61,11 @@ class ChapterExportTests(unittest.TestCase):
         keys=set(re.findall(r'@\w+\{([^,]+)',bibliography))
         for group in re.findall(r'\\cite\{([^}]+)\}',chapter):
             self.assertTrue(set(group.split(',')) <= keys)
-        macros=(self.results/'chapter6_numbers.tex').read_text()
+        macros=(self.results/'chapter6_numbers.tex').read_text(encoding='utf-8')
         used=set(re.findall(r'\\(ChSix\w+)',chapter))
         defined=set(re.findall(r'\\newcommand\{\\(ChSix\w+)\}',macros))
         self.assertTrue(used<=defined, used-defined)
-        data=json.loads((self.results/'consolidated_results.json').read_text())
+        data=json.loads((self.results/'consolidated_results.json').read_text(encoding='utf-8'))
         expected=data['cohorts']['online_causal']['short']['statistics']['summaries']['full:bas_harmonic']['bootstrap_95_ci']['mean']
         observed=float(re.search(r'\\ChSixFullBas\}\{([^}]+)',macros).group(1))
         self.assertAlmostEqual(expected,observed,delta=.0005)

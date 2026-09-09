@@ -1,18 +1,16 @@
 """Export Chapter 6 numbers/tables/figures from the verified consolidated result.
 
-Plot dependencies may be isolated in tmp/thesis_plot_deps; experiments are never
+Run with an environment providing NumPy and Matplotlib; experiments are never
 launched. Figure distributions use runs or source means, never IID frames.
 """
 from pathlib import Path
 import hashlib
 import json
-import sys
 import csv
 
 ROOT = Path(__file__).resolve().parents[3]
 THESIS = ROOT / 'docs/thesis'
 RESULT = THESIS / 'experiment_results/reanalysis_rescue_60_v5'
-sys.path.insert(0, str(ROOT / 'tmp/thesis_plot_deps'))
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -69,11 +67,10 @@ def main():
     FIGURES = THESIS / 'figures'
     TABLES.mkdir(parents=True, exist_ok=True)
     FIGURES.mkdir(parents=True, exist_ok=True)
-    old = subset('preanalysed_replay', 'full')
     full = subset('online_causal', 'short')
     authored = subset('online_causal', 'short', 'authored_timing')
     long = subset('online_causal', 'long')
-    groups = [('Replay full', old), ('Causal full', full), ('Causal authored', authored), ('Causal long', long)]
+    groups = [('Causal full', full), ('Causal authored', authored), ('Causal long', long)]
     control_hz = float(full[0]['stage_timing']['control_rate_hz'])
     control_budget_ms = 1000.0 / control_hz
     macros = {}
@@ -100,8 +97,8 @@ def main():
            for name,value in offline['audio_evaluation']['files'].items() if name[:2].isdigit()])
     rows=[]
     for label, runs in groups:
-        key = 'preanalysed_replay' if label.startswith('Replay') else 'online_causal'
-        suite = 'full' if label.startswith('Replay') else ('long' if label.endswith('long') else 'short')
+        key = 'online_causal'
+        suite = 'long' if label.endswith('long') else 'short'
         condition = 'authored_timing' if 'authored' in label else 'full'
         summaries = DATA['cohorts'][key][suite]['statistics']['summaries']
         def ci(metric):
@@ -109,7 +106,7 @@ def main():
             if not item: return '--'
             return f"{number(item['mean'])} [{number(item['low'])}, {number(item['high'])}]"
         rows.append([label, len(runs), ci('bas_harmonic'), ci('pfc_edge_g1_adapted_30fps')])
-    table('rhythm', 'lrlr', ['Cohort/condition', '$N$', 'Harmonic BAS [95\% CI]', 'G1 PFC [95\% CI]'], rows)
+    table('rhythm', 'lrlr', ['Condition', '$N$', r'Harmonic BAS [95\% CI]', r'G1 PFC [95\% CI]'], rows)
     f = DATA['feature_metrics']['seed_summary']
     table('features', 'lrrrr', ['Scale', 'FID$_k$', 'FID$_g$', 'Div$_k$', 'Div$_g$'],
           [[scale.replace('_',' ')] + [number(f[scale][metric]['mean']) + r' $\pm$ ' + number(f[scale][metric]['std'])
@@ -123,7 +120,7 @@ def main():
             number(max(r['safety']['final_acceleration_max_rad_s2'] for r in runs),1),
             sum(r['safety']['final_residual_clearance_violations'] for r in runs),
             sum(r['safety']['final_joint_limit_violations'] for r in runs)]
-           for label,runs in groups[1:]])
+           for label,runs in groups])
     table('timing', 'lrrrrr', ['Condition', 'Query p95', 'Work p99', 'Miss ratio', 'p99 fails', 'Miss fails'],
           [[label,number(timing(runs,'retrieval_waveform_to_match_ms_p95'),1),
             number(timing(runs,'work_ms_p99'),2),number(timing(runs,'deadline_miss_ratio')),
@@ -146,7 +143,7 @@ def main():
     table('readiness', 'lrrr', ['Causal condition', 'Underruns', 'Runs with hold', 'Hold events'],
           [[label,sum(r['stage_timing']['ready_pool_underruns'] for r in runs),
             sum(r['stage_timing']['hold_last_events'] > 0 for r in runs),
-            sum(r['stage_timing']['hold_last_events'] for r in runs)] for label,runs in groups[1:]])
+            sum(r['stage_timing']['hold_last_events'] for r in runs)] for label,runs in groups])
     table('startup', 'lr', ['Startup stage', 'Median ms'],
           [[label,number(timing(full,key),1)] for label,key in [
               ('ONNX session','startup_onnx_session_ms'),('Catalogue','startup_catalog_load_ms'),
@@ -154,11 +151,6 @@ def main():
               ('Initial grounding','startup_initial_grounding_ms'),('Until control loop','startup_until_control_loop_ms')]])
     comparisons=[]
     for cohort,suite,condition,metric,label in [
-        ('preanalysed_replay','ablation','legacy_retrieval','genre_recall_at_1','Legacy retrieval: Recall@1'),
-        ('preanalysed_replay','ablation','no_diversity','normalized_selection_entropy','No diversity: entropy'),
-        ('preanalysed_replay','ablation','no_diversity','mean_match_score','No diversity: match score'),
-        ('preanalysed_replay','ablation','fixed_entry_simple_transition','joint_jerk_p95_rad_s3','Fixed entry: nominal jerk'),
-        ('preanalysed_replay','ablation','authored_timing','bas_harmonic','Replay authored: BAS'),
         ('online_causal','short','authored_timing','bas_harmonic','Causal authored: BAS'),
         ('online_causal','short','authored_timing','deadline_miss_ratio','Causal authored: miss ratio')]:
         test=DATA['cohorts'][cohort][suite]['statistics']['paired_tests'].get(condition+':'+metric)
@@ -176,7 +168,7 @@ def main():
     macro('MissDifference',tests['authored_timing:deadline_miss_ratio']['mean_difference'],4)
     macro('MissHolm',tests['authored_timing:deadline_miss_ratio']['holm_adjusted_p_value'],4)
     macro('GeomDivRatio',f['raw']['div_g']['mean']/f['raw']['ground_truth_div_g']['mean'])
-    for label,runs in groups[1:]:
+    for label,runs in groups:
         prefix='Long' if label.endswith('long') else ('Authored' if 'authored' in label else 'Full')
         for suffix,key in [('Work','work_ms_p99'),('Miss','deadline_miss_ratio'),('Query','retrieval_waveform_to_match_ms_p95')]:
             macro(prefix+suffix,timing(runs,key))
@@ -203,18 +195,18 @@ def main():
             values=[r['metrics'][key] for r in runs if r['metrics'].get(key) is not None]
             ax.boxplot(values,positions=[i+1],widths=.5,showfliers=False)
     for ax,title in zip(axes,['Harmonic BAS','Selection-episode entropy']):
-        ax.set_xticks(range(1,5),['Replay\nfull','Causal\nfull','Causal\nauthored','Causal\nlong'])
+        ax.set_xticks(range(1,4),['Causal\nfull','Causal\nauthored','Causal\nlong'])
         ax.set_ylabel(title); ax.set_ylim(-.03,1.03)
     save('chapter6_rhythm_diversity')
     fig,axes=plt.subplots(1,2,figsize=(10,3.7),layout='constrained')
-    for label,runs in groups[1:3]:
+    for label,runs in groups[:2]:
         means={}
         for r in runs:
             means.setdefault(r['source_id'],[]).append(r['trace']['selection']['visual_cluster_coverage'])
         axes[0].plot(range(len(means)),[np.mean(means[key]) for key in sorted(means)],'o-',label=label)
     axes[0].set(xlabel='Input index (sorted source ID)',ylabel='Catalogue cluster coverage')
     axes[0].legend(fontsize=8)
-    for label,runs in groups[1:]:
+    for label,runs in groups:
         speeds=np.sort([r['safety']['final_speed_max_rad_s'] for r in runs])
         axes[1].step(speeds,np.arange(1,len(speeds)+1)/len(speeds),where='post',label=label)
     axes[1].axvline(16,color='black',ls='--',lw=1)

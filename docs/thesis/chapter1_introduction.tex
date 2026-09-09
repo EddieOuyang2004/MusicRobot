@@ -10,12 +10,9 @@
 Human movement is closely coupled to sound. Musical rhythm suggests when a
 movement should occur, tempo influences its speed, and timbre, dynamics, and
 phrasing shape its perceived character. Audio is therefore an attractive
-control modality for interactive characters and humanoid robots: it is
+control modality for interactive characters and humanoid robots. It is
 temporally dense, naturally available in performance settings, and more
-expressive than a small set of discrete commands. A robot that responds
-coherently to live music also provides a useful test case for multimodal
-perception, real-time decision making, whole-body motion control, and
-human--robot interaction.
+expressive than a small set of discrete commands.
 
 Music-driven motion is nevertheless a difficult computational problem. First,
 the relationship between music and dance is many-to-many, and compatibility
@@ -38,10 +35,10 @@ the potential of learned music-conditioned motion, but they also emphasise the
 data, training, latency, and embodiment challenges involved in deploying a
 real-time humanoid system.
 
-Direct generative control is not, however, the only useful design point. It
+However, direct generative control is not the only useful design point. It
 requires substantial paired data, policy training, and a validated control
 stack. Where the available actions are known in advance, retrieval offers a
-complementary trade-off: motions can be inspected, retargeted, and checked for
+complementary trade-off. Motions can be inspected, retargeted, and checked for
 the target robot before deployment, while selection and transition constraints
 remain explicit. Although this approach cannot create new choreography, it can
 provide predictable motion quality and modest runtime cost. This dissertation
@@ -66,14 +63,14 @@ minute may match two rhythmically similar tracks with very different energy or
 timbre. A motion also has its own temporal and expressive properties, including
 duration, characteristic speed, key-pose density, and the regularity of those
 key poses. Consequently, retrieving a similar catalogue track is not
-sufficient: the associated robot motion must also be feasible under the
+sufficient. The associated robot motion must also be feasible under the
 speed range of the online controller and appropriate for the activity of the
 query music.
 
 In real-time scheduling, immediately selecting the highest-scoring motion at
 every retrieval step can lead to rapid oscillation among near-equal candidates.
-Requiring excessive evidence before switching has the opposite failure mode:
-the robot continues an outdated movement after the music has changed. Even
+Requiring excessive evidence before switching, however, leaves the robot
+continuing an outdated movement after the music has changed. Even
 after a target motion has been selected, entering it at an arbitrary phase can
 produce joint, root, or contact discontinuities. A useful system must therefore
 separate four decisions: which music is most similar, which motion is most
@@ -112,7 +109,7 @@ system. Specifically, there is value in a system that:
 \end{enumerate}
 
 This dissertation addresses that gap through the design and evaluation of the
-\emph{Humanoid Matcher}, a hybrid system comprising deterministic digital
+\emph{BeatWeaver}, a hybrid system comprising deterministic digital
 signal processing, optional learned audio embeddings, similarity-based
 retrieval, rule-governed temporal selection, and constrained kinematic motion
 control.
@@ -124,11 +121,11 @@ Let a causal audio stream observed up to time $t$ be denoted by
 $\mathcal{A}_{\leq t}$, and let the robot-ready motion library be
 
 \begin{equation}
-    \mathcal{D} = \{(x_i, r_i, p_i)\}_{i=1}^{N},
+    \mathcal{D} = \{(\mathbf{x}_i, M_i, \mathbf{m}_i)\}_{i=1}^{N},
 \end{equation}
 
-where $x_i$ is the music descriptor associated with catalogue item $i$,
-$r_i$ is a retargeted Unitree G1 trajectory, and $p_i$ contains motion metadata
+where $\mathbf{x}_i$ is the music descriptor associated with catalogue item $i$,
+$M_i$ is a retargeted Unitree G1 trajectory, and $\mathbf{m}_i$ contains motion metadata
 such as original tempo, duration, activity, and salient key-pose phases. At
 runtime, the system must select a motion index $i_t$, a phase $\phi_t$, and a
 continuous robot target configuration $\mathbf{q}_t$.
@@ -160,67 +157,18 @@ require a hierarchy in which retrieval, compatibility scoring, temporal
 stabilisation, transition planning, phase control, and output limiting are
 treated as related but distinct components.
 
-\section{Research Aim and Objectives}
-\label{sec:intro_aim}
+The initial engineering design target is a 120 Hz foreground control loop,
+corresponding to an 8.33 ms frame period. Its empirical timing criteria are
+per-run control-work p99 below one frame period and a deadline-miss ratio below
+1\%, with final-output and readiness checks enabled. This target concerns pose
+updates, not the once-per-second retrieval schedule or the six-second audio
+context. Chapter~\ref{chap:experimental_evaluation} tests it in a capacity pilot.
+The subsequent formal evaluation uses a separately declared 60 Hz operating
+point, with a 16.67 ms frame period and the same 1\% miss criterion. Success at
+60 Hz establishes that operating point; it does not fulfil the 120 Hz design
+target.
 
-The aim of this dissertation is to design and evaluate a real-time system that
-matches streaming music to a library of prevalidated humanoid dance motions and
-plays the selected motions on a Unitree G1 model with beat-aware timing and
-continuous transitions.
 
-To achieve this aim, the following objectives are defined:
-
-\begin{enumerate}
-    \item construct a searchable catalogue from paired AIST++ audio and motion
-          data using gain-robust audio descriptors and motion metadata;
-
-    \item transform AIST++ SMPL sequences into a canonical Unitree G1
-          representation using GMR and validate the resulting trajectories in
-          MuJoCo;
-
-    \item develop a hierarchical matcher that first retrieves related music
-          and then ranks only preflight-passed motions according to tempo,
-          key-pose, and activity compatibility;
-
-    \item design a temporal selection policy that combines relevance-driven
-          switching with bounded-hold diversity while avoiding ranking jitter;
-
-    \item align accepted musical beats with salient motion poses through
-          bounded speed adaptation and gradual phase correction;
-
-    \item select and blend transition states using joint, contact, and root
-          information, followed by joint-dynamics and collision checks; and
-
-    \item evaluate retrieval accuracy, robustness, phase alignment, transition
-          continuity, computational latency, and real-time scheduling behaviour.
-\end{enumerate}
-
-\section{Research Questions}
-\label{sec:intro_questions}
-
-The work is organised around the following research questions:
-
-\begin{description}
-    \item[RQ1:] To what extent can a short, gain-normalised rolling audio window
-    retrieve musically related catalogue tracks and generalise to audio not
-    contained in the AIST++ catalogue?
-
-    \item[RQ2:] Does combining track similarity with tempo, motion-keypoint,
-    and activity compatibility produce more suitable humanoid motion rankings
-    than music similarity alone?
-
-    \item[RQ3:] Can consecutive-evidence selection, score margins, bounded-hold
-    diversity, and beat-boundary scheduling reduce unstable switching while
-    remaining responsive to changes in the music?
-
-    \item[RQ4:] Can adaptive strong-beat selection and gradual phase correction
-    improve alignment between musical events and motion key poses without
-    violating the configured speed range or causing phase discontinuities?
-
-    \item[RQ5:] Can state-aware entry selection, root-aligned blending, motion
-    preloading, and output limiting maintain transition continuity while
-    meeting the real-time control-loop budget?
-\end{description}
 
 \section{Overview of the Proposed System}
 \label{sec:intro_system}
@@ -264,85 +212,3 @@ generative modelling. Rather, the system explores an alternative operating
 point in which interpretability, predictable motion provenance, explicit
 constraints, and modest runtime cost are prioritised over the ability to
 synthesise novel choreography.
-
-\section{Contributions}
-\label{sec:intro_contributions}
-
-The main contributions of this dissertation are as follows:
-
-\begin{enumerate}
-    \item A reproducible AIST++ music--motion catalogue for Unitree G1 is
-          constructed, combining gain-robust audio features, motion key-pose
-          statistics, GMR artefact provenance, and MuJoCo preflight results.
-
-    \item A hierarchical, interpretable music-to-motion matching method is
-          developed. It separates track-level musical similarity from
-          motion-level tempo, key-pose-density, and activity compatibility, so
-          that each component can be evaluated and ablated independently.
-
-    \item A stable online selection policy is introduced that combines
-          consecutive relevance evidence, a score margin relative to the
-          current motion, bounded-hold diversity, least-recently-used rotation,
-          beat-boundary switching, and asynchronous candidate preparation.
-
-    \item A beat-to-key-pose controller is integrated with causal relative-beat
-          contrast, adaptive weak-beat rejection, bounded speed adaptation, and
-          gradual phase-error correction, avoiding instantaneous phase resets.
-
-    \item A state-aware transition mechanism is developed that searches salient
-          entry phases using pose, velocity, contact, root, and musical terms;
-          aligns root trajectories; and blends motions under joint speed and
-          acceleration constraints.
-
-    \item An evaluation and diagnostic framework is provided for measuring
-          retrieval recall, gain invariance, waveform-to-match latency, phase
-          error, beat acceptance, transition continuity, output-limiter
-          activation, collision overrides, memory usage, and real-time deadline
-          misses.
-\end{enumerate}
-
-\section{Scope and Limitations}
-\label{sec:intro_scope}
-
-The dissertation focuses on real-time music matching and motion playback in a
-MuJoCo model of the Unitree G1. The current player writes the floating-base pose
-and named joint positions directly to the simulator state and calls forward
-kinematics. It is therefore a kinematic preview and evaluation environment, not
-a torque-controlled balance policy. No claim is made that the complete matcher
-has been deployed on physical G1 hardware. References to robot feasibility in
-this work concern joint-space validity, grounding, continuity, collision
-handling, and compatibility with the G1 model rather than demonstrated dynamic
-stability on hardware.
-
-The system selects existing trajectories and does not generate new motion
-content. Its expressiveness is bounded by the catalogue and by the quality of
-the AIST++ source motions and GMR retargeting. The default switching policy
-also assumes four accepted beats per bar; non-quadruple metre, uncertain
-downbeats, ambient sound, and music with weak rhythmic structure are deliberate
-stress cases rather than solved assumptions. Finally, the checked-in catalogue
-uses a frozen Discogs EffNet ONNX embedding and style-tag configuration. The
-local digital-signal-processing embedding remains a supported fallback, but it
-must be evaluated using a separately rebuilt and frozen catalogue.
-
-These boundaries are intentional. They allow the dissertation to isolate the
-quality of music--motion retrieval, timing control, and motion continuity
-without conflating those results with learned balance control or sim-to-real
-policy performance.
-
-\section{Thesis Organisation}
-\label{sec:intro_organisation}
-
-The remainder of this dissertation is organised as follows. Chapter~2 reviews
-music information retrieval, music-conditioned dance synthesis, real-time
-character control, humanoid motion retargeting, and motion-transition methods.
-Chapter~3 defines the system requirements and presents the offline and online
-architecture. Chapter~4 describes catalogue construction, audio descriptors,
-motion key-pose extraction, AIST++--GMR--G1 retargeting, and trajectory
-preflight. Chapter~5 presents hierarchical matching, stable motion selection,
-beat--phase control, transition-entry optimisation, root continuity, and output
-constraints. Chapter~6 reports experiments on retrieval, unseen-music
-robustness, phase alignment, transition quality, retargeting validity, and
-real-time performance. Chapter~7 concludes the dissertation, discusses the
-limitations of retrieval-based kinematic playback, and outlines extensions
-towards learned motion generation, metre-aware scheduling, dynamic whole-body
-control, and physical humanoid deployment.
