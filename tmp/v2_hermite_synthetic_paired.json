@@ -1,0 +1,16 @@
+{
+  "cases": 64,
+  "repeats": 3,
+  "identical_decisions_and_durations": true,
+  "accepted": 64,
+  "results": {
+    "original": {
+      "mean_ms": 7.016594791631785,
+      "p95_ms": 10.352790002070833
+    },
+    "optimized": {
+      "mean_ms": 0.3058093746706921,
+      "p95_ms": 0.5366299988963873
+    }
+  }
+}

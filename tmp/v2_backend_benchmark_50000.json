@@ -1,0 +1,56 @@
+{
+  "cases": 212,
+  "repeats": 3,
+  "jerk_override": 50000.0,
+  "joint_counts": [
+    29
+  ],
+  "results": {
+    "hermite": {
+      "calls": 636,
+      "total_ms": 15873.525399925711,
+      "mean_ms": 24.958373270323445,
+      "median_ms": 25.25094999873545,
+      "p95_ms": 26.718175004134537,
+      "max_ms": 33.06940000038594,
+      "outcomes": {
+        "accepted": 3,
+        "No feasible Hermite duration in the search interval": 627,
+        "Boundary state exceeds joint limits": 6
+      },
+      "accepted_duration_median": 0.35
+    },
+    "hermite_prefilter": {
+      "calls": 636,
+      "total_ms": 762.0580001166672,
+      "mean_ms": 1.1982044026991623,
+      "median_ms": 1.100699995731702,
+      "p95_ms": 1.5633499988325639,
+      "max_ms": 6.819399997766595,
+      "outcomes": {
+        "accepted": 3,
+        "No feasible Hermite duration in the search interval": 627,
+        "Boundary state exceeds joint limits": 6
+      },
+      "accepted_duration_median": 0.35,
+      "matches_hermite_outcomes_and_durations": true
+    },
+    "ruckig": {
+      "calls": 636,
+      "total_ms": 69.49950004491257,
+      "mean_ms": 0.10927594346684366,
+      "median_ms": 0.10130000009667128,
+      "p95_ms": 0.1633749980101129,
+      "max_ms": 0.33909999910974875,
+      "outcomes": {
+        "accepted": 582,
+        "Ruckig trajectory exceeds joint position limits": 42,
+        "Ruckig rejected boundary states: \n[ruckig] DoF 0 will inevitably have reached a velocity 20.951592 from the target kinematic state that will exceed its maximum velocity limit 16.000000.": 3,
+        "Ruckig rejected boundary states: \n[ruckig] DoF 0 will inevitably have reached a velocity 17.126667 from the target kinematic state that will exceed its maximum velocity limit 16.000000.": 3,
+        "Boundary state exceeds joint limits": 6
+      },
+      "accepted_duration_median": 0.35
+    }
+  },
+  "note": "Same captured inputs and finite jerk override for both backends; solver-only, not live playback."
+}

@@ -1,0 +1,33 @@
+         366055 function calls in 0.365 seconds
+
+   Ordered by: cumulative time
+   List reduced from 124 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      212    0.002    0.000    0.365    0.002 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\test\benchmark_v2_bridge_backends.py:71(solve)
+      212    0.021    0.000    0.360    0.002 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:155(make_bridge)
+     4190    0.024    0.000    0.199    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\test\benchmark_v2_bridge_backends.py:73(prefiltered)
+     4181    0.005    0.000    0.107    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:56(between)
+     4181    0.065    0.000    0.099    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:40(coefficients)
+     4480    0.063    0.000    0.067    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\polynomial\polynomial.py:664(polyval)
+     4190    0.032    0.000    0.042    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\function_base.py:24(linspace)
+     4181    0.018    0.000    0.030    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\shape_base.py:372(stack)
+    14534    0.013    0.000    0.030    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:71(_wrapreduction)
+    10293    0.005    0.000    0.027    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:2322(any)
+       10    0.001    0.000    0.026    0.003 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:67(extrema)
+    23175    0.025    0.000    0.025    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     4490    0.007    0.000    0.017    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\polynomial\polynomial.py:463(polyder)
+      290    0.001    0.000    0.013    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\polynomial\polynomial.py:1405(polyroots)
+     4190    0.002    0.000    0.010    0.000 {method 'min' of 'numpy.ndarray' objects}
+     4190    0.002    0.000    0.009    0.000 {method 'max' of 'numpy.ndarray' objects}
+     4190    0.001    0.000    0.009    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\_methods.py:43(_amin)
+        7    0.000    0.000    0.008    0.001 {built-in method builtins.all}
+       16    0.000    0.000    0.008    0.001 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:203(<genexpr>)
+     3241    0.002    0.000    0.008    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:2421(all)
+     4190    0.001    0.000    0.007    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\_methods.py:39(_amax)
+      855    0.003    0.000    0.007    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:141(_within)
+     1526    0.001    0.000    0.006    0.000 {built-in method builtins.any}
+      261    0.002    0.000    0.005    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\linalg\linalg.py:994(eigvals)
+     4181    0.004    0.000    0.005    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\shape_base.py:443(<listcomp>)
+
+

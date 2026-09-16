@@ -446,6 +446,97 @@ The mapping follows `offline/outputs/music_feature_motion_mapping.xlsx`:
 - High-frequency energy adds faster arm/elbow texture.
 - Rhythm density and offbeat ratio add extra upper-body texture on subdivisions.
 
+## Humanoid Matcher V2
+
+`src/realtime_music_humanoid_matcher_v2.py` is a separate copy of the matcher
+with end-only switching. The original matcher remains available for comparison.
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher_v2.py --realtime
+```
+
+V2 starts retrieval after two seconds of audio, requests updates approximately
+once per second, and uses equally weighted available history up to 30 seconds.
+The live retrieval buffer is separate from the beat analyser's shorter buffer.
+It keeps the existing genre-first matching and confidence gates, then shortlists
+up to five musically suitable clips. Kinematic cost chooses the clip and entry
+frame jointly from every eligible frame in that shortlist. Cost combines joint
+position, velocity, foot-contact, and root continuity, without music salience.
+Entries must leave at least four seconds at maximum playback speed (1x in
+authored timing mode).
+
+Hermite limit checking uses sampled rejection, Bernstein bounds and at most
+three subdivision levels, followed by the original polynomial extrema check for
+uncertain joints. It keeps the same duration trials and boundary states. When
+Numba is installed, these bounds run as cached native code with the GIL released;
+v2 warms the kernel before playback. A Python fallback works without Numba.
+This improves computation time but does not make infeasible transitions feasible.
+Use `src/test/benchmark_hermite_checks.py` with captured JSONL inputs to compare
+the optimized checker against the original extrema checks.
+
+The default `--transition-backend hermite` prepares a general quintic bridge
+matching authored joint position, velocity and acceleration at both endpoints.
+The shortlist is frozen at clip entry (the first retrieval at startup), and the
+first feasible bridge is committed on a background worker. Later music affects
+the following selection. Planning does not predict music or include modulation.
+Cached piecewise quintics provide the same authored states during playback.
+
+Music effects and playback speed fade to neutral and 1x over the final
+`--transition-boundary-seconds` (default 0.5 authored seconds), and fade back in
+after entry to the next clip. The current clip reaches its last frame without
+an extra terminal hold; elapsed time carries across both bridge boundaries.
+Root translation and quaternion interpolation remain separate from joint-state
+generation. Bridges last at least 0.35 seconds; Hermite searches up to 10 seconds
+and checks analytic position, velocity and acceleration extrema.
+
+`--transition-backend ruckig` uses optional local Ruckig state-to-state generation.
+Install `requirements-ruckig.txt` and supply `--output-max-joint-jerk` in rad/s^3
+or `max_jerk_rad_s3` values in the existing dynamics JSON's `default` / `joints`
+objects. Every limited joint needs a jerk bound for Ruckig. Hermite also checks
+jerk when configured. No hardware jerk defaults are assumed.
+
+If ranked candidates are infeasible, the same backend tries replay to frame zero.
+If replay is infeasible or preparation misses the terminal state, v2 holds the
+terminal target through the existing output limiter and reports the reason.
+That failure path remains held until restart; late results cannot splice a
+moving-endpoint bridge onto a stationary hold. No limits are silently relaxed.
+`--transition-backend quintic` retains the previous terminal recheck and
+rest-to-rest interpolation for comparison.
+
+Use `--history-max-seconds` (at most 30), `--analysis-min-seconds`,
+`--entry-min-remaining-seconds`, `--shortlist-size`, `--shortlist-score-drop`,
+`--shortlist-music-score-drop`, and `--transition-min-seconds` to tune v2.
+V2 defaults to `--speed-max 1.3`. Its default entry minimum is eight seconds
+of **authored motion** after the chosen entry, independent of playback speed.
+At 1.3x, eight authored seconds take about 6.15 seconds to play; the entry
+remains eligible. The trace's `entry_remaining_seconds` also uses authored time.
+V1 early-switch, fixed-window, and maximum-transition-duration options are
+rejected with an explanation. Use `--matcher-help` for the full option list.
+Existing microphone/file input, beat-sync/authored timing, pose modulation,
+root alignment, output limiting, and diagnostic recording remain available.
+
+`--trace-csv` includes audio-history duration, shortlist IDs, terminal timestamps,
+entry frame and component costs, interpolation progress/duration, preparation
+delay, and replay reasons. New fields include backend, preparation status/failure,
+clip generation, boundary-effect weight, planned q/v/a residuals and whether the
+final emitted joint positions differ from the planned sample. Audio analysis
+continues during interpolation. Output limiting or collision correction can
+change the reference; planned continuity is not a hardware tracking guarantee.
+
+```powershell
+python -m unittest discover -s realtime/humanoid_robot/src/test -p test_humanoid_matcher_v2.py
+python -m unittest discover -s realtime/humanoid_robot/src/test -p test_motion_bridges.py
+python realtime/humanoid_robot/src/test/verify_humanoid_matcher_v2_trace.py path/to/v2_trace.csv
+```
+
+Long equal-weight history deliberately responds more slowly to musical changes.
+The existing catalog still contains six-second reference segments. The initial
+comparison and its limitations are recorded in
+[`src/test/humanoid_matcher_v2_validation.md`](src/test/humanoid_matcher_v2_validation.md).
+Kinematic cost measures continuity rather than physical energy or dynamic balance.
+New backend checks and reproduction commands are in
+[`src/test/authored_motion_bridges_validation.md`](src/test/authored_motion_bridges_validation.md).
+
 ## Next Extension Points
 
 - Improve the BVH-to-G1 retargeting signs and gains for additional skeleton

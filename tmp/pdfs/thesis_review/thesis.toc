@@ -98,18 +98,19 @@
 \contentsline {chapter}{\numberline {6}Experimental Evaluation}{47}{chapter.6}%
 \contentsline {section}{\numberline {6.1}Experimental Questions and Protocol}{47}{section.6.1}%
 \contentsline {section}{\numberline {6.2}Datasets, Splits and Reproducibility}{47}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}Experiment provenance and scope of comparison}{49}{subsection.6.2.1}%
 \contentsline {section}{\numberline {6.3}Evaluation Metrics}{49}{section.6.3}%
 \contentsline {subsection}{\numberline {6.3.1}Retrieval, rejection and statistical units}{49}{subsection.6.3.1}%
-\contentsline {subsection}{\numberline {6.3.2}Rhythm and motion diversity}{49}{subsection.6.3.2}%
-\contentsline {subsection}{\numberline {6.3.3}Continuity, contact and constraints}{50}{subsection.6.3.3}%
+\contentsline {subsection}{\numberline {6.3.2}Rhythm and motion diversity}{50}{subsection.6.3.2}%
+\contentsline {subsection}{\numberline {6.3.3}Continuity, contact and constraints}{51}{subsection.6.3.3}%
 \contentsline {section}{\numberline {6.4}Retrieval and Rejection Results}{51}{section.6.4}%
-\contentsline {section}{\numberline {6.5}Rhythm, Diversity and Physical Plausibility}{52}{section.6.5}%
-\contentsline {section}{\numberline {6.6}Transition Continuity and Safety}{53}{section.6.6}%
+\contentsline {section}{\numberline {6.5}Rhythm, Diversity and Physical Plausibility}{53}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Transition Continuity and Safety}{55}{section.6.6}%
 \contentsline {section}{\numberline {6.7}Inference Time and End-to-End Response}{55}{section.6.7}%
 \contentsline {subsection}{\numberline {6.7.1}Computation, preparation and control work}{55}{subsection.6.7.1}%
-\contentsline {subsection}{\numberline {6.7.2}Musical changes and observable response}{56}{subsection.6.7.2}%
-\contentsline {section}{\numberline {6.8}Ablation Study}{56}{section.6.8}%
-\contentsline {section}{\numberline {6.9}Long-Run Reliability}{57}{section.6.9}%
+\contentsline {subsection}{\numberline {6.7.2}Musical changes and observable response}{57}{subsection.6.7.2}%
+\contentsline {section}{\numberline {6.8}Ablation Study}{57}{section.6.8}%
+\contentsline {section}{\numberline {6.9}Long-Run Reliability}{58}{section.6.9}%
 \contentsline {section}{\numberline {6.10}Discussion by Research Question}{58}{section.6.10}%
 \contentsline {chapter}{\numberline {7}Conclusions and Future Work}{60}{chapter.7}%
 \contentsline {section}{\numberline {7.1}Summary of the Work}{60}{section.7.1}%
@@ -134,3 +135,7 @@
 \contentsline {paragraph}{Physical Unitree G1 deployment.}{64}{section*.18}%
 \contentsline {paragraph}{User preference and weak-beat adaptation.}{64}{section*.19}%
 \contentsline {chapter}{\numberline {A}Source Code Repository}{69}{appendix.A}%
+\contentsline {chapter}{\numberline {B}Experimental Provenance and Historical Configurations}{70}{appendix.B}%
+\contentsline {section}{\numberline {B.1}Historical preanalysed replay}{70}{section.B.1}%
+\contentsline {section}{\numberline {B.2}Meaning of historical row names}{71}{section.B.2}%
+\contentsline {section}{\numberline {B.3}Permitted comparisons and artifact locations}{71}{section.B.3}%

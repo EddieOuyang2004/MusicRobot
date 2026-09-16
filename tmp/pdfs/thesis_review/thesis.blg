@@ -10,3 +10,8 @@ A level-1 auxiliary file: chapter6_experimental_evaluation.aux
 A level-1 auxiliary file: chapter7_conclusions_future_work.aux
 The style file: plain.bst
 Database file #1: references.bib
+Warning--empty journal in fitzgerald2010harmonic
+Warning--empty publisher in kovar2023motion
+Warning--empty publisher in loper2023smpl
+Warning--can't use both volume and number fields in tsuchida2019aist
+(There were 4 warnings)

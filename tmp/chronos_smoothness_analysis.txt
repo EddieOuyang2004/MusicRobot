@@ -1,0 +1,45 @@
+ORIGINAL_SPIKES_SOURCE
+7.864000 gPO_sBM_cAll_d10_mPO3_ch02 frame 105 right_knee [0.49656, 0.33948, 0.30816, 0.45896, 0.59091] C2_max_accel 1009.5 rate 1.300000
+10.424000 gPO_sBM_cAll_d10_mPO3_ch02 frame 264 left_shoulder_roll [0.97287, 1.0793, 1.07279, 1.04817, 1.00804] C2_max_accel 270.8 rate 1.245191
+8.472000 gPO_sBM_cAll_d10_mPO3_ch02 frame 152 right_hip_roll [-0.03691, -0.03692, -0.17756, -0.17525, -0.1744] C2_max_accel 903.4 rate 1.300000
+59.800000 gHO_sBM_cAll_d21_mHO5_ch02 frame 69 right_hip_pitch [-0.24033, -0.24033, -0.39741, -0.41988, -0.40627] C2_max_accel 258.1 rate 0.973763
+10.008000 gPO_sBM_cAll_d10_mPO3_ch02 frame 233 left_hip_pitch [-0.41889, -0.26181, -0.10473, -0.05501, -0.13511] C2_max_accel 711.8 rate 1.224996
+19.640000 gPO_sBM_cAll_d11_mPO0_ch02 frame 267 right_hip_pitch [-0.11967, -0.11967, 0.03741, 0.06478, 0.08382] C2_max_accel 960.6 rate 0.828028
+5.624000 gLO_sBM_cAll_d13_mLO2_ch02 frame 417 left_wrist_roll [-0.10915, -0.10915, -0.26601, -0.23175, -0.18004] C2_max_accel 1752.1 rate 0.978625
+3.576000 gLO_sBM_cAll_d13_mLO2_ch02 frame 275 left_shoulder_pitch [-0.0235, -0.0235, -0.17809, -0.17161, -0.17161] C2_max_accel 1575.7 rate 1.129306
+59.928000 gHO_sBM_cAll_d21_mHO5_ch02 frame 77 right_knee [0.65931, 0.65931, 0.50223, 0.47259, 0.46456] C2_max_accel 1373.3 rate 1.207814
+10.360000 gPO_sBM_cAll_d10_mPO3_ch02 frame 259 right_hip_pitch [-0.18721, -0.03013, 0.11465, 0.12116, 0.10481] C2_max_accel 643.1 rate 1.245576
+58.200000 gHO_sBM_cAll_d21_mHO2_ch02 frame 363 right_hip_pitch [-0.48272, -0.42125, -0.49443, -0.50442, -0.49455] C2_max_accel 391.2 rate 1.140485
+3.832000 gLO_sBM_cAll_d13_mLO2_ch02 frame 293 right_elbow [-0.14781, -0.14297, -0.14187, -0.14384, -0.14652] C2_max_accel 11.5 rate 1.300000
+SAVED_TRACE_BRIDGES
+max_accel_executing 359.326696
+modified_executing 0
+modified_all 78
+CAPTURE 2142 (3638, 36)
+TRACE_ASSOCIATION_MAX_MS 500.7524999977451
+FINAL_PEAK 0.000000 gLO_sBM_cAll_d13_mLO2_ch02 0.000013085 right_shoulder_roll 676.62 dt 17.43 status awaiting_retrieval clip 0
+FINAL_PEAK 3.576000 gLO_sBM_cAll_d13_mLO2_ch02 0.476019130 waist_pitch 629.42 dt 16.13 status loading clip 1
+FINAL_PEAK 1.240000 gLO_sBM_cAll_d13_mLO2_ch02 0.221367913 waist_roll 600.1 dt 16.49 status awaiting_retrieval clip 0
+FINAL_PEAK 3.832000 gLO_sBM_cAll_d13_mLO2_ch02 0.508989977 right_shoulder_roll 557.52 dt 17.6 status loading clip 0
+FINAL_PEAK 3.608000 gLO_sBM_cAll_d13_mLO2_ch02 0.479914367 left_shoulder_pitch 543.18 dt 16.73 status loading clip 1
+FINAL_PEAK 1.272000 gLO_sBM_cAll_d13_mLO2_ch02 0.225251312 waist_yaw 534.49 dt 16.99 status awaiting_retrieval clip 0
+FINAL_PEAK 3.704000 gLO_sBM_cAll_d13_mLO2_ch02 0.491741022 right_elbow 529.35 dt 16.43 status loading clip 1
+FINAL_PEAK 0.000000 gLO_sBM_cAll_d13_mLO2_ch02 0.000013085 right_wrist_roll -526.36 dt 17.68 status awaiting_retrieval clip 0
+FINAL_PEAK 6.200000 gLO_sBM_cAll_d13_mLO2_ch02 0.784223334 waist_pitch -500.65 dt 16.29 status loading clip 1
+FINAL_PEAK 0.000000 gLO_sBM_cAll_d13_mLO2_ch02 0.000013085 right_shoulder_yaw -497.59 dt 16.94 status awaiting_retrieval clip 0
+FINAL_PEAK 5.816000 gLO_sBM_cAll_d13_mLO2_ch02 0.744875535 right_shoulder_roll -494.28 dt 16.94 status loading clip 0
+FINAL_PEAK 1.528000 gLO_sBM_cAll_d13_mLO2_ch02 0.256238632 left_wrist_yaw -488.35 dt 16.84 status awaiting_retrieval clip 1
+CLIPPING 587 frames 295 joints [('right_wrist_roll', 293), ('right_wrist_pitch', 1), ('right_wrist_yaw', 293)]
+LARGE_GAPS [('35.224000', 67.65)]
+COLLISION_FLAGS 273 bridge 0
+COLLISION_WINDOWS
+0.000000 0.000000 1 gLO_sBM_cAll_d13_mLO2_ch02 awaiting_retrieval
+0.000000 0.000000 1 gLO_sBM_cAll_d13_mLO2_ch02 awaiting_retrieval
+0.000000 0.000000 1 gLO_sBM_cAll_d13_mLO2_ch02 awaiting_retrieval
+1.496000 1.496000 2 gLO_sBM_cAll_d13_mLO2_ch02 awaiting_retrieval
+1.528000 3.576000 122 gLO_sBM_cAll_d13_mLO2_ch02 awaiting_retrieval
+3.608000 3.672000 5 gLO_sBM_cAll_d13_mLO2_ch02 loading
+5.592000 5.592000 1 gLO_sBM_cAll_d13_mLO2_ch02 loading
+5.784000 5.784000 1 gLO_sBM_cAll_d13_mLO2_ch02 loading
+5.944000 6.168000 15 gLO_sBM_cAll_d13_mLO2_ch02 loading
+6.200000 8.280000 124 gLO_sBM_cAll_d13_mLO2_ch02 loading

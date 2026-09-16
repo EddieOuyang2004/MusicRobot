@@ -23,11 +23,11 @@ Joao~Pedro Araujo, Yanjie Ze, Pei Xu, Jiajun Wu, and C~Karen Liu.
   tracking.
 \newblock {\em arXiv preprint arXiv:2510.02252}, 2025.
 
-\bibitem{bello2005onset}
+\bibitem{bello2005tutorial}
 Juan~Pablo Bello, Laurent Daudet, Samer Abdallah, Chris Duxbury, Mike Davies,
-  and Mark~B. Sandler.
+  and Mark~B Sandler.
 \newblock A tutorial on onset detection in music signals.
-\newblock {\em IEEE Transactions on Speech and Audio Processing},
+\newblock {\em IEEE Transactions on speech and audio processing},
   13(5):1035--1047, 2005.
 
 \bibitem{bock2016madmom}
@@ -47,43 +47,40 @@ Dmitry Bogdanov, Nicolas Wack, Emilia G{\'o}mez~Guti{\'e}rrez, Sankalp Gulati,
   Curitiba, Brazil.[place unknown]: ISMIR; 2013. p. 493-8.} International
   Society for Music Information Retrieval (ISMIR), 2013.
 
-\bibitem{chong2020fid}
+\bibitem{chong2020effectively}
 Min~Jin Chong and David Forsyth.
-\newblock Effectively unbiased {FID} and inception score and where to find
-  them.
-\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
-  Pattern Recognition}, pages 6070--6079, 2020.
+\newblock Effectively unbiased fid and inception score and where to find them.
+\newblock In {\em 2020 IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, pages 6069--6078. IEEE, 2020.
 
 \bibitem{ellis2007beat}
 Daniel~PW Ellis.
 \newblock Beat tracking by dynamic programming.
 \newblock {\em Journal of New Music Research}, 36(1):51--60, 2007.
 
-\bibitem{fitzgerald2010hpss}
-Derry FitzGerald.
+\bibitem{fitzgerald2010harmonic}
+Derry Fitzgerald.
 \newblock Harmonic/percussive separation using median filtering.
-\newblock In {\em Proceedings of the 13th International Conference on Digital
-  Audio Effects (DAFx-10)}, Graz, Austria, 2010.
+\newblock 2010.
 
-\bibitem{gleicher1998retargeting}
+\bibitem{gleicher1998retargetting}
 Michael Gleicher.
-\newblock Retargeting motion to new characters.
-\newblock In {\em Proceedings of the 25th Annual Conference on Computer
-  Graphics and Interactive Techniques}, pages 33--42, 1998.
+\newblock Retargetting motion to new characters.
+\newblock In {\em Proceedings of the 25th annual conference on Computer
+  graphics and interactive techniques}, pages 33--42, 1998.
 
-\bibitem{grosche2011plp}
-Peter Grosche and Meinard M{\"u}ller.
+\bibitem{grosche2010extracting}
+Peter Grosche and Meinard Muller.
 \newblock Extracting predominant local pulse information from music recordings.
 \newblock {\em IEEE Transactions on Audio, Speech, and Language Processing},
-  19(6):1688--1701, 2011.
+  19(6):1688--1701, 2010.
 
-\bibitem{heusel2017fid}
+\bibitem{heusel2017gans}
 Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp
   Hochreiter.
-\newblock {GANs} trained by a two time-scale update rule converge to a local
-  {Nash} equilibrium.
-\newblock In {\em Advances in Neural Information Processing Systems},
-  volume~30, 2017.
+\newblock Gans trained by a two time-scale update rule converge to a local nash
+  equilibrium.
+\newblock {\em Advances in neural information processing systems}, 30, 2017.
 
 \bibitem{holden2020learned}
 Daniel Holden, Oussama Kanoun, Maksym Perepichka, and Tiberiu Popa.
@@ -103,10 +100,11 @@ Kaiyang Ji, Bingsheng Qian, Binghuan Wu, Kangyi Chen, Ye~Shi, and Jingya Wang.
   character control with diffusion forcing.
 \newblock {\em arXiv preprint arXiv:2605.28491}, 2026.
 
-\bibitem{kovar2002motion}
+\bibitem{kovar2023motion}
 Lucas Kovar, Michael Gleicher, and Fr{\'e}d{\'e}ric Pighin.
 \newblock Motion graphs.
-\newblock {\em ACM Transactions on Graphics}, 21(3):473--482, 2002.
+\newblock In {\em Seminal Graphics Papers: Pushing the Boundaries, Volume 2},
+  pages 723--732. 2023.
 
 \bibitem{li2023finedance}
 Ronghui Li, Junfan Zhao, Yachao Zhang, Mingyang Su, Zeping Ren, Han Zhang,
@@ -118,8 +116,7 @@ Ronghui Li, Junfan Zhao, Yachao Zhang, Mingyang Su, Zeping Ren, Han Zhang,
 
 \bibitem{li2021ai}
 Ruilong Li, Shan Yang, David~A Ross, and Angjoo Kanazawa.
-\newblock {AI} choreographer: Music conditioned {3D} dance generation with
-  {AIST++}.
+\newblock Ai choreographer: Music conditioned 3d dance generation with aist++.
 \newblock In {\em 2021 IEEE/CVF International Conference on Computer Vision
   (ICCV)}, pages 13381--13392. Ieee, 2021.
 
@@ -131,31 +128,24 @@ Zhe Li, Cheng Chi, Yangyang Wei, Boan Zhu, Tao Huang, Zhenguo Sun, Yibo Peng,
 \newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
   Pattern Recognition}, pages 956--965, 2026.
 
-\bibitem{loper2015smpl}
+\bibitem{loper2023smpl}
 Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael~J
   Black.
-\newblock {SMPL}: A skinned multi-person linear model.
-\newblock {\em ACM Transactions on Graphics}, 34(6):248:1--248:16, 2015.
-
-\bibitem{mcfee2024librosa}
-Brian McFee, Matt McVicar, Daniel Faronbi, Iran Roman, Matan Gover, Stefan
-  Balke, et~al.
-\newblock {librosa/librosa}: 0.10.2.post1.
-\newblock Zenodo, software release, 2024.
-\newblock Version 0.10.2.post1. \url{https://doi.org/10.5281/zenodo.11192913}.
+\newblock Smpl: A skinned multi-person linear model.
+\newblock In {\em Seminal Graphics Papers: Pushing the Boundaries, Volume 2},
+  pages 851--866. 2023.
 
 \bibitem{mcfee2015librosa}
-Brian McFee, Colin Raffel, Dawen Liang, Daniel P.~W. Ellis, Matt McVicar, Eric
-  Battenberg, and Oriol Nieto.
-\newblock {librosa}: Audio and music signal analysis in {Python}.
-\newblock In {\em Proceedings of the 14th Python in Science Conference}, pages
-  18--24, 2015.
+Brian McFee, Colin Raffel, Dawen Liang, Daniel~PW Ellis, Matt McVicar, Eric
+  Battenberg, Oriol Nieto, et~al.
+\newblock librosa: Audio and music signal analysis in python.
+\newblock {\em SciPy}, 2015(18-24):7, 2015.
 
 \bibitem{peng2018deepmimic}
-Xue~Bin Peng, Pieter Abbeel, Sergey Levine, and Michiel van~de Panne.
-\newblock {DeepMimic}: Example-guided deep reinforcement learning of
+Xue~Bin Peng, Pieter Abbeel, Sergey Levine, and Michiel Van~de Panne.
+\newblock Deepmimic: Example-guided deep reinforcement learning of
   physics-based character skills.
-\newblock {\em ACM Transactions on Graphics}, 37(4):143:1--143:14, 2018.
+\newblock {\em ACM Transactions On Graphics (TOG)}, 37(4):1--14, 2018.
 
 \bibitem{siyao2022bailando}
 Li~Siyao, Weijiang Yu, Tianpei Gu, Chunze Lin, Quan Wang, Chen Qian,
@@ -179,9 +169,8 @@ Jonathan Tseng, Rodrigo Castellon, and Karen Liu.
 
 \bibitem{tsuchida2019aist}
 Shuhei Tsuchida, Satoru Fukayama, Masahiro Hamasaki, and Masataka Goto.
-\newblock {AIST} dance video database: Multi-genre, multi-dancer, and
+\newblock Aist dance video database: Multi-genre, multi-dancer, and
   multi-camera database for dance information processing.
-\newblock In {\em Proceedings of the 20th International Society for Music
-  Information Retrieval Conference}, pages 501--510, 2019.
+\newblock In {\em ISMIR}, volume~1, page~6, 2019.
 
 \end{thebibliography}

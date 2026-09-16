@@ -1,0 +1,71 @@
+note: using only cached resource files
+note: Running TeX ...
+Fontconfig error: Cannot load default config file: No such file: (null)
+warning: Trying to include PDF file with version (1.6), which is newer than current output PDF setting (1.5).
+warning: Trying to include PDF file with version (1.7), which is newer than current output PDF setting (1.5).
+warning: chapter4_offline_catalogue.tex:364: Underfull \hbox (badness 5954) in paragraph at lines 364--364
+warning: chapter6_experimental_evaluation.tex:85: Underfull \hbox (badness 10000) in paragraph at lines 85--85
+warning: chapter7_conclusions_future_work.tex:229: Overfull \hbox (2.7538pt too wide) in paragraph at lines 218--229
+warning: appendix_experiment_provenance:67: Underfull \hbox (badness 1178) in paragraph at lines 64--67
+note: Running BibTeX on thesis.aux ...
+note: warnings were issued by BibTeX; use --print and/or --keep-logs for details.
+note: Running BibTeX on chapter1_introduction.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+note: Running BibTeX on chapter4_offline_catalogue.aux ...
+note: Running BibTeX on chapter6_experimental_evaluation.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+note: Running BibTeX on chapter3_system_design.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+note: Running BibTeX on chapter5_realtime_matching_control.aux ...
+note: Running BibTeX on chapter7_conclusions_future_work.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+note: Running BibTeX on chapter2_literature_review.aux ...
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+warning: errors were issued by BibTeX, but were ignored; use --print and/or --keep-logs for details.
+note: Rerunning TeX because bibtex was run ...
+warning: Trying to include PDF file with version (1.6), which is newer than current output PDF setting (1.5).
+warning: Trying to include PDF file with version (1.7), which is newer than current output PDF setting (1.5).
+warning: chapter4_offline_catalogue.tex:364: Underfull \hbox (badness 5954) in paragraph at lines 364--364
+warning: chapter6_experimental_evaluation.tex:85: Underfull \hbox (badness 10000) in paragraph at lines 85--85
+warning: chapter7_conclusions_future_work.tex:229: Overfull \hbox (2.7538pt too wide) in paragraph at lines 218--229
+warning: appendix_experiment_provenance:67: Underfull \hbox (badness 1178) in paragraph at lines 64--67
+note: Rerunning TeX because "thesis.aux" changed ...
+warning: Trying to include PDF file with version (1.6), which is newer than current output PDF setting (1.5).
+warning: Trying to include PDF file with version (1.7), which is newer than current output PDF setting (1.5).
+warning: chapter4_offline_catalogue.tex:364: Underfull \hbox (badness 5954) in paragraph at lines 364--364
+warning: chapter6_experimental_evaluation.tex:85: Underfull \hbox (badness 10000) in paragraph at lines 85--85
+warning: chapter7_conclusions_future_work.tex:229: Overfull \hbox (2.7538pt too wide) in paragraph at lines 218--229
+warning: appendix_experiment_provenance:67: Underfull \hbox (badness 1178) in paragraph at lines 64--67
+note: Running xdvipdfmx ...
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+warning: Trying to include PDF file with version (1.6), which is newer than current output PDF setting (1.5).
+warning: Trying to include PDF file with version (1.7), which is newer than current output PDF setting (1.5).
+note: Writing `tmp/pdfs/thesis_review\chapter2_literature_review.blg` (345 B)
+note: Writing `tmp/pdfs/thesis_review\thesis.aux` (3.8154296875 KiB)
+note: Not writing `chapter3_system_design.bbl`: it would be empty.
+note: Writing `tmp/pdfs/thesis_review\chapter7_conclusions_future_work.aux` (3.755859375 KiB)
+note: Writing `tmp/pdfs/thesis_review\chapter5_realtime_matching_control.blg` (369 B)
+note: Not writing `chapter7_conclusions_future_work.bbl`: it would be empty.
+note: Not writing `chapter1_introduction.bbl`: it would be empty.
+note: Writing `tmp/pdfs/thesis_review\chapter2_literature_review.aux` (10.5400390625 KiB)
+note: Writing `tmp/pdfs/thesis_review\thesis.bbl` (7.3955078125 KiB)
+note: Not writing `chapter5_realtime_matching_control.bbl`: it would be empty.
+note: Not writing `chapter2_literature_review.bbl`: it would be empty.
+note: Writing `tmp/pdfs/thesis_review\thesis.out` (27.6513671875 KiB)
+note: Writing `tmp/pdfs/thesis_review\thesis.blg` (831 B)
+note: Writing `tmp/pdfs/thesis_review\thesis.toc` (13.333984375 KiB)
+note: Writing `tmp/pdfs/thesis_review\chapter7_conclusions_future_work.blg` (451 B)
+note: Writing `tmp/pdfs/thesis_review\chapter4_offline_catalogue.aux` (8.7890625 KiB)
+note: Writing `tmp/pdfs/thesis_review\chapter6_experimental_evaluation.blg` (363 B)
+note: Writing `tmp/pdfs/thesis_review\chapter4_offline_catalogue.blg` (345 B)
+note: Not writing `chapter6_experimental_evaluation.bbl`: it would be empty.
+note: Writing `tmp/pdfs/thesis_review\chapter3_system_design.blg` (333 B)
+note: Writing `tmp/pdfs/thesis_review\chapter1_introduction.aux` (1.9638671875 KiB)
+note: Writing `tmp/pdfs/thesis_review\thesis.pdf` (8.804693222045898 MiB)
+note: Writing `tmp/pdfs/thesis_review\chapter6_experimental_evaluation.aux` (11.9580078125 KiB)
+note: Writing `tmp/pdfs/thesis_review\thesis.log` (16.3330078125 KiB)
+note: Writing `tmp/pdfs/thesis_review\chapter3_system_design.aux` (3.4541015625 KiB)
+note: Writing `tmp/pdfs/thesis_review\chapter5_realtime_matching_control.aux` (11.75 KiB)
+note: Writing `tmp/pdfs/thesis_review\chapter1_introduction.blg` (330 B)
+note: Not writing `chapter4_offline_catalogue.bbl`: it would be empty.

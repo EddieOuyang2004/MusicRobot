@@ -30,6 +30,16 @@ def number(value, places=3):
 
 
 def table(name, columns, header, rows):
+    # Stable formal-cohort IDs match Chapter 6's protocol matrix. Keep plot
+    # labels readable; the chapter explicitly maps those names to these IDs.
+    formal_labels = {
+        'Causal full': 'F-full',
+        'Causal authored': 'F-authored',
+        'Causal long': 'F-long',
+        'Causal authored: BAS': 'F-authored: BAS',
+        'Causal authored: miss ratio': 'F-authored: miss ratio',
+    }
+    rows = [[formal_labels.get(row[0], row[0]), *row[1:]] for row in rows]
     text = '\\begin{tabular}{' + columns + '}\n\\toprule\n'
     text += ' & '.join(header) + ' \\\\\n\\midrule\n'
     text += '\n'.join(' & '.join(map(str, row)) + ' \\\\' for row in rows)
@@ -106,7 +116,7 @@ def main():
             if not item: return '--'
             return f"{number(item['mean'])} [{number(item['low'])}, {number(item['high'])}]"
         rows.append([label, len(runs), ci('bas_harmonic'), ci('pfc_edge_g1_adapted_30fps')])
-    table('rhythm', 'lrlr', ['Condition', '$N$', r'Harmonic BAS [95\% CI]', r'G1 PFC [95\% CI]'], rows)
+    table('rhythm', 'lrlr', ['Formal group', '$N$', r'Harmonic BAS [95\% CI]', r'G1 PFC [95\% CI]'], rows)
     f = DATA['feature_metrics']['seed_summary']
     table('features', 'lrrrr', ['Scale', 'FID$_k$', 'FID$_g$', 'Div$_k$', 'Div$_g$'],
           [[scale.replace('_',' ')] + [number(f[scale][metric]['mean']) + r' $\pm$ ' + number(f[scale][metric]['std'])
@@ -115,13 +125,13 @@ def main():
     table('groundtruth_div', 'lrr', ['Scale', 'Ground-truth Div$_k$', 'Ground-truth Div$_g$'],
           [[scale.replace('_',' '),number(f[scale]['ground_truth_div_k']['mean']),number(f[scale]['ground_truth_div_g']['mean'])]
            for scale in ('raw','real_standardised')])
-    table('safety', 'lrrrrr', ['Causal condition', '$N$', 'Max speed', 'Max accel.', 'Residual frames', 'Limit frames'],
+    table('safety', 'lrrrrr', ['Formal group', '$N$', 'Max speed', 'Max accel.', 'Residual frames', 'Limit frames'],
           [[label,len(runs),number(max(r['safety']['final_speed_max_rad_s'] for r in runs),1),
             number(max(r['safety']['final_acceleration_max_rad_s2'] for r in runs),1),
             sum(r['safety']['final_residual_clearance_violations'] for r in runs),
             sum(r['safety']['final_joint_limit_violations'] for r in runs)]
            for label,runs in groups])
-    table('timing', 'lrrrrr', ['Condition', 'Query p95', 'Work p99', 'Miss ratio', 'p99 fails', 'Miss fails'],
+    table('timing', 'lrrrrr', ['Formal group', 'Query p95', 'Work p99', 'Miss ratio', 'p99 fails', 'Miss fails'],
           [[label,number(timing(runs,'retrieval_waveform_to_match_ms_p95'),1),
             number(timing(runs,'work_ms_p99'),2),number(timing(runs,'deadline_miss_ratio')),
             f"{sum(r['stage_timing']['work_ms_p99'] > 1000/float(r['stage_timing']['control_rate_hz']) for r in runs)}/{len(runs)}",
@@ -136,15 +146,15 @@ def main():
               ('Pose sampling','control_pose_sampling'),('Transition/root blending','control_transition_root_blend'),
               ('Limiter/collision','control_limiter_collision'),('MuJoCo forward','control_mujoco_forward'),
               ('Final-output safety audit','control_experiment_final_safety_audit')]
-    table('stages', 'lrrrr', ['Stage (causal full short)', 'p50', 'p95', 'p99', 'Worst max'],
+    table('stages', 'lrrrr', ['Stage (F-full)', 'p50', 'p95', 'p99', 'Worst max'],
           [[label]+[number(timing(full,key+'_ms_'+percentile),3) for percentile in ('p50','p95','p99')]
            + [number(max((r['stage_timing'][key+'_ms_max'] for r in full if key+'_ms_max' in r['stage_timing']), default=None),3)]
            for label,key in stages])
-    table('readiness', 'lrrr', ['Causal condition', 'Underruns', 'Runs with hold', 'Hold events'],
+    table('readiness', 'lrrr', ['Formal group', 'Underruns', 'Runs with hold', 'Hold events'],
           [[label,sum(r['stage_timing']['ready_pool_underruns'] for r in runs),
             sum(r['stage_timing']['hold_last_events'] > 0 for r in runs),
             sum(r['stage_timing']['hold_last_events'] for r in runs)] for label,runs in groups])
-    table('startup', 'lr', ['Startup stage', 'Median ms'],
+    table('startup', 'lr', ['Startup stage (F-full)', 'Median ms'],
           [[label,number(timing(full,key),1)] for label,key in [
               ('ONNX session','startup_onnx_session_ms'),('Catalogue','startup_catalog_load_ms'),
               ('Matcher initialisation','startup_matcher_init_ms'),('MuJoCo initialisation','startup_mujoco_init_ms'),
@@ -155,7 +165,7 @@ def main():
         ('online_causal','short','authored_timing','deadline_miss_ratio','Causal authored: miss ratio')]:
         test=DATA['cohorts'][cohort][suite]['statistics']['paired_tests'].get(condition+':'+metric)
         comparisons.append([label,test['pairs'],number(test['mean_difference']),number(test['p_value'],4),number(test['holm_adjusted_p_value'],4)])
-    table('ablation', 'lrrrr', ['Ablation minus full', 'Sources', r'$\Delta$', '$p$', r'$p_{\rm Holm}$'], comparisons)
+    table('ablation', 'lrrrr', ['Ablation minus F-full', 'Sources', r'$\Delta$', '$p$', r'$p_{\rm Holm}$'], comparisons)
     tests=DATA['cohorts']['online_causal']['short']['statistics']['paired_tests']
     for name,condition in [('Full','full'),('Authored','authored_timing')]:
         summary=DATA['cohorts']['online_causal']['short']['statistics']['summaries'][condition+':bas_harmonic']['bootstrap_95_ci']

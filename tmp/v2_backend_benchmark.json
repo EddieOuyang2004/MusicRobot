@@ -1,0 +1,38 @@
+{
+  "cases": 212,
+  "repeats": 3,
+  "jerk_override": 500.0,
+  "joint_counts": [
+    29
+  ],
+  "results": {
+    "hermite": {
+      "calls": 636,
+      "total_ms": 16281.73060012341,
+      "mean_ms": 25.60020534610599,
+      "median_ms": 25.659300001279917,
+      "p95_ms": 27.131399998324923,
+      "max_ms": 38.907099995412864,
+      "outcomes": {
+        "No feasible Hermite duration in the search interval": 630,
+        "Boundary state exceeds joint limits": 6
+      },
+      "accepted_duration_median": null
+    },
+    "ruckig": {
+      "calls": 636,
+      "total_ms": 50.064300012309104,
+      "mean_ms": 0.07871745284954261,
+      "median_ms": 0.07159999950090423,
+      "p95_ms": 0.11912500121979974,
+      "max_ms": 0.2989999993587844,
+      "outcomes": {
+        "Ruckig rejected boundary states: \n[ruckig] DoF 22 will inevitably reach a velocity 21.837799 from the current kinematic state that will exceed its maximum velocity limit 16.000000.": 3,
+        "Ruckig rejected boundary states: \n[ruckig] DoF 0 will inevitably reach a velocity 43.704808 from the current kinematic state that will exceed its maximum velocity limit 16.000000.": 627,
+        "Boundary state exceeds joint limits": 6
+      },
+      "accepted_duration_median": null
+    }
+  },
+  "note": "Same captured inputs and finite jerk override for both backends; solver-only, not live playback."
+}

@@ -448,42 +448,36 @@ Underfull \hbox (badness 10000) in paragraph at lines 85--85
 []\TU/lmr/m/n/9 40 music/reference pairs; recon-
  []
 
-[48]
-Overfull \hbox (0.2117pt too wide) in paragraph at lines 129--134
-\TU/lmr/m/n/10 Genre Recall@$\OML/cmm/m/it/10 K$\TU/lmr/m/n/10 , macro-$\OML/cm
-m/m/it/10 F[]$\TU/lmr/m/n/10 , mean reciprocal rank (MRR) and NDCG@5 measure ca
-talogue match-
- []
-
-[49] [50]
+[48] [49] [50]
 (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/retrieval.tex)
-(experiment_results/reanalysis_rescue_60_v5/chapter6_tables/genre.tex) [51]
+[51] (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/genre.tex)
 (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/cczero.tex)
 (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/rhythm.tex)
+[52]
 File: figures/chapter6_rhythm_diversity.png Graphic file (type bmp)
 <figures/chapter6_rhythm_diversity.png>
-
-(experiment_results/reanalysis_rescue_60_v5/chapter6_tables/features.tex)
+ (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/features.tex)
 (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/groundtruth_div.tex
-) [52]
+) [53]
 File: figures/chapter6_coverage_safety.png Graphic file (type bmp)
 <figures/chapter6_coverage_safety.png>
  (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/safety.tex)
-[53]
+[54]
 File: figures/chapter6_switch_dynamics.png Graphic file (type bmp)
 <figures/chapter6_switch_dynamics.png>
  (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/timing.tex)
 File: figures/chapter6_latency_cdf.png Graphic file (type bmp)
 <figures/chapter6_latency_cdf.png>
 
-[54] (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/stages.tex)
+[55] (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/stages.tex)
 (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/startup.tex)
 (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/readiness.tex)
-[55]
+[56]
 File: figures/chapter6_response_timeline.png Graphic file (type bmp)
 <figures/chapter6_response_timeline.png>
- (experiment_results/reanalysis_rescue_60_v5/chapter6_tables/ablation.tex)
-[56] [57]) [58] [59]
+ [57]
+(experiment_results/reanalysis_rescue_60_v5/chapter6_tables/ablation.tex))
+[58] [59]
 \openout2 = `chapter7_conclusions_future_work.aux'.
 
  (chapter7_conclusions_future_work.tex
@@ -505,13 +499,23 @@ The existing system can enter partway through
 
 ] [67]) (appendix_source_code [68]
 Appendix A.
-) [69
+) (appendix_experiment_provenance [69
 
-] (thesis.aux (chapter1_introduction.aux) (chapter2_literature_review.aux) (cha
-pter3_system_design.aux) (chapter4_offline_catalogue.aux)
-(chapter5_realtime_matching_control.aux) (chapter6_experimental_evaluation.aux)
-(chapter7_conclusions_future_work.aux))
+]
+Appendix B.
+[70
+
+]
+Underfull \hbox (badness 1178) in paragraph at lines 64--67
+[]\TU/lmr/m/n/9 Replay ablation using the fixed-entry/simple-transition diagnos
+tic
+ []
+
+) [71] [72] (thesis.aux (chapter1_introduction.aux)
+(chapter2_literature_review.aux) (chapter3_system_design.aux)
+(chapter4_offline_catalogue.aux) (chapter5_realtime_matching_control.aux)
+(chapter6_experimental_evaluation.aux) (chapter7_conclusions_future_work.aux))
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 70F67B0387C5C692BD7E621395E6DDC6;26968.
+(rerunfilecheck)             Checksum: F5B3519C3B1D4DE4E82B1597BEC434D4;28315.
  ) )
-Output written on thesis.xdv (75 pages, 1883000 bytes).
+Output written on thesis.xdv (78 pages, 1971376 bytes).

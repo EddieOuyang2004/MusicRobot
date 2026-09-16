@@ -1,0 +1,48 @@
+{
+  "cases": 64,
+  "repeats": 3,
+  "jerk_override": 500.0,
+  "joint_counts": [
+    29
+  ],
+  "results": {
+    "hermite": {
+      "calls": 192,
+      "total_ms": 1215.5915000039386,
+      "mean_ms": 6.33120572918718,
+      "median_ms": 6.347700000333134,
+      "p95_ms": 10.648935004064693,
+      "max_ms": 12.166799999249633,
+      "outcomes": {
+        "accepted": 192
+      },
+      "accepted_duration_median": 0.5555819371022461
+    },
+    "hermite_prefilter": {
+      "calls": 192,
+      "total_ms": 1358.3972999840626,
+      "mean_ms": 7.074985937416993,
+      "median_ms": 6.80100000317907,
+      "p95_ms": 11.014014998727356,
+      "max_ms": 17.7008000027854,
+      "outcomes": {
+        "accepted": 192
+      },
+      "accepted_duration_median": 0.5555819371022461,
+      "matches_hermite_outcomes_and_durations": true
+    },
+    "ruckig": {
+      "calls": 192,
+      "total_ms": 20.7332000209135,
+      "mean_ms": 0.10798541677559115,
+      "median_ms": 0.09735000276123174,
+      "p95_ms": 0.17365999665344117,
+      "max_ms": 0.2905000001192093,
+      "outcomes": {
+        "accepted": 192
+      },
+      "accepted_duration_median": 0.46386327037211716
+    }
+  },
+  "note": "Same captured inputs and finite jerk override for both backends; solver-only, not live playback."
+}

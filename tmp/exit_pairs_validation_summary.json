@@ -1,0 +1,264 @@
+[
+  {
+    "run": "exit_pairs_final_120_1",
+    "rate": 120.0,
+    "p99_ms": 9.45383500184105,
+    "miss_percent": 4.421965317919075,
+    "completed": 2,
+    "different_completed": 2,
+    "holds": 1,
+    "final_joint_limit_violations": 0,
+    "preparation_ms": [
+      642.1008999968763,
+      1036.528399999952
+    ],
+    "pairs": [
+      56034,
+      86999
+    ],
+    "attempts": [
+      1,
+      1
+    ],
+    "trimmed_seconds": [
+      0.3500000000000014,
+      1.299999999999999
+    ],
+    "failure_reasons": [
+      "Candidates and replay infeasible: No feasible Hermite duration in the search interval"
+    ],
+    "full_trace_verification": "Playback entered terminal hold",
+    "prefix_verification": {
+      "completed_transitions": 2,
+      "replay_fallbacks": 0
+    },
+    "motion_fully_ready_ms_max": 5381.969800000661
+  },
+  {
+    "run": "exit_pairs_final_120_2",
+    "rate": 120.0,
+    "p99_ms": 11.063113001000604,
+    "miss_percent": 6.567607726597326,
+    "completed": 5,
+    "different_completed": 1,
+    "holds": 0,
+    "final_joint_limit_violations": 0,
+    "preparation_ms": [
+      1426.2575000029756,
+      363.9874000000418,
+      340.66059999895515,
+      308.6637000014889,
+      415.5172999962815,
+      367.17029999999795
+    ],
+    "pairs": [
+      106268,
+      121,
+      121,
+      121,
+      121,
+      121
+    ],
+    "attempts": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "trimmed_seconds": [
+      0.6000000000000014,
+      1.9333333333333318,
+      1.9333333333333318,
+      1.9333333333333318,
+      1.9333333333333318,
+      1.9333333333333318
+    ],
+    "failure_reasons": [],
+    "full_trace_verification": {
+      "completed_transitions": 5,
+      "replay_fallbacks": 5
+    },
+    "prefix_verification": {
+      "completed_transitions": 5,
+      "replay_fallbacks": 5
+    },
+    "motion_fully_ready_ms_max": 5639.815499998804
+  },
+  {
+    "run": "exit_pairs_final_120_3",
+    "rate": 120.0,
+    "p99_ms": 11.249530003260583,
+    "miss_percent": 5.377607992947399,
+    "completed": 2,
+    "different_completed": 2,
+    "holds": 1,
+    "final_joint_limit_violations": 0,
+    "preparation_ms": [
+      1340.1560999991489,
+      1082.2294999961741
+    ],
+    "pairs": [
+      114113,
+      86999
+    ],
+    "attempts": [
+      1,
+      1
+    ],
+    "trimmed_seconds": [
+      0.6000000000000014,
+      1.299999999999999
+    ],
+    "failure_reasons": [
+      "Candidates and replay infeasible: No feasible Hermite duration in the search interval"
+    ],
+    "full_trace_verification": "Playback entered terminal hold",
+    "prefix_verification": {
+      "completed_transitions": 2,
+      "replay_fallbacks": 0
+    },
+    "motion_fully_ready_ms_max": 5476.495599999907
+  },
+  {
+    "run": "exit_pairs_final_60_1",
+    "rate": 60.0,
+    "p99_ms": 11.64227999950526,
+    "miss_percent": 0.577398955182843,
+    "completed": 2,
+    "different_completed": 2,
+    "holds": 1,
+    "final_joint_limit_violations": 0,
+    "preparation_ms": [
+      620.7032000020263,
+      812.8030000007129
+    ],
+    "pairs": [
+      62852,
+      86999
+    ],
+    "attempts": [
+      1,
+      1
+    ],
+    "trimmed_seconds": [
+      0.5666666666666664,
+      1.299999999999999
+    ],
+    "failure_reasons": [
+      "Candidates and replay infeasible: No feasible Hermite duration in the search interval"
+    ],
+    "full_trace_verification": "Playback entered terminal hold",
+    "prefix_verification": {
+      "completed_transitions": 2,
+      "replay_fallbacks": 0
+    },
+    "motion_fully_ready_ms_max": 5118.38120000175
+  },
+  {
+    "run": "exit_pairs_final_60_2",
+    "rate": 60.0,
+    "p99_ms": 11.649655996443467,
+    "miss_percent": 0.5777166437414031,
+    "completed": 2,
+    "different_completed": 2,
+    "holds": 1,
+    "final_joint_limit_violations": 0,
+    "preparation_ms": [
+      731.843099994876,
+      830.732700000226
+    ],
+    "pairs": [
+      72700,
+      86999
+    ],
+    "attempts": [
+      1,
+      1
+    ],
+    "trimmed_seconds": [
+      0.6000000000000014,
+      1.299999999999999
+    ],
+    "failure_reasons": [
+      "Candidates and replay infeasible: No feasible Hermite duration in the search interval"
+    ],
+    "full_trace_verification": "Playback entered terminal hold",
+    "prefix_verification": {
+      "completed_transitions": 2,
+      "replay_fallbacks": 0
+    },
+    "motion_fully_ready_ms_max": 5034.5652000032715
+  },
+  {
+    "run": "exit_pairs_final_60_3",
+    "rate": 60.0,
+    "p99_ms": 12.064060003103805,
+    "miss_percent": 0.5225522552255226,
+    "completed": 2,
+    "different_completed": 2,
+    "holds": 1,
+    "final_joint_limit_violations": 0,
+    "preparation_ms": [
+      360.23089999798685,
+      820.5221000025631
+    ],
+    "pairs": [
+      36470,
+      86999
+    ],
+    "attempts": [
+      1,
+      1
+    ],
+    "trimmed_seconds": [
+      0.3000000000000007,
+      1.299999999999999
+    ],
+    "failure_reasons": [
+      "Candidates and replay infeasible: No feasible Hermite duration in the search interval"
+    ],
+    "full_trace_verification": "Playback entered terminal hold",
+    "prefix_verification": {
+      "completed_transitions": 2,
+      "replay_fallbacks": 0
+    },
+    "motion_fully_ready_ms_max": 5190.827200000058
+  },
+  {
+    "run": "exit_pairs_terminal_60",
+    "rate": 60.0,
+    "p99_ms": 10.982164001325145,
+    "miss_percent": 0.5502063273727648,
+    "completed": 2,
+    "different_completed": 2,
+    "holds": 1,
+    "final_joint_limit_violations": 0,
+    "preparation_ms": [
+      14.892599996528588,
+      12.389499999699183
+    ],
+    "pairs": [
+      1002,
+      719
+    ],
+    "attempts": [
+      1,
+      1
+    ],
+    "trimmed_seconds": [
+      0.0,
+      0.0
+    ],
+    "failure_reasons": [
+      "Candidates and replay infeasible: No feasible Hermite duration in the search interval"
+    ],
+    "full_trace_verification": "Playback entered terminal hold",
+    "prefix_verification": {
+      "completed_transitions": 2,
+      "replay_fallbacks": 0
+    },
+    "motion_fully_ready_ms_max": 5000.395399998524
+  }
+]

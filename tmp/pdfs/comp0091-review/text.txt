@@ -1,0 +1,3138 @@
+--- PDF PAGE 1 ---
+A Real-Time Music-Conditioned
+Framework for Motion Retrieval,
+Retargeting, and Adaptive Humanoid
+Control
+Chengjun Ouyang1
+MSc Machine Learning
+Supervisor: Prof Chengxu Zhou
+Submission date: 07/08/2026
+1Disclaimer: ThisreportissubmittedaspartrequirementfortheMScMachineLearningatUCL.It
+is substantially the result of my own work except where explicitly indicated in the text. The report may
+be freely copied and distributed provided the source is explicitly acknowledged
+
+--- PDF PAGE 2 ---
+Abstract
+Live music-driven humanoid dance requires musical relevance, responsive timing, continuous
+motion transitions, and feasible robot configurations to be maintained under causal audio access
+and limited computation. This dissertation presents BeatWeaver, a retrieval-and-control system
+that adapts a finite library of dance trajectories to streaming music on a 29-degree-of-freedom
+Unitree G1 model.
+The offline pipeline combines paired AIST++ music and human motion, extracts salient key
+poses from whole-body velocity minima, and retargets SMPL sequences through General Motion
+Retargeting. Provenance checks and MuJoCo kinematic preflight produce a catalogue of 411
+admitted motions associated with 60 music identities and 348 audio segments. Online, six-second
+rolling audio windows are gain-normalised and encoded using Discogs EffNet embeddings, style
+activations, and rhythm–timbre descriptors. Hierarchical retrieval combines musical similarity
+with tempo, key-pose-density, and activity compatibility. Temporal evidence and bounded-hold
+selection govern motion changes, while asynchronous retrieval and candidate preparation support
+continuous playback. Motion-aware beat acceptance and bounded phase correction adapt timing
+gradually. Transition-entry search uses joint pose, velocity, foot contact, and root state, followed
+by root-aligned blending and joint-dynamics and collision constraints.
+Strict leave-one-music-out evaluation achieves genre Recall@1 of 0.317 and Recall@5 of 0.783,
+indicating stronger shortlist relevance than top-one identification. In causal headless evaluation,
+all 135 formal runs, comprising 130 matched full-system and authored-timing short runs and
+five approximately ten-minute full-system runs, satisfy the registered timing, readiness, and final
+kinematic-output criteria at 60 Hz. The worst run-level control-work p99 is 14.483 ms, below the
+16.67 ms budget, with no residual clearance or joint-range violations. A separate 120 Hz pilot
+passesonlysixof21runs. Harmonicbeatalignmentscorerelativetodeliveredonlinebeateventsis
+0.313 with beat synchronisation and 0.306 with authored timing; the difference is not statistically
+significant after multiplicity correction.
+The results establish an inspectable integration of music retrieval and continuous humanoid
+playback with an empirically validated 60 Hz operating point. Musical generalisation and the
+benefit of beat synchronisation remain limited or unconfirmed. Validation concerns kinematic
+playback in MuJoCo; dynamic balance, physical robot execution, and human-perceived dance
+quality require further evaluation.
+
+--- PDF PAGE 3 ---
+Contents
+1 Introduction 1
+1.1 Background and Motivation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 1
+1.2 Research Context and Gap . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+1.3 Problem Statement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.4 Overview of the Proposed System . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+2 Literature Review 5
+2.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+2.2 Music Representation for Motion Control . . . . . . . . . . . . . . . . . . . . . . . 5
+2.2.1 Temporal and semantic information in music . . . . . . . . . . . . . . . . . 5
+2.2.2 Learned music embeddings . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+2.2.3 Beat and onset analysis under causal constraints . . . . . . . . . . . . . . . 7
+2.3 Dance Data and Motion Representation . . . . . . . . . . . . . . . . . . . . . . . . 8
+2.3.1 Paired music–dance datasets . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+2.3.2 Human-body and robot-motion representations . . . . . . . . . . . . . . . . 9
+2.4 Music-Conditioned Dance Generation . . . . . . . . . . . . . . . . . . . . . . . . . 9
+2.4.1 Autoregressive and discrete motion models . . . . . . . . . . . . . . . . . . 9
+2.4.2 Diffusion-based dance synthesis . . . . . . . . . . . . . . . . . . . . . . . . . 10
+2.4.3 Retrieval within generative systems. . . . . . . . . . . . . . . . . . . . . . . 11
+2.5 Real-Time Audio-Driven Control . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+2.5.1 Causality, latency, and committed history . . . . . . . . . . . . . . . . . . . 11
+2.5.2 Direct audio-to-humanoid policies . . . . . . . . . . . . . . . . . . . . . . . 11
+2.5.3 Streaming diffusion forcing . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+2.6 Example-Based Motion Synthesis and Motion Matching . . . . . . . . . . . . . . . 13
+2.6.1 Motion graphs and database reuse . . . . . . . . . . . . . . . . . . . . . . . 13
+2.6.2 Motion matching and learned compression . . . . . . . . . . . . . . . . . . . 13
+2.7 Motion Transitions and Beat–Phase Synchronisation . . . . . . . . . . . . . . . . . 14
+2.7.1 State-compatible motion entry . . . . . . . . . . . . . . . . . . . . . . . . . 14
+2.7.2 Blending, root alignment, and output constraints . . . . . . . . . . . . . . . 14
+2.7.3 Beat-to-key-pose alignment . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+2.8 Humanoid Motion Retargeting and Validation . . . . . . . . . . . . . . . . . . . . . 15
+2.8.1 The embodiment gap . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+2.8.2 Simulation and the limits of kinematic preview . . . . . . . . . . . . . . . . 16
+i
+
+--- PDF PAGE 4 ---
+2.9 Critical Synthesis and Research Gap . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+3 Overall System Design 18
+3.1 Chapter Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+3.2 End-to-End Architecture . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+3.3 Subsystem Boundaries and Contracts. . . . . . . . . . . . . . . . . . . . . . . . . . 20
+3.3.1 Offline preparation contract . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+3.3.2 Online perception and selection contract . . . . . . . . . . . . . . . . . . . . 20
+3.3.3 Prepared switching and execution contract . . . . . . . . . . . . . . . . . . 21
+3.4 State Ownership and Failure Isolation . . . . . . . . . . . . . . . . . . . . . . . . . 21
+4 Offline Data Preparation and Catalogue Construction 24
+4.1 Chapter Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+4.2 Source Data and Reproducibility Contracts . . . . . . . . . . . . . . . . . . . . . . 24
+4.2.1 AIST++ pairing and source identity . . . . . . . . . . . . . . . . . . . . . . 24
+4.2.2 Preparation of the SMPL body model . . . . . . . . . . . . . . . . . . . . . 25
+4.3 Audio Catalogue Construction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+4.3.1 Windowing and robust signal preparation . . . . . . . . . . . . . . . . . . . 25
+4.3.2 Learned music representation . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+4.3.3 Rhythm, timbre, and activity descriptors . . . . . . . . . . . . . . . . . . . 26
+4.3.4 Dense array storage and normalisation statistics . . . . . . . . . . . . . . . 27
+4.4 Motion Key-Pose and Activity Analysis . . . . . . . . . . . . . . . . . . . . . . . . 27
+4.4.1 Whole-body velocity signal . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+4.4.2 Valley detection and key-pose confidence. . . . . . . . . . . . . . . . . . . . 28
+4.4.3 Motion profile and catalogue groups . . . . . . . . . . . . . . . . . . . . . . 29
+4.5 SMPL-to-G1 Retargeting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+4.5.1 Human forward kinematics and coordinate conversion . . . . . . . . . . . . 29
+4.5.2 GMR inverse-kinematics solve. . . . . . . . . . . . . . . . . . . . . . . . . . 31
+4.5.3 Collision-aware retargeting . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+4.5.4 Continuity conditioning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+4.6 Canonical Trajectory and Dataset Build . . . . . . . . . . . . . . . . . . . . . . . . 32
+4.6.1 Canonical G1 artefact . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+4.6.2 Cached builds, quarantine, and atomic publication . . . . . . . . . . . . . . 32
+4.7 Trajectory Preflight and Catalogue Admission . . . . . . . . . . . . . . . . . . . . . 33
+4.7.1 MuJoCo kinematic preflight . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+4.7.2 Joining audio and motion records . . . . . . . . . . . . . . . . . . . . . . . . 33
+4.8 Integrity Guarantees and Remaining Limitations . . . . . . . . . . . . . . . . . . . 33
+5 Real-Time Music–Motion Matching and Continuous Control 35
+5.1 Chapter Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+5.2 Online Problem Formulation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+5.2.1 Dual-timescale causal processing . . . . . . . . . . . . . . . . . . . . . . . . 36
+5.3 Hierarchical Music-to-Motion Retrieval . . . . . . . . . . . . . . . . . . . . . . . . . 37
+5.3.1 Query standardisation and segment similarity . . . . . . . . . . . . . . . . . 37
+ii
+
+--- PDF PAGE 5 ---
+5.3.2 Track pooling and genre-first restriction . . . . . . . . . . . . . . . . . . . . 37
+5.3.3 Abstention and match confidence . . . . . . . . . . . . . . . . . . . . . . . . 38
+5.3.4 Motion-specific compatibility . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+5.4 Stable Selection and Candidate Readiness . . . . . . . . . . . . . . . . . . . . . . . 39
+5.4.1 Relevance hysteresis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+5.4.2 Diversity under a relevance constraint . . . . . . . . . . . . . . . . . . . . . 40
+5.4.3 Accepted-beat commitment and prepared candidates . . . . . . . . . . . . . 40
+5.5 Causal Beat and Phase Control . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+5.5.1 Activity gate and beat candidates . . . . . . . . . . . . . . . . . . . . . . . 41
+5.5.2 Motion-aware beat acceptance . . . . . . . . . . . . . . . . . . . . . . . . . 41
+5.5.3 Target rate and gradual phase correction . . . . . . . . . . . . . . . . . . . 42
+5.5.4 Bounded pose modulation . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+5.6 Transition-Entry Optimisation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+5.6.1 Entry candidates and state features . . . . . . . . . . . . . . . . . . . . . . 43
+5.6.2 Normalised entry cost . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+5.6.3 Feasibility and transition duration . . . . . . . . . . . . . . . . . . . . . . . 44
+5.7 Continuous Transition and Root Motion . . . . . . . . . . . . . . . . . . . . . . . . 44
+5.7.1 Target-root alignment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+5.7.2 Smooth pose and orientation blending . . . . . . . . . . . . . . . . . . . . . 45
+5.7.3 One-shot completion and state transfer . . . . . . . . . . . . . . . . . . . . 45
+5.8 Output Conditioning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+5.8.1 Stateful joint dynamics limits . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+5.8.2 Collision policy and state consistency . . . . . . . . . . . . . . . . . . . . . 46
+5.9 Method Observability and Failure Behaviour . . . . . . . . . . . . . . . . . . . . . 46
+6 Experimental Evaluation 47
+6.1 Experimental Questions and Protocol . . . . . . . . . . . . . . . . . . . . . . . . . 47
+6.2 Datasets, Splits and Reproducibility . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+6.3 Evaluation Metrics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+6.3.1 Retrieval, rejection and statistical units . . . . . . . . . . . . . . . . . . . . 49
+6.3.2 Rhythm and motion diversity . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+6.3.3 Continuity, contact and constraints . . . . . . . . . . . . . . . . . . . . . . . 50
+6.4 Retrieval and Rejection Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+6.5 Rhythm, Diversity and Physical Plausibility . . . . . . . . . . . . . . . . . . . . . . 52
+6.6 Transition Continuity and Safety . . . . . . . . . . . . . . . . . . . . . . . . . . . . 53
+6.7 Inference Time and End-to-End Response . . . . . . . . . . . . . . . . . . . . . . . 54
+6.7.1 Computation, preparation and control work . . . . . . . . . . . . . . . . . . 54
+6.7.2 Musical changes and observable response . . . . . . . . . . . . . . . . . . . 56
+6.8 Ablation Study . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 56
+6.9 Long-Run Reliability . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 57
+6.10 Discussion by Research Question . . . . . . . . . . . . . . . . . . . . . . . . . . . . 57
+iii
+
+--- PDF PAGE 6 ---
+7 Conclusions and Future Work 60
+7.1 Summary of the Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 60
+7.2 Limitations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 62
+7.3 Future Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63
+A Source Code Repository 69
+iv
+
+--- PDF PAGE 7 ---
+Chapter 1
+Introduction
+1.1 Background and Motivation
+Humanmovementiscloselycoupledtosound. Musicalrhythmsuggestswhenamovementshould
+occur, tempo influences its speed, and timbre, dynamics, and phrasing shape its perceived char-
+acter. Audio is therefore an attractive control modality for interactive characters and humanoid
+robots. It is temporally dense, naturally available in performance settings, and more expressive
+than a small set of discrete commands.
+Music-driven motion is nevertheless a difficult computational problem. First, the relationship
+between music and dance is many-to-many, and compatibility depends on rhythm, timbre, ac-
+tivity, and style rather than tempo alone. A humanoid also imposes joint, collision, and support
+constraintsthatdonotapplytoanunconstrainedanimatedskeleton. Inalivesetting,theseissues
+mustbeaddressedcausallyandwithinboundedlatencywhileavoidingvisiblediscontinuitieswhen
+the music or selected movement changes.
+Researchhasprogressedfrompairedmusic–motionbenchmarksandgenerativemodelssuchas
+AIST++/FACTandBailando[18,23]todiffusion-basedchoreographywithimproveddiversityand
+control [1, 25, 17, 14]. More recent systems address limitations that are especially relevant to this
+dissertation: DiscoForcing formulates dance generation as a causal, bounded-latency streaming
+problem [15], while RoboPerform generates executable humanoid actions directly and avoids an
+explicithuman-motionretargetingstage[19]. Together,thesestudiesshowthepotentialoflearned
+music-conditioned motion, but they also emphasise the data, training, latency, and embodiment
+challenges involved in deploying a real-time humanoid system.
+However, direct generative control is not the only useful design point. It requires substantial
+paireddata, policytraining, andavalidatedcontrolstack. Wheretheavailableactionsareknown
+in advance, retrieval offers a complementary trade-off. Motions can be inspected, retargeted, and
+checked for the target robot before deployment, while selection and transition constraints remain
+explicit. Although this approach cannot create new choreography, it can provide predictable mo-
+tionqualityandmodestruntimecost. Thisdissertationthereforeinvestigateswhetheraretrieval-
+and-control pipeline can produce musically responsive, continuous humanoid dance from a finite,
+prevalidated motion library.
+1
+
+--- PDF PAGE 8 ---
+1.2 Research Context and Gap
+The problem addressed in this dissertation lies at the intersection of three research areas: cross-
+modal music–motion matching, real-time motion scheduling, and humanoid motion retargeting.
+Eachareaisindividuallywellstudied,buttheirintegrationintroducesunresolvedengineeringand
+research questions.
+In cross-modal matching, a music representation must capture both semantic similarity and
+movement-relevant temporal structure. A representation based only on global style may retrieve
+a semantically related track while ignoring an incompatible tempo. Conversely, a representation
+based only on beats per minute may match two rhythmically similar tracks with very different
+energy or timbre. A motion also has its own temporal and expressive properties, including dura-
+tion, characteristic speed, key-pose density, and the regularity of those key poses. Consequently,
+retrieving a similar catalogue track is not sufficient. The associated robot motion must also be
+feasibleunderthespeedrangeoftheonlinecontrollerandappropriatefortheactivityofthequery
+music.
+In real-time scheduling, immediately selecting the highest-scoring motion at every retrieval
+step can lead to rapid oscillation among near-equal candidates. Requiring excessive evidence
+before switching, however, leaves the robot continuing an outdated movement after the music
+has changed. Even after a target motion has been selected, entering it at an arbitrary phase
+can produce joint, root, or contact discontinuities. A useful system must therefore separate four
+decisions: which music is most similar, which motion is most compatible, whether the evidence is
+stable enough to change motion, and where and when the new motion should begin.
+In humanoid retargeting, human and robot embodiments differ in bone lengths, degrees of
+freedom, joint limits, and mechanical geometry. Retargeting errors such as foot sliding, ground
+penetration, self-intersection, and abrupt velocity spikes can degrade both perceptual fidelity and
+downstream control. The study accompanying General Motion Retargeting (GMR) demonstrates
+that the quality of the retargeted reference materially affects humanoid motion tracking perfor-
+mance [3]. This observation motivates an offline preflight stage in which candidate actions are
+transformed into the Unitree G1 joint space and rejected before they can enter the online cata-
+logue if their metadata, joint order, continuity, ground contact, or collision properties are invalid.
+Theliteraturethereforeleavesapracticalgapbetweenofflinemusic-to-dancegenerationanda
+lightweight, inspectable real-time humanoid system. Specifically, there is value in a system that:
+1. uses only current and past audio while maintaining a rolling musical context;
+2. combines semantic music similarity with explicit rhythm, tempo, and motion compatibility;
+3. suppresses unstable changes without eliminating musically acceptable diversity;
+4. aligns musical events to salient poses without instantaneously teleporting the motion phase;
+5. chooses transition entry states using pose, velocity, foot-contact, and root-motion informa-
+tion; and
+6. outputs target-robot joint trajectories under explicit timing, kinematic, and collision con-
+straints.
+2
+
+--- PDF PAGE 9 ---
+This dissertation addresses that gap through the design and evaluation of the BeatWeaver,
+a hybrid system comprising deterministic digital signal processing, optional learned audio em-
+beddings, similarity-based retrieval, rule-governed temporal selection, and constrained kinematic
+motion control.
+1.3 Problem Statement
+Let a causal audio stream observed up to time t be denoted by A , and let the robot-ready
+≤t
+motion library be
+D ={(x ,M ,m )}N , (1.1)
+i i i i=1
+where x is the music descriptor associated with catalogue item i, M is a retargeted Unitree
+i i
+G1 trajectory, and m contains motion metadata such as original tempo, duration, activity, and
+i
+salient key-pose phases. At runtime, the system must select a motion index i , a phase ϕ , and a
+t t
+continuous robot target configuration q .
+t
+The objective is not to reproduce a unique ground-truth choreography. Instead, the system
+must balance five partially competing criteria:
+Musical relevance: the selected motion should be associated with music that is similar in con-
+tent, rhythm, and timbre to the live query.
+Temporal compatibility: the motion should remain usable within the permitted speed range,
+and its salient poses should be compatible with the observed beat and onset density.
+Responsiveness and stability: the system should react to a genuine musical change while
+avoiding oscillation caused by small ranking changes.
+Motion continuity: switching should minimise discontinuities in joint position, joint velocity,
+support state, root pose, and root velocity.
+Runtime feasibility: audio analysis, retrieval, transition planning, and motion playback must
+operate within the control-loop timing budget and respect joint and collision constraints.
+Thesecriteriacannotbereducedtoasinglenearest-neighbourquery. Theyrequireahierarchy
+inwhichretrieval,compatibilityscoring,temporalstabilisation,transitionplanning,phasecontrol,
+and output limiting are treated as related but distinct components.
+The initial engineering design target is a 120 Hz foreground control loop, corresponding to an
+8.33 ms frame period. Its empirical timing criteria are per-run control-work p99 below one frame
+period and a deadline-miss ratio below 1%, with final-output and readiness checks enabled. This
+target concerns pose updates, not the once-per-second retrieval schedule or the six-second audio
+context. Chapter6testsitinacapacitypilot. Thesubsequentformalevaluationusesaseparately
+declared 60 Hz operating point, with a 16.67 ms frame period and the same 1% miss criterion.
+Success at 60 Hz establishes that operating point; it does not fulfil the 120 Hz design target.
+3
+
+--- PDF PAGE 10 ---
+1.4 Overview of the Proposed System
+The proposed system contains an offline preparation path and an online control path. Offline,
+AIST++ motion files are paired with their synchronised music. Audio is divided into six-second
+windowsandencodedusingagain-robustdescriptorcomprisingacontentembeddingandexplicit
+rhythm–timbre features. The current catalogue contains 411 motion profiles associated with 60
+musicidentifiersand348audiosegments. Foreachmotion,salientposesareidentifiedasprominent
+valleys in a whole-body velocity signal derived from SMPL joint rotation and root translation.
+The human sequence is then retargeted through GMR to the 29-degree-of-freedom Unitree G1
+representation. Onlycanonicaltrajectoriesthatpassmetadata,continuity,joint-range,grounding,
+and collision-related checks are admitted to online selection.
+Online, microphone input or a virtual microphone supplies both a rolling audio window and
+low-level beat events. A hierarchical matcher first compares the query with catalogue audio
+segments and aggregates segment evidence at the track level. It then ranks motions linked to the
+besttracksusingtempo,key-pose-density,andactivitycompatibility. Theselectionpolicyrequires
+stableevidencebeforearelevance-drivenchangeandcanrotateamongnear-optimalmotionsafter
+a bounded number of held bars to preserve diversity. Candidate motions are loaded and prepared
+asynchronously.
+At a switch boundary, the system evaluates possible entry phases near salient poses. The
+costaccountsfornormalisedjoint-posedifference,joint-velocitydifference,foot-contactmismatch,
+root-statedifference, andmotionsalience. Theselectedtargetisalignedtothecurrentworldroot
+and blended over a duration derived from joint speed and acceleration limits and quantised to a
+half-beat interval. During playback, accepted beats update the target phase rate and a bounded
+controllergraduallyconsumesalignmenterror. Afinaloutputlayerconstrainsjointdynamicsand
+applies the configured runtime collision policy before the pose is written to MuJoCo.
+ThisarchitecturediffersfromFACT,Bailando,EDGE,RoboPerform,andDiscoForcinginthat
+itdoesnottrainanonlinemotiongenerator. Instead,itperformscausalretrievalandcontrolover
+a finite library of robot-ready trajectories. The comparison is therefore not a claim that retrieval
+replacesgenerativemodelling. Rather,thesystemexploresanalternativeoperatingpointinwhich
+interpretability, predictable motion provenance, explicit constraints, and modest runtime cost are
+prioritised over the ability to synthesise novel choreography.
+4
+
+--- PDF PAGE 11 ---
+Chapter 2
+Literature Review
+2.1 Introduction
+Music-driven humanoid motion combines music information retrieval, character animation, online
+control, and robotics. Although all four fields model temporal behaviour, they impose different
+requirements. Audio analysis extracts musical structure, dance generation seeks plausible mo-
+tion, real-time control requires causal and continuous responses, and humanoid deployment adds
+contact, kinematic, and feasibility constraints.
+This chapter reviews these areas in relation to causal selection and playback of robot-ready
+dance from streaming audio. It distinguishes offline generation, which may use a complete music
+sequence. Streaminggeneration,whichrestrictsaccesstofutureaudio. Andretrieval-and-control,
+which adapts motions from a finite database. BeatWeaver belongs to the third category, drawing
+on work in music-to-dance generation, beat tracking, motion graphs, motion matching, and hu-
+manoid retargeting. The review focuses on the trade-offs among novelty, latency, interpretability,
+provenance, and embodiment safety that motivate its hybrid architecture.
+2.2 Music Representation for Motion Control
+2.2.1 Temporal and semantic information in music
+A music representation for dance control must describe both when motion events should occur
+and what kind of movement may be appropriate. Rhythmic descriptors such as tempo, onset
+strength, beat confidence, and inter-beat interval provide temporal cues. Spectral shape, timbre,
+harmony, loudness, andlearnedstyleembeddingsprovidebroaderevidenceaboutmusicalcontent
+and activity. These two groups are related but not interchangeable.
+Classicalmusicinformationretrievalsystemsconstructdescriptorsfromshort-timesignalanal-
+ysis. A frame-level descriptor sequence may be written as
+f =F(a ), (2.1)
+1:T 1:S
+where a is an audio waveform and F may include a short-time Fourier transform, mel-
+1:S
+frequencybands, spectralstatistics, chroma, onsetstrength, orrhythmsummaries. Librariessuch
+5
+
+--- PDF PAGE 12 ---
+as Essentia collect spectral, temporal, tonal, and high-level descriptors in a common analysis
+framework [6]. Librosa provides a Python implementation of reusable audio and music-analysis
+primitives[21]. BeatWeaveruseslibrosaandNumPyforitsDSPdescriptors. TheEssentiacitation
+provides library context rather than implementation attribution. Such descriptors are computa-
+tionally attractive because their meaning and cost are explicit. They can also be normalised
+independently, whichisvaluablewhenmicrophonegain, playbackvolume, orrecordingconditions
+change.
+Onset detection supplies evidence of local change, whereas beat tracking seeks a recurring
+temporal organisation of those changes. Bello et al. distinguish energy, spectral and phase-
+based onset cues, explaining why a single detection function cannot capture every kind of musi-
+cal attack [4]. This motivates using onset density and spectral flux alongside estimated tempo.
+Harmonic/percussive separation supplies another complementary cue. FitzGerald uses median
+filtering along time and frequency to distinguish sustained harmonic structure from transient per-
+cussion [9]. BeatWeaver applies the librosa separation primitive to a mel representation to derive
+a percussive ratio. That ratio is an engineered activity cue.
+However, hand-designed features expose an important design tension. Global summary statis-
+tics are cheap and stable, but they can discard local structure. Frame-level features retain that
+structure, but direct comparison becomes more expensive and sensitive to alignment. The ap-
+propriate representation therefore depends on the decision timescale. A short rolling window is
+useful for responsiveness, whereas a longer context is useful for estimating stable style or tempo.
+A real-time system commonly needs both. Local events for phase control, and a slower descriptor
+for motion selection.
+2.2.2 Learned music embeddings
+Learned embeddings replace or complement manually chosen descriptors by mapping audio into
+a feature space whose geometry is shaped by a training objective. Music representations can
+be supervised by genre and mood labels, by co-occurrence information, or by metadata-derived
+similarity. In particular, Alonso-Jim´enez et al. use associations extracted from Discogs editorial
+metadata as contrastive supervision and show that large, weakly labelled music collections can
+produce useful general-purpose representations [2]. This line of work is relevant to the Discogs
+EffNet backend used by the current BeatWeaver catalogue.
+A learned representation nevertheless introduces new sources of uncertainty. Its similarity
+metric reflects the pretraining data and objective rather than the requirements of robot motion.
+A track-level style embedding may rank two pieces of music as similar even when their beat rates
+would require an infeasible change in motion speed. Domain shift is also possible when a model
+trainedonmasteredrecordingsreceivesreverberantorclippedmicrophoneaudio. Forthisreason,
+semantic embedding similarity should not be treated as a complete cross-modal compatibility
+function. Ahybridscorecanretainthecoverageoflearnedfeatureswhileapplyingexplicittempo,
+rhythm, and activity terms whose contribution can be inspected and ablated.
+Let e and e be standardised query and catalogue embeddings. A typical content similarity
+q i
+is their cosine similarity,
+6
+
+--- PDF PAGE 13 ---
+eTe
+s (q,i)= q i . (2.2)
+emb ∥e ∥ ∥e ∥
+q 2 i 2
+For motion control, this term is more naturally interpreted as evidence for a related musical
+neighbourhood than as direct evidence that a particular trajectory is executable. The distinction
+motivates hierarchical retrieval. First identify relevant music, then rank the motions associated
+with that music using motion-specific compatibility.
+2.2.3 Beat and onset analysis under causal constraints
+Beattrackingillustratesthedifferencebetweenanalysingmusicandcontrollingmotionfrommusic.
+Ellis formulates beat tracking as a compromise between local onset evidence and a transition
+preference for a regular inter-beat interval [8]. This formulation captures a general principle
+that a beat is not merely a spectral peak, but a temporally coherent hypothesis supported by
+recent events. For offline analysis, dynamic programming can optimise a sequence of beat times
+over a complete region. But a live controller cannot freely revise past beat decisions after the
+corresponding robot pose has already been emitted.
+GroscheandMu¨ller’spredominantlocalpulse(PLP)methodestimateslocalperiodicitiesfrom
+onset information and combines them into a pulse function [11]. It supplies the algorithmic
+basis for BeatWeaver’s rolling-window beat candidates through librosa’s PLP implementation.
+Computing PLP on acquired audio preserves the no-future-input constraint, but local analysis
+and asynchronous delivery still introduce delay. An estimated beat position and the time at
+which the controller receives it are consequently different quantities. This distinction motivates
+the delivered-event metric and explicit timing logs in Chapter 6.
+Learned rhythm analysis offers a complementary direction. The madmom library includes
+neural and probabilistic methods for onset, beat, downbeat and metre analysis [5]. Its distinc-
+tion between those tasks highlights a limitation of treating every fourth accepted pulse as a bar
+boundary. Counting pulses does not itself estimate metre or downbeats. Madmom is a literature
+comparisonandapossiblefuturebaseline. Itisnotthebeatbackendevaluatedinthisdissertation.
+Therefore, causal beat handling requires explicit confidence and latency policies. Strong per-
+cussivesubdivisionscanproducetwicetheintendedcontrolrate,whileweakpassagescanproduce
+missing or unstable events. Accepting every detected event risks aligning motion key poses to
+hi-hat subdivisions rather than perceptually strong beats. Rejecting too many events causes stale
+tempo estimates and slow phase correction. Relative onset or loudness contrast over recent beats
+offers a causal way to prefer stronger events, but its quality depends on the length and diversity
+of the available history.
+The important consequence for the present research is that audio retrieval and beat-phase
+control should use related but separate signals. Retrieval benefits from several seconds of context
+and should not change at every onset. Phase control requires low-latency event timing but should
+not reinterpret every event as a change of musical identity. This separation reduces the risk that
+a single noisy audio block simultaneously changes the selected dance and its playback phase.
+7
+
+--- PDF PAGE 14 ---
+2.3 Dance Data and Motion Representation
+2.3.1 Paired music–dance datasets
+Progress in music-conditioned dance generation has been strongly influenced by the scale and
+representation of available paired datasets. AIST++ contains 1,408 three-dimensional dance se-
+quences across ten genres and is accompanied by aligned music and camera information [18]. Its
+size,genrelabels,andsynchronisationmakeitacommonbenchmarkformusic-conditionedgener-
+ation and a practical source for the catalogue in this dissertation. AIST++ is especially relevant
+to retrieval-based work because multiple dance sequences can be associated with related musical
+material, permitting the catalogue to represent one-to-many music–motion relationships.
+AIST++reconstructshumanmotionfromtheAISTDanceVideoDatabase[26]. Thetengenre
+names and identifier codes used here are breaking (BR), house (HO), ballet jazz (JB), street jazz
+(JS), krump (KR), LA-style hip-hop (LH), locking (LO), middle hip-hop (MH), popping (PO),
+and waacking (WA). These are dataset dance categories, not an exhaustive taxonomy of music.
+The same codes label the genre retrieval results in Table 6.3.
+AIChoreographer: MusicConditioned3DDanceGenerationwithAIST++
+Figure 2.1 shows the relationship between the two contributions that are often mentioned
+together. AIST++providespairedmusicandreconstructedhumanmotion,whereasFACTlearns
+RuilongLi 1 ShanYang 2 DavidA.Ross2 AngjooKanazawa2,3
+to generate future hum∗an poses from th∗at data.
+1UniversityofSouthernCalifornia 2GoogleResearch 3UniversityofCalifornia,Berkeley
+AIST Multi-view Videos
+Full-Attention
+Cross-modal
+Transformer
+(FACT)
+AIST++ 3D Dance Dataset Generated 3D Dance
+Figure 1: AI Choreographer. We present a new 3D dance dataset, AIST++, which contains 5.2 hours of 3D motion
+reconstructedfromrealdancerspairedwithmusic(left)andanovelFull-AttentionCross-modalTransformer(FACT)network
+thatcangeneraterealistic3Ddancemotionwithglobaltranslationconditionedonmusic(right). Weoutputour3Dmotion
+inrepresentationsthatallowforinstantmotionretargetingtoanovelcharacter.HereweuseacharacterfromMixamo[1]
+Abstract 1.Introduction
+We present AIST++, a new multi-modal dataset of 3D The abilityto dance bycomposing movement patterns
+dancemotionandmusic,alongwithFACT,aFull-Attention thataligntomusicalbeatsisafundamentalaspectofhu-
+Cross-modalTransformernetworkforgenerating3Ddance manbehavior.Dancingisanuniversallanguagefoundinall
+motion conditioned on music. The proposed AIST++ cultures[50], andtoday, manypeopleexpressthemselves
+datasetcontains5.2hoursof3Ddancemotionin1408se- through dance on contemporary online media platforms.
+quences,covering10dancegenreswithmulti-viewvideos The most watched videos on YouTube are dance-centric
+withknowncameraposes—thelargestdatasetofthiskind musicvideossuchas“BabySharkDance”,and“Gangnam
+toourknowledge.Weshowthatnaivelyapplyingsequence Style”[75],makingdanceamoreandmorepowerfultool
+modelssuchastransformerstothisdatasetforthetaskof tospreadmessagesacrosstheinternet.However,dancingis
+musicconditioned3Dmotiongenerationdoesnotproduce aformofartthatrequirespractice—evenforhumans,pro-
+satisfactory3Dmotionthatiswellcorrelatedwiththeinput fessionaltrainingisrequiredtoequipadancerwitharich
+music.Weovercometheseshortcomingsbyintroducingkey repertoireofdancemotionstocreateanexpressivechore-
+changesinitsarchitecturedesignandsupervision: FACT ography.Computationally,thisisevenmorechallengingas
+modelinvolvesadeepcross-modaltransformerblockwith thetaskrequirestheabilitytogenerateacontinuousmotion
+full-attentionthatistrainedtopredictNfuturemotions.We withhighkinematiccomplexitythatcapturesthenon-linear
+empiricallyshowthatthesechangesarekeyfactorsingen- relationshipwiththeaccompanyingmusic.
+erating long sequences of realistic dance motion that are
+Inthiswork,weaddressthesechallengesbypresenting
+well-attunedtotheinputmusic. Weconductextensiveex-
+a novel Full Attention Cross-modal Transformer (FACT)
+perimentsonAIST++withuserstudies,whereourmethod
+network, which can robustly generate realistic 3D dance
+outperforms recent state-of-the-art methods both qualita-
+motion from music, along with a large-scale multi-modal
+tivelyandquantitatively. Thecodeandthedatasetcanbe
+3Ddancemotiondataset,AIST++,totrainsuchamodel.
+foundat:https://google.github.io/aichoreographer.
+Specifically,givenapieceofmusicandashort(2seconds)
+seedmotion,ourmodelisabletogeneratealongsequence
+ofrealistic3Ddancemotions.Ourmodeleffectivelylearns
+∗equalcontribution.WorkperformedwhileRuilongwasaninternat
+Google. the music-motion correlation and can generate dance se-
+1
+1202
+luJ
+13
+]VC.sc[
+3v97780.1012:viXra
+Figure 2.1: The AIST++ dataset and FACT generation setting, reproduced from Fig. 1 of Li et
+al. [18]
+FineDance extends the emphasis from broad coverage to fine-grained, full-body choreography.
+Itincreasesstylisticdiversityandincludesmoredetailedhandmovementandgenrecoveragethan
+earlier benchmarks [17]. The accompanying method also uses retrieval as contextual assistance
+forgeneration,illustratingthatretrievalandgenerativemodellingneednotbemutuallyexclusive.
+Retrievalcansupplylong-rangeexamplesorstylecontext,whileageneratorproduceslocalmotion.
+Dataset scale does not remove ambiguity from evaluation. Music and dance have a many-to-
+many relationship, so a generated or retrieved movement can be appropriate without matching
+a held-out reference pose. Dataset labels may also reflect dance genre, music genre, performer,
+or recording session in different proportions. Models can consequently exploit correlations that
+do not transfer to live music. Evaluations based only on reconstruction distance are therefore
+insufficient. Rhythmic alignment, distributional quality, diversity, transition continuity, and user
+judgement provide complementary evidence.
+Distributional evaluation also needs a stated representation and sampling protocol. Fr´echet
+8
+
+--- PDF PAGE 15 ---
+Inception Distance (FID), introduced by Heusel et al., compares Gaussian feature distributions
+[12]. AIST++/FACT and Bailando adapt this evaluation family to kinetic and geometric motion
+features. The corresponding diversity (Div) measures describe distances among motion feature
+vectors [18, 23]. These scores capture distributional resemblance and spread rather than a unique
+correct choreography. Chong and Forsyth show that finite-sample FID estimates can have model-
+dependent bias [7]. Thus matching sample counts is necessary but does not make a small recon-
+structed retrieval sample a leaderboard-equivalent benchmark. Chapter 6 defines both metrics,
+their feature spaces and their sampling and normalisation conventions explicitly.
+2.3.2 Human-body and robot-motion representations
+Human dance datasets frequently represent motion through skeletal joint positions, joint rota-
+tions, or a parametric body model. SMPL defines a skinned human model with pose and shape
+parametersandiscompatiblewithstandardgraphicspipelines[20]. Itprovidesausefulcanonical
+humanrepresentationbecauserotationspreservearticulatedstructureandthemodelcangenerate
+consistent joint and surface geometry across performers.
+For a target humanoid, however, an SMPL pose is not a command. A robot has a different
+kinematic tree, joint axes, degrees of freedom, proportions, and collision geometry. A represen-
+tation suitable for visual generation may also omit velocities, contact states, actuator limits, or
+world-frame root requirements. Thus, the apparent output type “3D motion” conceals a major
+difference between human animation and robot execution.
+The representation selected for a catalogue also affects matching and transition costs. Raw
+joint angles allow direct comparison in the target configuration space but require meaningful
+normalisation across joints. Cartesian joint positions make geometric similarity clearer but can
+hide joint limit differences and amplify root-alignment errors. Velocities reveal whether two poses
+are moving toward compatible future states. Foot contacts encode a discrete support condition
+that neither pose nor velocity alone captures. Consequently, a robot transition should normally
+consider a structured state rather than a single pose vector.
+2.4 Music-Conditioned Dance Generation
+2.4.1 Autoregressive and discrete motion models
+FACT couples a full-attention cross-modal transformer with the AIST++ dataset to model long
+music and motion sequences [18]. Its transformer-based formulation demonstrates that temporal
+context and cross-modal attention can capture dependencies beyond a local beat. At the same
+time, autoregressive generation exposes familiar difficulties. Errors can accumulate over long
+horizons,andamodelconditionedonpreviouslygeneratedframescanbecomesensitivetoitsown
+imperfect history.
+Bailando addresses choreographic structure through a learned discrete motion codebook and
+an actor–critic GPT framework [23]. The codebook turns continuous pose sequences into motion
+tokens, while the reward design encourages beat alignment. Discrete representations can make
+long-range modelling more manageable and can preserve recurring movement patterns. However,
+9
+
+--- PDF PAGE 16 ---
+token boundaries do not automatically correspond to dynamically safe robot transition points,
+and decoding a human pose sequence still leaves an embodiment conversion problem.
+These methods establish two important ideas for the BeatWeaver. First, musical context be-
+yondtheinstantaneousbeatisnecessaryforcoherentselection. Second,repeatedmotionpatterns
+Beat-It: Beat-Synchronized Multi-Condition 3D
+are not inherently undesirable, because dance contains motifs whose recurrence supports style
+and structure. A retrieval systemDcaannexcpleoitGthies pnroepreratytdiiorecntly, although its available motifs
+remain limited to the catalogue.
+2.4.Z2ikaiDHiffuaunsgio1n-,bXauseemdiadoanXcue1,3s,y4(nBt)he,sCisheng Xu2(B) , Huaidong Zhang1,3 ,
+Chenxi Zheng1 , Jing Qin2 , and Shengfeng He5
+Diffusion models treat motion generation as iterative denoising conditioned on audio and other
+signals. Listen, Denoise1,
+S
+A
+o
+c
+u
+ti
+t
+o
+h
+n!
+C
+a
+h
+p
+in
+p
+a
+lie
+U
+s
+n
+th
+iv
+is
+er
+f
+s
+o
+i
+r
+t
+m
+y
+u
+o
+l
+f
+at
+T
+io
+e
+n
+ch
+t
+n
+o
+o
+a
+lo
+u
+g
+d
+y
+io
+,
+-
+C
+dr
+h
+iv
+in
+en
+a
+motion and supports
+probabilistic sampling rather than a sxinugelmexd@estceurBmtEA.iTn-eITidstui.cconutput [1]. EDGE uses a transformer
+diffusion mod 2 elTfohremHuosnicg-cKonodnigtioPnoeldytdeacnhcneicanUdndivemerosnitsyt,raHteosnbgoKthonhgighS-AquRa,liCtyhgineaneration and
+editingoperationssuchasmotionin-bcetswceheennignxgu[2@5g]m.aBiela.tc-Iotmintroducesexplicitbeatandkey-pose
+3 Guangdong Engineering Center for Large Model and GenAI Technology
+conmduistici obenats, showing the value of representing rhythmic constraints directly rather than expecting
+4 GuangdUsoern Begat CPhorreoogvraipnhycial Key Lab of Computational Intelligence and Cyberspace
+them to emerge only from a global audio embedding [14].
+Information
+i
+c
+n
+o
+Fp
+n
+u
+d
+it
+i
+g
+t
+b
+io
+eu
+n
+art e 2.2 illustrate5s w
+S
+h
+in
+y
+g
+t
+a
+h
+p
+e
+o
+se
+re
+co
+M
+nd
+a
+i
+n
+t
+a
+io
+g
+n
+e
+s
+m
+a
+e
+r
+n
+e
+t
+d
+U
+ist
+n
+i
+i
+n
+v
+c
+e
+t
+r
+.
+si
+M
+ty
+u
+,
+s
+S
+ic
+in
+s
+g
+u
+a
+p
+p
+pl
+o
+i
+r
+e
+e
+s dense contextual evi-
+dence, while beats andhktetyppso:s/e/sziidkeanitihfyuasnpgasrsceutte.mgpitorhaulbr.eiqou/irBeema get enn - etr Isate ttd / hdaantce smhotoioun vledlocsityurvive the
+generation process.
+Music
+Generated Dance Motions
+Keyframes BEAT-IT
+Motion Velocity
+Music
+Beat User Beat Choreography Time
+Beat Beat
+Cond. Time Beat-Synchronized Cond. Time
+Time
+yticoleV
+Fig.1: We introduce Beat-It, a novel method for generating 3D dance motions with
+Figbueraet2a.2li:gnBmeaetn-Itt’asnmdumsioct,ikoenyc-poonster,oallnadbiblietayt.Ocounrdaitpiopnrionagc,hreepxrpoldicuitcleydifnrjoemctsFbige.a1toafwHarueannegsset
+al.a[1n4d] seamlessly integrates multiple conditions to guide the generation process, leading
+to beat-synchronized, key pose-guided dance generation.
+The principal attraction of diffusion is its capacity to represent multiple valid motions for
+the same music. This is well matched to the multimodal nature of dance. Iterative sampling
+can also integrate diverse constraints. The cost is that denoising introduces computation and,
+in a conventional formulation, often assumes a fixed sequence whose future frames are revised
+Abstract. Dance, as an art form, fundamentally hinges on the precise
+together. A motion that looks coherent after full-sequence denoising does not by itself establish
+synchronization with musical beats. However, achieving aesthetically
+causal, boupnledaesdG i-T nl ag Bte deana tcnycebesheqaGvu Tieonucre.sfr B o e m at- m It usicis E ch DG a E llenging, B w ai i l t a h nd e o xisting F m A e C t T hods
+For thiosfrteeansofanl,lionfflginsheodritffiunsicoonnrtersoullltasbailnitdyraenald-tbimeaetcaonlitgrnoml reenstu.ltTsoshaodudldrenssotthbeesecompared
+solely throsuhgohrtmcoomtioinngqs,uatlhitiys pmaepterircsi.ntTrohdeuycseoslvBeedaitff-Ietr,enatninovfoerlmfraatimonewporrokblefomrsb. eIafta-n offline
+specific, key pose-guided dance generation. Unlike prior approaches, Beat-
+model observes future musical events, it can anticipate an upcoming accent. A causal controller
+It uniquely integrates explicit beat awareness and key pose guidance,
+effectively resolving two main issues: the misalignment of generated dance
+motions with musical beats, and the inability to map key poses to specific
+beats, critical for practical choreogr1a0phy. Our approach disentangles beat
+conditions from music using a nearest beat distance representation and
+employsahierarchicalmulti-conditionfusionmechanism.Thismechanism
+
+--- PDF PAGE 17 ---
+can respond only after sufficient evidence has arrived. The fair comparison must include latency,
+look-ahead, revision policy, and how committed motion history is handled.
+2.4.3 Retrieval within generative systems
+FineDance incorporates a retrieval mechanism to improve genre consistency and long-term coher-
+ence before or alongside generation [17]. This hybrid design points to a broader interpretation
+of retrieval. A database need not merely return a final clip. It can provide contextual priors,
+examples, or candidates that are subsequently adapted. The quality of retrieval then depends on
+the correspondence between the query feature space and the desired motion property.
+In the BeatWeaver, retrieval has a stricter role. The selected item is a prevalidated robot
+trajectory rather than a context example for a generator. This reduces representational freedom
+but strengthens motion provenance. Every candidate can be inspected offline, linked to its source
+audioandretargetingmetadata,andrejectedifitfailsapreflightcheck. Thecomparisonsuggests
+acontinuumratherthanabinarydistinction. Atoneend,puregenerationoffershighnoveltywith
+lessexplicitprovenance. Attheother, pureretrievaloffersstrongprovenancewithfinitecoverage.
+Future systems may use retrieval to propose safe motion primitives and generation to adapt them
+within controlled bounds.
+2.5 Real-Time Audio-Driven Control
+2.5.1 Causality, latency, and committed history
+For an online system, causality can be expressed as
+(i ,ϕ ,qout)=G(A ,M,H ), (2.3)
+t t t ≤t−δ t
+where δ represents acquisition and processing delay, M is the available motion collection, and
+H is controller history, including previously emitted configurations qout. The outputs are the
+t <t
+selected motion index, phase and emitted configuration. Here G denotes online control, while F
+above denotes feature extraction. A strictly causal system has no access to A , and a bounded-
+>t
+latency system must also place a practical upper bound on δ. In addition, previously emitted
+poses qout are committed. An algorithm may update its internal belief about the music, but it
+<t
+cannot alter the robot’s physical past.
+This formulation reveals three distinct latency sources. Perceptual latency comes from the
+audio context needed to estimate a reliable feature. Computational latency comes from feature
+extraction, inference, search, and planning. Scheduling latency comes from deliberately waiting
+for a musically or mechanically suitable switch boundary. Reducing only model inference time
+does not guarantee a responsive system if a six-second feature window is recomputed infrequently
+or if every change waits several bars.
+2.5.2 Direct audio-to-humanoid policies
+Do You Have Freestyle? introduces RoboPerform, an audio-conditioned humanoid locomotion
+framework that aligns audio and motion representations and distils a mixture-of-experts teacher
+11
+
+--- PDF PAGE 18 ---
+into a diffusion-based student policy [19]. A central contribution is retargeting-free control. The
+student produces humanoid actions from audio rather than first generating an explicit human
+sequence and passing it through a separate retargeter. This can reduce accumulated error and
+latency across pipeline stages. The work also demonstrates expressive behaviour on a Unitree G1
+platform, making it more directly relevant to humanoid performance than animation-only dance
+models.
+RoboPerformandtheBeatWeaveraddressrelatedgoalsthroughdifferentassumptions. RoboP-
+erform learns an action policy and can synthesise behaviour beyond a fixed set of stored trajecto-
+ries. The BeatWeaver assumes that a library of actions has already been retargeted and checked.
+The former places more of the problem in representation learning and policy training. The latter
+places more of it in catalogue construction, similarity design, selection stability, and transition
+planning. The contrast is useful because it identifies two different ways of handling embodiment.
+Learn it inside the policy, or validate it before retrieval.
+2.5.3 Streaming diffusion forcing
+DiscoForcing explicitly formulates audio-driven character motion as strict causal streaming with
+boundedlatency[15]. Itcombinesacausalmusicencoderwithdiffusionforcing,ahybridtemporal
+training schedule, and history-guided sampling. The model is designed to remain responsive to
+new audio while preventing long-term degradation from stale or imperfect generated history. Its
+demonstrations span animated characters and humanoid deployment, illustrating that streaming
+generation can be treated as a first-class problem rather than an offline model run on shorter
+windows.
+The importance of DiscoForcing to this dissertation is methodological. It provides a stronger
+standard for the term “real time”. Causal access, specified latency, continuous history, and online
+outputshouldallbestated. TheBeatWeaverdoesnotusediffusionforcing,butitfacesanalogous
+stability questions. A generative model must decide how much noisy history to condition on. A
+retrievalsystemmustdecidehowmuchrankinghistoryisenoughtojustifyaswitch. Bothsystems
+balance responsiveness against temporal consistency, although they implement that balance at
+different levels.
+Thereisalsoanimportantdifferenceinfailurebehaviour. Astreaminggeneratormaygradually
+drift or produce locally implausible motion, whereas a retrieval system is bounded by the quality
+of its stored clips but can still fail through a poor match, phase error, or discontinuous transition.
+Therefore, the evaluation metrics should differ. Generative diversity and distributional quality
+are central for DiscoForcing. Catalogue recall, switching stability, entry-state cost, and deadline
+misses are central for the BeatWeaver.
+12
+
+--- PDF PAGE 19 ---
+2.6 Example-Based Motion Synthesis and Motion Match-
+ing
+2.6.1 Motion graphs and database reuse
+Longbeforemodernaudio-conditioneddiffusion,data-drivenanimationinvestigatedhowcaptured
+motions could be rearranged without losing their realism. Motion graphs construct a directed
+graph whose edges contain captured motion or generated transitions and whose walks form new
+sequences[16]. Thecriticaloperationisthediscoveryofstatesatwhichonemotioncantransition
+into another with limited visual discontinuity. This reframes motion synthesis as search over
+reusable examples.
+Motion graphs are conceptually relevant to a finite dance library, but a dance matcher intro-
+duces additional structure. Candidate transitions are not chosen only to follow a user-specified
+spatial path. They are conditioned by music, beat boundaries, motion salience, and humanoid
+support state. Moreover, a transition graph built from every compatible frame pair may become
+large. Thepresentsysteminsteadperformsalocalentrysearchwhenamotionswitchisaccepted.
+Thisavoidsstoringadensegraphwhileretainingthecentralinsightthatdatabaseclipsshouldbe
+joined at compatible states rather than arbitrary timestamps.
+2.6.2 Motion matching and learned compression
+Motion matching searches a motion database at runtime for a frame whose pose and future tra-
+jectory best fit the current character state and desired control. Learned Motion Matching com-
+presses this behaviour into neural networks while retaining the responsive, data-driven character
+of database search [13]. The work highlights the main strengths of example-based control. Cap-
+tured detail can be preserved, behaviour is guided by an explicit query, and selection can respond
+continuously to an external target.
+The BeatWeaver uses the term Weaver in a related but more hierarchical sense. Its primary
+query is music rather than a desired locomotion trajectory, and it initially ranks complete motion
+candidatesassociatedwithcataloguetracks. Onlyafteracandidateisselecteddoesitsearchentry
+states using the current robot pose and velocity. This division addresses a scaling and semantics
+problem. Joint-state proximity alone cannot establish that a dance matches the current music,
+while music similarity alone cannot establish that the transition is continuous.
+A general hierarchical score can be expressed as
+i∗ =arg max [w s (q,i)+w s (q,i)+w s (q,i)+w s (q,i)], (2.4)
+m music τ tempo k key a activity
+i∈C(q)
+where C(q) is a candidate set produced by track-level retrieval. This formulation makes the
+compatibility dimensions visible. It also supports ablations that would be harder to interpret if
+the entire cross-modal relation were represented by one end-to-end latent score.
+13
+
+--- PDF PAGE 20 ---
+2.7 Motion Transitions and Beat–Phase Synchronisation
+2.7.1 State-compatible motion entry
+Motion-graphandmotion-matchingresearchestablishesposesimilarityasafoundationfortransi-
+tion search [16, 13]. For humanoid dance, pose distance is necessary but incomplete. Two frames
+can have similar joint angles while their velocities point in opposite directions. Likewise, geomet-
+ricallysimilarposescanplacedifferentfeetinsupport,causingvisibleslidingoranabruptchange
+in the root trajectory.
+A more complete entry cost for candidate phase ϕ is
+C(ϕ)=λ C (ϕ)+λ C (ϕ)+λ C (ϕ)
+q q v v c c
+(2.5)
++λ C (ϕ)+λ C (ϕ),
+r r s s
+where the terms measure joint pose, joint velocity, contact state, root state, and musical or
+key-pose salience. The weights expose a practical compromise. A large pose weight favours a
+visually smooth first frame. A large salience weight favours musically meaningful entry. Contact
+and root terms reduce foot and world-frame artefacts. The transition planner can restrict its
+search to salient phases, thereby reducing computation and avoiding entry in the middle of an
+expressive gesture.
+2.7.2 Blending, root alignment, and output constraints
+Onceanentrystateischosen,blendingcandistributetheremainingmismatchovertime. Database
+animation methods use automatically generated transitions to connect captured sequences [16].
+For a floating-base humanoid, the target motion should first be aligned to the current world root.
+Otherwise a locally smooth joint blend can still cause a global translation or yaw jump. Joint
+interpolation should also respect angular topology and take the shortest path for wrapped angles.
+The blend duration is not purely aesthetic. If the pose displacement for joint j is ∆q , then a
+j
+lower bound derived from a velocity limit q˙max is approximately
+j
+|∆q |
+T ≥max j . (2.6)
+blend j q˙max
+j
+Acceleration limits can impose a longer bound. Quantising the final duration to a beat sub-
+division preserves a clearer musical structure, but can increase scheduling latency. A final limiter
+remains necessary because phase-speed adaptation, interpolation, and numerical sampling can
+combine to produce a larger step than any individual component predicts.
+Thesemechanismsimprovekinematiccontinuitybutdonotprovedynamicstability. Asmooth
+joint-space path may still require infeasible torques or move the centre of mass outside a viable
+support region. This distinction is central when interpreting MuJoCo output later in the disser-
+tation.
+14
+
+--- PDF PAGE 21 ---
+2.7.3 Beat-to-key-pose alignment
+Music-conditioned generators often measure whether kinetic events coincide with musical beats,
+and Beat-It makes beats and key poses explicit conditioning variables [14]. A retrieval system
+faces the inverse problem. The motion already contains salient events, so playback timing must
+adapt those events to the incoming beat stream.
+Instantaneouslysettingmotionphaseateverybeatguaranteessmallphaseerrorattheupdate
+instant but creates a discontinuity in motion time. A gradual controller instead modifies phase
+rateandconsumeserroroveraninterval. Ifϕ isthecurrentcyclicphase,ϕˆ isthedesiredkey-pose
+t t
+phase, and ω is playback rate, a simplified update is
+t
+(cid:16) (cid:17)
+ϕ =ϕ +∆t clip ω +k wrap(ϕˆ −ϕ ),ω ,ω . (2.7)
+t+1 t t p t t min max
+Theboundedratepreventsanaccuratebeatestimatefromdemandinganunacceptablemotion
+speed. The controller must also distinguish beat tracking error from structural incompatibility. If
+a motion has too many or too few salient poses for the observed rhythm, phase correction alone
+cannot solve the problem. The motion should instead receive a lower compatibility score during
+selection.
+2.8 Humanoid Motion Retargeting and Validation
+2.8.1 The embodiment gap
+Gleicher’sretargetingformulationtreatschangesofcharacterproportionsasaconstrainedmotion-
+editing problem, preserving features of the source performance while adapting it to a different
+body [10]. This provides a foundation for the embodiment problem. Source pose similarity alone
+does not preserve a world-space contact when limb lengths change. For a robot, joint ranges
+andmechanicalgeometryaddfurtherconstraints,whichmotivatesseparatefidelityandfeasibility
+checks.
+Retargeting maps a source performance to a target body while attempting to preserve its se-
+mantic and perceptual character. For humanoid robots, this task is constrained by differences in
+morphology and mechanical capability. SMPL provides a consistent human source representation
+[20],butaUnitreeG1trajectoryrequiresatarget-specificfloatingbaseand29actuatedjointcoor-
+dinates. Direct copying is impossible because joint meanings, axes, and ranges do not correspond
+one to one.
+GMR treats motion retargeting as a consequential part of the humanoid learning pipeline [3].
+Itsevaluationshowsthatartefactssuchasfootsliding,self-penetration,andphysicallyimplausible
+reference motion can reduce downstream tracking robustness. This observation supports two
+design decisions in the BeatWeaver. First, retargeting occurs offline so that its cost and failures
+do not enter the live audio path. Second, the catalogue stores retargeting provenance and admits
+only trajectories that satisfy explicit preflight checks.
+Figure 2.3 gives concrete examples of retargeting artefacts. Kinematic validation can reject
+thesemalformedrobotreferences,butpassingsuchchecksstilldoesnotestablishthatacontroller
+can track a trajectory while balancing under contact and torque limits.
+15
+
+--- PDF PAGE 22 ---
+TABLE I: Evaluation success rates (%) in IsaacSim (training simulator) without domain randomization (sim, 100 trials per
+policy), with domain randomization (sim-dr, 4096 trials per policy), and MuJoCo/ROS simulator (sim2sim, 100 trials per
+policy). PM = ProtoMotions2, U = Unitree. *See Section V-D
+sim sim-dr sim2sim
+Motion Length (s) PHC GMR PM U PHC GMR PM U PHC GMR PM U
+Walk 1 33 100 100 100 100 100 100 100 100 100 100 100 100
+Walk 2 5.5 23 100 100 100 53.54 100 99.98 100 100* 100* 100* 100*
+Turn 1 12.3 93 100 100 100 87.18 99.98 99.95 100 100* 100* 99* 100*
+Turn 2 12.3 100 100 100 100 99.95 99.98 100 99.98 99 100 100 99
+Walk (old) 33 100 100 100 100 100 100 100 100 100 100 100 100
+Walk (army) 13 100 100 100 100 99.85 98.63 99.95 99.95 100 100 99 100
+Hop 13 95 100 100 100 92.97 100 100 100 100 100 100 100
+Walk (knees) 19.58 100 100 100 100 99.98 100 100 100 100 100 100 100
+Dance 1 118 0 100 100 99 0 99.46 99.24 99.95 0 100 100 100
+Dance 2 130.5 0 100 100 100 0.02 99.9 99.88 99.98 0 100 100 100
+Dance 3 120 100 100 100 100 100 100 99.95 100 99 100 100 100
+Dance 4 20 100 100 100 100 100 100 100 100 99 100 100 100
+Dance 5 68.4 100 96 100 100 100 92.75 99.98 100 100 51 100 100
+Run (slow) 50 100 100 100 100 99.19 99.88 99.95 99.98 100 100 100 100
+Run 11 100 100 100 100 99.98 100 99.95 100 100 100 100 100
+Run (stop & go) 37 17 98 20 100 20.46 91.24 40.26 99.83 74 100 26 100
+Hop around 18 100 100 100 100 100 100 100 100 100 100 100 100
+Hopscotch 10 100 100 100 100 100 100 100 99.98 100 100 100 100
+Jump and rotate 21 100 100 100 100 99.98 100 99.9 100 99 100 100 99
+Kung fu 8.6 100 100 100 100 100 99.95 100 100 100 100 100 100
+Various sports 42.58 100 100 100 100 99.98 99.98 99.95 100 100 100 100 99
+TABLE II: Tracking errors for each policy measured over the 100 evaluation rollouts in the sim setting. Lower values are
+better. Best values are bold, second best are underlined.
+E , mm E , mm E , 10−3 rad
+g-mpbpe mpbpe mpjpe
+Statistics PHC GMR PM U PHC GMR PM U PHC GMR PM U
+Min 71.8 59.9 66.0 51.1 20.9 18.1 24.1 18.2 569.5 362.0 499.0 355.5
+Median 111.9 91.2 101.9 73.4 29.9 27.6 30.4 23.1 739.8 546.0 599.7 467.2
+Mean 247.8 104.1 139.7 77.2 40.2 28.1 33.2 23.2 778.5 561.7 641.8 483.0
+Max 1062.3 200.0 915.6 131.4 134.4 48.0 107.9 28.9 1336.1 1044.8 1397.9 678.5
+The results presented in this section show that while it is evaluation can be directly connected to artifacts in the
+possible to train motion tracking policies to be successful in retargeted motion (see Fig. 2 and the supplementary video).
+tracking a wide variety of motions, this comes at the expense • The PHC retarget of the “Dance 1” and “Dance 2”
+of higher tracking errors, and in some cases it is noticeably motions have noticeable ground penetration artifacts
+more difficult to learn a robust motion tracking policy from (60 cm in one case).
+theretargeteddata.Assuch,wecananswerQ1affirmatively. • TherobotlegsintheProtoMotions2retargetofthe“Run
+(stop & go)” motion intersect with each other.
+B. Impact of retargeting artifacts
+• The GMR retarget of the “Dance 5” motion has many
+sudden jumps of the waist roll value.
+While their presence does not make a reference motion
+impossible to track (with the exception of the long dance
+sequences retargeted with the PHC method), these three
+retargeting artifact types (physically inconsistent height, self-
+intersections, and sudden jumps in joint values) should be
+avoided to ensure the best chances of success.
+The sudden jumps in the GMR retargets are a rare
+occurrence (for the subclip of the “Dance 5” motion it
+happens on a 10 second segment, less than 2% of our full
+motion dataset) that is introduced during the optimization
+phase. Since we use the same optimization weights for all
+experiments, some motions might require further weight
+Figure 2.3: Gro(uan)dGpreonuentdratpieonnetarnadtiosenlf(-iPnHteCrs,ect(ibo)nSienlfr-eintatergrseetecdtiohnum(ParnootoidMroe-ferentucensi,nrgeptoro-achieve optimal results.
+duced from Fig.“2DoafncAera1u”j)o et al. [3] tions2, “Run (stop & go)”)
+C. User study
+Fig. 2: Example artifacts found in the retargeted references
+20 users participated in the user study. The results are
+with low success rates.
+Retargeting quality has at least three dimensions. Fidelity measures how well the target
+To answer Q2, we note that low scores in the sim2sim shown in Fig. 3. Users consider GMR to be more faithful to
+preserves the source gesture. Kinematic validity covers joint ranges, continuity, grounding, and
+collision geometry. Dynamic trackability concerns whether a feedback controller and physical
+robot can execute the reference under contact and torque constraints. A trajectory can pass the
+first two dimensions and still fail the third. The experiments in this dissertation should therefore
+avoid using kinematic success as evidence of physical deployment readiness.
+2.8.2 Simulation and the limits of kinematic preview
+MuJoCo is designed for multi-joint dynamics and contact-rich model-based control [24]. The
+capabilities of the simulator, however, do not determine how a particular application uses it.
+Writing a target pose directly to the simulator state and invoking forward kinematics visualises
+the robot configuration and allows geometric checks, but it bypasses actuator dynamics, balance
+control, and disturbance response.
+DeepMimic demonstrates a different use of motion examples. Reinforcement learning trains
+a controller to imitate reference skills through physical simulation [22]. The example trajectory
+guides behaviour, while the learned policy must produce actions under simulated dynamics. This
+distinguishes a reference library from an executable controller. BeatWeaver constructs and times
+robot references but does not train such a dynamics-based tracking policy, so its kinematic eval-
+uation cannot establish the balance or disturbance-recovery capabilities studied in physics-based
+imitation.
+Thisdistinctionpreventsanotherwisecommoncategoryerror. Amotiondisplayedinaphysics
+engine is not necessarily a physics-controlled motion. Kinematic preview remains valuable. It
+can reveal joint-order mistakes, orientation errors, ground penetration, discontinuities, and self-
+collision before an online candidate is accepted. It can be reported as preflight and visualisation
+evidence, not as a sim-to-real result.
+16
+
+--- PDF PAGE 23 ---
+2.9 Critical Synthesis and Research Gap
+Figure 2.4 provides a recent example of an end-to-end streaming architecture. It makes the dis-
+tinctionbetweencausalaudiofeatureextraction,streamingmotiongeneration,onlineretargeting,
+and the final avatar or humanoid control stack visible in one pipeline.
+DiscoForcing:AUnifiedFrameworkforReal-TimeAudio-DrivenCharacterControlwithDiffusionForcing
+Figure2.SystemPipeline.DiscoForcingencodesliveaudiointoacausalmusicfeature(30Hz)andgeneratescontinuousfull-body
+motionviaadiffusion-forcingtransformerconditionedonthefeatureandahistorybuffer(30Hz).Theresultingmotionisdelivered
+to(i)anFonilginueraeva2ta.r4p:laTtfohrmefDorirsectaorFgeotirncgianngdisnytesratcetmiveUpnipityelviinsuea,lizraetpiorno,adnudc(iei)dafhruommanoFididge.pl2oyomfenJtisteatckathl.at[p1e5rf]orms
+IK/interpolationandexecuteswhole-bodycontrolwithlow-levelPDtracking.
+The literature addresses important parts of music-driven motion without yet providing the in-
+• WepresentDiscoForcing,toourknowledge,thefirst beattimingandmotionfidelity.Diffusion-basedmethods
+tegrated, lightweight solution required here. Offline models such as FACT, Bailando, EDGE,
+end-to-endreal-timeaudio-responsivecharactercon- improvecoverageofcomplexchoreographyandstylistic
+FinetDrolafnracme,ewaonrkdthBateiantte-gIrtatedsecmauosnalsaturaditoeenecxopdrinegssived,ivedrisviteyr(sAel,exaanndderssotnruetcatlu.,r2a0l2ly3;Tcsoehnegreetnatl.,2m0u23s;icL-ito-
+withstreamingdancegeneration. etal.,2023),withfurtheradvancesinstructureandcontrolla-
+human-motion generation [18, 23, 25, 17, 14], while DiscoForcing extends generation to causal
+bilityviacoarse-to-finesampling(Lodge(Lietal.,2024b)),
+str•eaWmeipnrogpowseitahlabteonutdnidffeudsionla-ftoerncicnygm[1o5d]elawnitdhdRe-obobPiedirrfeocrtimonailnctoengterxatt(eBsAeDmMb(oZdhiamngenettalt.,h2r0o2u4gah)),danirdect
+composedmusicconditioningonrhythmicandperi- genre-awareexperts(MEGADance(Yangetal.,2025a)).
+audio-conditioned humanoid control [19]. In parallel, motion graphs and motion matching estab-
+odicfeatures,andintroduceatemporal-guidedstrategy However,mostapproachesremainofflineandnon-causal,
+lishtporbianlcanipcelefsasftorrearcetisopnownitshivloenrge-huosreizoannsdtasbtilaittye.-comprealtyiibngleotnrfauntusrietiaoundiso[o1r6f,ul1l-3tr]a,caknadccGessMfoRrgslhoboawlcsotnh-at
+ret•aWrgeebtueidldraerfeeprreonducceibqleucaolmitmyuanfficeactitosn-dbaoswednisntterreaacm- husimsteanncyo,iwdhticrhalcikmiintsgst[r3ea].miHngowuseevwehre,reththeesseyssttermanmdusstdo
+reactcausallytoliveaudioandusereditsundertightlatency
+tivesystemthatenablesreal-timeuserinteractionfor
+not jointly connect streaming music similarity, tebmudpgoetas.nd activity compatibility, stable selection,
+bothonlineavatarplaybackandaphysics-basedhu-
+beatm-aawnoaidreplastcfhoremd,usluipnpgo,rtipnhgapsraectsicyanldcehmroonnsitsraattioionns, continuous robot-state transitions, and validated
+moti a o n n dc p ro r s o s- v p e la n tf a o n rm ce v . ali T da h ti i o s n l w e i a th v i e n s au a ni r fi e e s d e r a u r n c ti h me g . apRfoearl-aTimsyesItnetmeratchtiavteCtrheaartasctetrhCesoentrreoql.uiIrnetmeraecntitvseas
+charactercontrolisacoreprobleminanimationandphysics-
+cooperating components rather than as a singlebsaismedilsaimriutylatioorn,geennaebrliantgiounserpsrtoobslteemer.virBtueaaltaWgeenatsver
+2.RelatedWorks
+addresses that gap by combining rolling audio aninalaysreiss,pohniseivrearacnhdicpahlysriceatlrliyevpalalu,siibnlteewrpayr.etEaabrlley acpo-m-
+Audio-DrivenHumanMotionSynthesis. Humanmo- proaches such as DeepPhase (Starke et al., 2022) and
+ptioantisbyinlithtyesisschoarsersa,pisdtlyataedfvualncsewdiwtcithhdaececpegpetnaenracteiv,ebeaPtF-bNoNu(nHdoaldreynsecthale.,d2u0l1i7n)gr,elkyeoyn-lpoows-edimpehnassioenaclocnotnr-ol,
+smtoadteel-satwhaatrseupepnotrtrryicshecaorncdhit,iornoinogt-saiglinganlse,dfrobmleancdtioinng, atnrodlso(ffle.gi.n,eheGad1ingvadliirdecattioion,ns.peIetdi,nsvimepstleigsatytleesflwaghs)ettoher
+labels(Guoetal.,2020;Petrovichetal.,2021),textdescrip- drivemotiongeneration,yieldingsmoothlocomotionbut
+a finite prevalidated motion library can provide a causal, inspectable, and computationally mod-
+tions(Tevetetal.,2023;Chenetal.,2023;Zhangetal., limitedexpressivity. LatermethodslikePADL(Juravsky
+e2s0t23o;pJieanragteitnagl.,p20o2i3n;tWfoanrgreetaall.-,t2im02e5;hLuiumetaanl.o,2id02d5ba)nce,etwahl.,il2e02a2c)caenpdtAinngySlkeislls(Cnuoiveetlatly.,t2h02a4n)uusnecnoatnusratlralainn-ed
+andvariousinteractions(Jietal.,2025;Tangetal.,2024; guageasthecontrolinterface,formulatingcharactercontrol
+generation.
+Dengetal.,2026)toaudio.Audio-drivengenerationintro- aslanguage-conditionedmotiongeneration. Buildingon
+ducesadistinctivesynchronizationchallenge: themodel this, CAMDM(Chenetal.,2024b), DART(Zhaoetal.,
+mustalignkinematiceventstofine-grainedrhythmwhile 2025)andFloodDiffusion(Caietal.,2025)employautore-
+preservingcoherent,naturalfull-bodydynamicsoverlong gressivediffusionmodelsfortext-drivenmotionsynthesis,
+horizons.EarlysystemssuchasFACT(Lietal.,2021)and producinglong-horizonmotionswithrichermultimodality
+Bailando(Siyaoetal.,2022)useautoregressivetransform- andtemporalcoherence. Inparallel,CLoSD(Tevetetal.,
+ers,butoftenaccumulateerrorsinlongrollouts,degrading 2025)explicitlyclosestheloopbetweenmotiongeneration
+3
+17
+
+--- PDF PAGE 24 ---
+Chapter 3
+Overall System Design
+3.1 Chapter Overview
+This chapter presents the system-level design of the BeatWeaver. The system receives a causal
+audio stream and produces a continuous sequence of poses for a 29-degree-of-freedom Unitree G1
+model. Itdoesnotsynthesiseanewdancefromscratch. Instead,itretrievesmusic-relatedmotions
+fromaprevalidatedcatalogue,decideswhenachangeisjustified,adaptsmotiontimingtomusical
+events, and connects successive trajectories without an abrupt change in pose or root motion.
+The central architectural decision is to separate an offline preparation path from an on-
+line decision-and-playback path. Computationally expensive or non-causal operations, including
+human-to-robot retargeting, whole-clip motion analysis, catalogue normalisation, and trajectory
+preflight, are performed offline. The online path is limited to rolling-window audio analysis, cat-
+alogue search, stateful selection, candidate preparation, beat–phase control, transition planning,
+and constrained pose output. A motion can enter the live candidate set only after its source,
+representation, and target-robot validity have been established.
+TheBeatWeaveristhereforeahybridsystemratherthananend-to-endneuralnetwork. Apre-
+trainedmusicmodelsupplieslearnedaudiorepresentations,explicitDSPfeaturesdescriberhythm
+andactivity, deterministicscoringrankscatalogueitems, andstatemachinesgovernselectionand
+switching. Retargeted G1 trajectories supply the motion content, while a constrained controller
+governs timing and continuity. Each component has a narrow responsibility and exposes diagnos-
+tic values that can be tested independently. Chapter 4 specifies the offline data construction in
+detail, and Chapter 5 defines the online algorithms and their parameters.
+3.2 End-to-End Architecture
+Figure 3.1 summarises the architecture. The offline path supplies a frozen catalogue. The online
+path begins with a rolling audio buffer, proceeds through retrieval and selection, and ends with a
+robot pose after phase control, transition blending, and output checks.
+The main information flow is
+18
+
+--- PDF PAGE 25 ---
+01 OFFLINE PREPARATION Whole-clip analysis and catalogue admission
+AIST++ music Audio descriptors Searchable audio bank
+Paired audio tracks Embedding + rhythm / timbre Segments linked to tracks
+FROZEN CATALOGUE
+Track and segment identity Optional style activations Reference normalisation
+Audio index + statistics
+Motion profiles + key poses
+Validated G1 trajectories
+SMPL motion Motion analysis GMR to Unitree G1 Joined IDs + provenance
+Paired human trajectories Key poses and motion profiles Canonical named-joint motion
+Source motion identity Activity and regularity Kinematic preflight
+Index + profiles
+02 ONLINE PERCEPTION AND DECISION Causal audio and bounded background work
+Live audio Query features Hierarchical retrieval Stable selection
+Microphone or file stream Matched offline extractor Segments to tracks to motions Evidence and hysteresis
+Rolling audio buffer Rolling-window descriptors Similarity + compatibility Relevance / diversity policy
+Pending ID
+Rhythm analysis Commit + entry search Ready motion pool Candidate preparation
+Short-block onset / activity Beat / readiness gate Completed candidates only Load, ground and adapt
+Accepted beat events Entry pose + blend duration Bounded cache Build entry-state features
+Beat events Committed motion, entry phase and transition duration
+03 CONTINUOUS PLAYBACK AND OUTPUT
+Beat-phase playback Continuous transition Output conditioning Unitree G1 / MuJoCo
+Active / target sampling Root alignment + pose blend Stateful joint limits 29-DoF pose output
+Gradual speed / phase control Atomic state handover Optional collision handling Kinematic preview
+Figure 3.1: End-to-end architecture of the BeatWeaver
+19
+
+--- PDF PAGE 26 ---
+A −→x −→T −→C −→d
+≤t t t t t
+(3.1)
+−→(i ,ϕ ,T )−→qtarget −→qout,
+t t t t t
+wherex isthedescriptoroftherecentaudio,T istherankedtrackset,C istherankedmotion
+t t t
+set, and d is the stateful selection decision. A committed switch specifies a target motion i , an
+t t
+entry phase ϕ , and a transition duration T . qtarget is the music-timed and, where necessary,
+t t t
+blended target pose. qout is the pose after final output conditioning.
+t
+The notation makes two boundaries explicit. A ranked motion is not yet a switch decision,
+and a switch decision is not yet a safe output pose. These boundaries prevent ranking jitter
+from changing the motion immediately, prevent an unloaded candidate from stalling the switch
+boundary, and prevent a relevant candidate from bypassing continuity and output checks.
+The online architecture uses bounded background workers. Audio feature extraction and re-
+trieval run outside the foreground playback path. Candidate motions are loaded, grounded, and
+prepared before the next eligible commitment point. The foreground path consumes only com-
+pleted results and never waits for retargeting, feature extraction, or file loading. Coalescing
+retrieval work and bounding candidate caches prevents stale evidence or speculative preparation
+from accumulating without limit.
+3.3 Subsystem Boundaries and Contracts
+3.3.1 Offline preparation contract
+TheofflinesubsystemconvertspairedAIST++musicandSMPLmotion[18,20]intothreelinked
+catalogue units: audio segments, music tracks, and motion profiles. Segments provide local ev-
+idence for a live query, tracks aggregate related segments without rewarding duplicated or long
+recordings, and motion profiles distinguish choreographies associated with the same music.
+Catalogue and query audio must use the same extractor identity, model revision, sample
+rate, window policy, and feature dimensions. Learned embedding and rhythm–timbre vectors
+are compared using statistics stored from the offline reference set. Style activations retain their
+label-coordinate meaning and are unit-normalised rather than z-standardised. This is a versioned
+interface, not an informal cache whose meaning depends on whichever code happens to load it.
+Onthemotionside,theofflinepathdetectsasmallsetofsaliententryhypotheses,computesac-
+tivity and regularity summaries, and retargets the human sequence into a canonical named-joint
+G1 trajectory. Provenance and kinematic preflight determine admission. Only a joined record
+whose audio, source motion, profile, retargeted artefact, and preflight result are all present is ex-
+posedtotheonlinematcher. Thefeaturedefinitions,retargetingprocedure,validationthresholds,
+and current catalogue statistics are given once in Chapter 4.
+3.3.2 Online perception and selection contract
+Theonlinesubsystemprocessesthesamecausalstreamattwotimescales. Alongerrollingwindow
+supplies relatively stable evidence for music and motion retrieval, while short audio blocks supply
+20
+
+--- PDF PAGE 27 ---
+activity, onset, and beat events for timing.
+Retrieval is hierarchical. Segment comparison first supplies local musical evidence, which is
+pooledattracklevelandmayberestrictedbystyleandabstentionrules. Asecondstageevaluates
+whether linked motions are compatible with the observed tempo, event density, and activity. The
+componentscoresareretainedbecausemusicsimilarityandmotionfeasibilityhavedifferentfailure
+modes. Their equations, weights, thresholds, and missing-evidence rules are defined in Chapter 5
+rather than repeated here.
+Selection adds temporal state to these rankings. Sustained evidence can create a pending
+relevanceselection,whereasaseparatebounded-holdpolicymayrequestdiversityamongsimilarly
+relevantmotions. Bothpoliciesaresubjecttothesamereadinessandcommitmentrules. Rejected
+or weak audio clears new relevance accumulation and holds the active motion instead of forcing
+an arbitrary catalogue item.
+3.3.3 Prepared switching and execution contract
+A pending identifier expresses intent but does not authorise immediate playback. Preparation
+loads and validates the canonical trajectory, grounds it in the playback model, adapts its named
+joints to the active model, and builds the state features required for entry evaluation. Accepted
+beatsdefinethemusicalcommitmentpointssharedbyselectionandphasecontrol. Ifthepreferred
+itemisnotprepared,thesystemmayuseonlyanotherrankedandpreparedcandidate. Otherwise
+it continues or safely completes the current trajectory.
+The logical progression is
+current→evidence→pending→prepared→transitioning→current. (3.2)
+At a valid commitment point, entry search compares the current state with a small neigh-
+bourhood around salient target poses. Pose, velocity, support, root-state, and musical-salience
+disagreement determine entry quality. The transition duration then reflects the required joint
+displacement, configured dynamics limits, remaining target duration, and musical timing. These
+calculations are online concerns and are specified in Chapter 5.
+During playback, accepted beats modify motion speed and consume phase error gradually.
+They do not teleport the sampler to a different pose. Target root motion is aligned to the current
+world trajectory before blending. One-shot clips do not cross an implicit last-to-first seam, and
+completion transfers the sampler, phase controller, root references, and motion identifier atomi-
+cally. The resulting pose passes through stateful joint limits. Runtime collision handling, when
+enabled, isappliedtotheposethatwouldotherwisebeemittedandmustupdatethelimiterstate
+if it changes that pose. Offline preflight does not by itself imply that this optional online collision
+policy is active.
+3.4 State Ownership and Failure Isolation
+The system assigns each form of state to one responsible component. The retriever owns the
+latest completed ranking and its rejection status. The selector owns evidence streaks, pending
+21
+
+--- PDF PAGE 28 ---
+reason, held-bar state, and recency history. The preparation pool owns candidate readiness and
+loadfailures. Eachmotioncontrollerownsphase,accepted-beathistory,amplitudestate,andrate
+limits. The transition controller owns source–target blending and transfers the new active state
+only at completion. Finally, the output layer owns the previous emitted joint state used by its
+dynamics limiter.
+Figure 3.2 illustrates a representative asynchronous switch. The foreground columns distin-
+guish logical state owners within the same playback loop, rather than independent execution
+threads. Retrieval and preparation return completed results while active-motion sampling and
+output conditioning continue. Candidate readiness and an eligible musical boundary permit com-
+mitment; the active playback state changes at blend completion. Background entry scoring uses
+a generation check to discard plans invalidated by newer retrieval evidence.
+AUDIO INGEST AND BACKGROUND EXECUTORS FOREGROUND LOOP: THREE LOGICAL OWNERS
+Audio source Retrieval worker Preparation pool Selection policy Playback / transition Output layer
+Rolling buffer In-flight Future Load / prepare Futures Evidence / pending ID Phase / beat history Last emitted pose
+Audio / feature frames Completed ranking Ready cache Hold and recency Active + target state Limiter state
+Rejection status Failed candidate IDs Selection reason Blend progress Collision correction
+Audio snapshot Submit if idle Advance active motion Condition and emit
+Copy recent window Extract query features Beat / phase update Update limiter state
+Rank tracks / motions
+Busy: skip submission Advance active motion Condition and emit
+Beat / phase update Update limiter state
+Future completed poll(): done only Observe result
+Ranking or rejection Update selection state
+Ranked candidate IDs Advance active motion Condition and emit
+Beat / phase update Update limiter state
+Prepare candidates
+Load, ground, adapt
+Build entry features Advance active motion Condition and emit
+Beat / phase update Update limiter state
+Publish readiness Eligible selection Accepted beat
+Ready or failed IDs Policy + ready candidate Eligible switch boundary
+Background entry score Selection intent Timing gate
+Ready set + state snapshot
+Generation-tagged plan Commit prepared plan
+Entry pose + duration
+Current plan / generation
+Completed plan; reject stale generation
+Blend source / target Condition and emit
+Root alignment + phase Limits + optional collision
+Atomic handover Continue output
+Target becomes active Preserve limiter history
+Sampler, phase, root, ID
+Figure 3.2: State ownership and asynchronous execution during a representative prepared switch
+This separation prevents a partial failure from corrupting the active motion. A busy retrieval
+worker skips a submission opportunity rather than building a backlog. A loading or grounding
+failure removes the affected candidate from the ready set. A rejected query leaves the current
+motion active. If a one-shot clip ends before another evidence-backed candidate is prepared, its
+terminal pose is held instead of wrapping through an unauthorised seam or blocking on file I/O.
+Diagnostics follow the same ownership boundaries. Retrieval exposes rankings and rejection
+22
+
+--- PDF PAGE 29 ---
+reasons. Selection exposes evidence, pending reason, and readiness. Timing exposes accepted
+beats and remaining phase error. Transition planning exposes entry quality and blend progress,
+andoutputconditioningexposeslimiterandcollisioninterventions. Chapter5definestheconcrete
+trace fields used by later experiments.
+ThepresentoutputisakinematictrajectorypreviewandgeometricvalidationpathinMuJoCo
+[24], not a torque-controlled balance simulation. Canonical retargeting, kinematic preflight, and
+optional online collision handling improve representation and geometric validity, but they do not
+prove dynamic trackability or hardware safety. Those claims require a separate controller and
+experimental evaluation.
+23
+
+--- PDF PAGE 30 ---
+Chapter 4
+Offline Data Preparation and
+Catalogue Construction
+4.1 Chapter Overview
+The BeatWeaver can make a reliable decision only if its candidate motions and reference music
+have already been converted into consistent, validated representations. This chapter describes
+that offline preparation process. The input is the paired music and motion data provided by
+AIST++, in which a dance is represented by an SMPL pose sequence and is associated with a
+music recording [18, 20]. The outputs are two connected resources: a searchable audio catalogue
+and a set of canonical Unitree G1 trajectories. A catalogue entry is admitted only when both
+resources are available and the robot trajectory passes a kinematic preflight in MuJoCo.
+Theofflinepipelinehasfourprincipalstages. First, sourcefilesandmodelassetsareidentified
+by stable names and cryptographic hashes. Second, audio is divided into overlapping analysis
+windowsandencodedbylearnedandhand-designeddescriptors. Third,SMPLmotionisanalysed
+to locate low-velocity key poses and is retargeted through General Motion Retargeting (GMR) to
+the29-degree-of-freedomG1model. Finally,theretargetedtrajectoryisvalidated,andtheresult-
+ing descriptors, motion profiles, provenance records, and dense arrays are written as a versioned
+catalogue.
+4.2 Source Data and Reproducibility Contracts
+4.2.1 AIST++ pairing and source identity
+AIST++ provides diverse 3D dance sequences with music and SMPL parameters, making it suit-
+able for building a retrieval catalogue rather than a single genre-specific demonstration [18]. The
+preparation program reads the official split lists and associates each motion identifier with its
+SMPLmotionfileandmusicidentifier. Arowisnotsilentlyadmittedwhenonesideofthispairis
+missing. Instead, incomplete or invalid rows are recorded separately so that catalogue size cannot
+be mistaken for successful processing coverage.
+24
+
+--- PDF PAGE 31 ---
+The dataset contains repeated uses and variants of the same underlying music. Treating every
+file as an independent song would bias nearest-neighbour search towards duplicated recordings.
+The audio preparation stage therefore groups variants by music identifier, situation label, and a
+fingerprint computed from the first six seconds of decoded audio. Within an identical group, the
+longest recording is retained as the representative variant. This preserves meaningful recording
+differences while removing byte-level or content-level duplication that would otherwise inflate a
+track’s influence.
+Every generated motion artefact records the source motion identifier and the SHA-256 digest
+of the source file. The prepared SMPL model, the GMR software revision, the target model, and
+important solver settings are likewise part of the generation contract. Consequently, equality of
+filenamesisnottreatedasevidencethattwoartefactshavethesamemeaning. Acachedtrajectory
+is reused only if its provenance and schema agree with the current build request.
+4.2.2 Preparation of the SMPL body model
+SMPL represents the human body with a skinned surface, a 24-joint kinematic structure, pose
+parameters, and shape parameters [20]. The model files required to interpret these parameters
+are licensed assets and are not embedded in the project. A dedicated preparation step converts
+legacy array objects into ordinary NumPy arrays and verifies the structural fields used by the
+forward-kinematics code. In particular, the implementation checks a 6,890×3 template mesh,
+a 6,890×24 skinning-weight matrix, a 24×6,890 joint regressor, a 2×24 kinematic tree, and
+compatible shape directions. All arrays must be finite.
+Structural validation alone cannot detect every damaged or incompatible model file. The
+preparedneutralmodelis thereforeinstantiatedonce initsrest pose. Theexpected6,890 vertices
+and at least 24 finite joints must be produced before the model is accepted. Files are written
+atomicallyonlyafterthesecheckssucceed. Thismodelpreparationisintentionallyseparatedfrom
+the dataset build: licensing and one-time format conversion are deployment concerns, whereas
+motion retargeting must be repeatable without manually editing model data.
+4.3 Audio Catalogue Construction
+4.3.1 Windowing and robust signal preparation
+All audio is decoded to mono at 16kHz. A track is divided into six-second windows with a two-
+second hop. A short track is zero-padded, and the last window is included even when the regular
+hop grid does not end exactly at the track boundary. This policy provides full temporal coverage
+while keeping the online query duration identical to the offline reference duration.
+Before feature extraction, the median sample value is removed to suppress a DC offset. The
+signalisthenscaledbyits95thpercentileabsoluteamplitudeandclippedto[−1,1]. Ifx[n]denotes
+the decoded signal and q denotes the 95th percentile of |x[n]−median(x)|, the normalised
+0.95
+waveform is
+(cid:18) (cid:19)
+0.8(x[n]−median(x))
+x[n]=clip ,−1,1 . (4.1)
+(cid:101)
+max(q ,ϵ)
+0.95
+25
+
+--- PDF PAGE 32 ---
+Percentile scaling is less sensitive than peak normalisation to one impulsive sample. The fac-
+tor 0.8 leaves headroom before clipping. Signal RMS and dynamic range are measured from the
+unnormalised signal, whereas learned and DSP descriptors use the robustly normalised waveform.
+This distinction prevents recording gain from dominating similarity while retaining loudness in-
+formation as optional diagnostic metadata.
+The six-second, two-second policy creates overlapping reference segments. This is deliberate.
+Amusicfilemaycontainanintroduction,abreakdown,andadenserhythmicpassagethatshould
+not share one global descriptor. Segment retrieval can first locate the locally relevant passage,
+afterwhichevidencemaybeaggregatedattracklevel. Theresultingcataloguecountsarereported
+with the final audio–motion join in Section 4.7.2, where their admission status can be interpreted
+correctly.
+4.3.2 Learned music representation
+Each window is passed through the official Discogs EffNet ONNX model. Models trained with
+Discogs editorial metadata provide embeddings organised around musically meaningful style in-
+formation rather than generic acoustic events [2]. The implementation obtains two outputs from
+the same network:
+(1) a 1,280-dimensional embedding used for broad content and style similarity.
+(2) a400-dimensionalvectorofstyle-labelactivationsusedasaninterpretabletagrepresentation.
+Using one fixed model for both outputs avoids an undocumented combination of incompatible
+learned spaces. The catalogue metadata records the backend name, model filename, and model
+digest. The online extractor must satisfy the same contract. A change of model weights is
+consequentlyacataloguemigration. Existingreferencevectorsmustberebuiltbeforetheycanbe
+compared with new queries.
+4.3.3 Rhythm, timbre, and activity descriptors
+Learned embeddings are strong descriptors of musical content, but tempo and rhythmic inten-
+sity need explicit treatment because they directly affect motion speed and activity. The project
+thereforecomputescomplementaryDSPfeaturesusingshort-timeanalysiswitha256-samplehop.
+The feature set includes tempo, beat strength, onset density, off-beat ratio, tempo stability, spec-
+tral flux, percussive ratio, three spectral-band energy ratios, mel-frequency cepstral coefficients
+(MFCCs), and spectral contrast. These primitives are implemented with librosa and NumPy,
+including librosa’s dynamic-programming beat tracker [21, 8]. The percussive ratio uses librosa’s
+median-filter harmonic/percussive separation on the melrepresentation[9]. This is a task-specific
+descriptor aggregation; Essentia is not the DSP feature-extraction library used here.
+The scalar activity estimate is
+(cid:18) (cid:18) (cid:19) (cid:19)
+d
+o
+a=clip 0.30b +0.30min ,1 +0.20f +0.20r , (4.2)
+[0,1] s 4 s p
+where b is beat strength, d is onset density in events per second, f is normalised spectral
+s o s
+flux, and r is the percussive energy ratio. The beat-quality estimate is
+p
+26
+
+--- PDF PAGE 33 ---
+(cid:18) (cid:18) (cid:19)(cid:19)
+d
+o
+q =clip 0.40b +0.35s +0.25min ,1 , (4.3)
+b [0,1] s t 4
+where s measures tempo stability. These quantities have separate meanings. Activity esti-
+t
+mates how much motion energy the audio can support. Beat quality estimates whether tempo-
+dependent decisions should be trusted. For example, a noisy, onset-rich passage may have high
+activity but an unstable beat.
+For compact comparison, the main handcrafted features are assembled into a 24-dimensional
+vector:
+r=[log (B/120),b ,d /4,r ,s ,f ,r ,
+2 s o o t s p
+(4.4)
+e(3) ,µ(8) ,µ(6) ],
+band MFCC contrast
+where B is tempo in beats per minute, r is the off-beat ratio, and the superscripts indicate
+o
+the number of retained components. The logarithmic tempo term expresses octave-related tempo
+errorssymmetrically. Estimatesof60and240BPMareequallydistantfrom120BPMinopposite
+directions. Per-track reference tempo is the median of its valid segment estimates, which is more
+robust than trusting a single window.
+4.3.4 Dense array storage and normalisation statistics
+The catalogue deliberately separates human-readable metadata from dense numeric data. JSON
+stores segment identities, time ranges, scalar descriptors, motion links, build configuration, and
+provenance. A compressed NPZ file stores the matrices required for vectorised search. In the
+current build, these arrays have dimensions
+E∈R348×1280, R∈R348×24, T∈R348×400. (4.5)
+The file also stores a mean and standard deviation for every embedding and rhythm–timbre
+dimension. Thesestatisticsarecomputedonlyfromtheofflinereferencesetandarereusedonline.
+They must not be recomputed from a live window, because doing so would make a query’s repre-
+sentation depend on itself and would destroy comparability across time. Zero or near-zero stan-
+darddeviationsareguardedbeforestandardisation. Styleactivationsretaintheirlabel-coordinate
+meaningandareunit-normalisedonlinewithoutz-standardisation. TheJSONandNPZpathsare
+tied together by catalogue metadata so that a stale array file cannot be interpreted as belonging
+to a newly generated index.
+4.4 Motion Key-Pose and Activity Analysis
+4.4.1 Whole-body velocity signal
+Key poses are useful entry candidates because a low-velocity posture generally allows a smaller
+transition error than an arbitrary high-speed frame. The implementation therefore derives a one-
+dimensional whole-body velocity signal from each source motion before retargeting. When 3D
+27
+
+--- PDF PAGE 34 ---
+joint positions are available, this signal is the root-mean-square linear speed across joints. The
+standard AIST++ representation used by the project contains SMPL rotations, so the default
+signal is instead based on geodesic angular velocity.
+Let R ∈SO(3) be the world rotation of joint j at frame t, and let ∆t be the frame interval.
+t,j
+For an interior frame, the RMS angular speed is
+(cid:118)
+v (t)= (cid:117) (cid:117) (cid:116) 1 (cid:88) J (cid:13) (cid:13) (cid:13) Log (cid:0) R t T −1,j R t+1,j (cid:1)(cid:13) (cid:13) (cid:13) 2 , (4.6)
+ang J (cid:13) 2∆t (cid:13)
+(cid:13) (cid:13)
+j=1 2
+where J =24 and Log:SO(3)→R3 is the rotation logarithm. One-sided differences are used
+at the endpoints. An equivalent angular radius r = 0.35m maps the result to an approximate
+linear-speed scale. If root translation is present, it is first divided by the SMPL scaling factor and
+combined as
+(cid:113)
+v(t)= (rv (t))2+(w v (t))2, w =1. (4.7)
+ang r root r
+This signal is invariant to axis–angle wrapping because it operates on relative rotations rather
+than subtracting pose parameters directly. It also prevents a dance with stationary feet but rapid
+upper-body motion from being misclassified as a static sequence.
+4.4.2 Valley detection and key-pose confidence
+TherawvelocitysignalissmoothedbyaGaussiankernelwithastandarddeviationof0.08seconds.
+It is then robustly mapped to [0,1] using its 5th and 95th percentiles. Key-pose candidates are
+peaks of the negated normalised signal, and hence valleys in body velocity. The detector enforces
+a minimum temporal spacing of 0.28 seconds, a minimum prominence of 0.08, and a 0.10-second
+exclusion region at both sequence boundaries. These conditions remove shallow fluctuations and
+avoid selecting a boundary merely because the central-difference estimate is less reliable there.
+For candidate k, confidence combines its peak prominence p with its normalised valley depth
+k
+d =1−v :
+k (cid:98)k
+s =clip (0.65p +0.35d ). (4.8)
+k [0,1] k k
+Each retained key pose stores its frame index, time, normalised clip phase, score, prominence,
+and velocity. If a maximum count is requested, candidates are first selected by confidence and
+are then returned in temporal order. This avoids the common failure in which uniform temporal
+subsampling discards the only strong pause in a sequence.
+The detector does not claim that every velocity minimum is a musically meaningful choreo-
+graphicboundary. Instead,itconstructsasetofmechanicallyfavourableentryhypotheses. During
+online preparation, these hypotheses are ranked again using the current robot pose, velocity, con-
+tact state, and desired phase. Separating offline proposal generation from online entry evaluation
+keeps the live search small without fixing a transition choice prematurely.
+28
+
+--- PDF PAGE 35 ---
+4.4.3 Motion profile and catalogue groups
+Inadditiontoindividualkeyposes,theanalyserrecordssummarystatisticsthatareinexpensiveto
+compare online. They include median and 90th-percentile velocity, clip duration, key-pose count,
+unweighted key-pose density, confidence- weighted density, and interval regularity. If the intervals
+between successive key poses are ∆τ , irregularity is measured by their coefficient of variation,
+i
+std(∆τ )
+i
+c = . (4.9)
+v
+mean(∆τ )+ϵ
+i
+Low c indicates a more regular sequence of pauses, while high c indicates irregular phrasing.
+v v
+Weighted density distinguishes a clip with many weak numerical valleys from one with several
+pronounced key poses.
+For catalogue organisation, motions are grouped by genre and coarse activity attributes. Me-
+dian velocity and weighted key-pose density are divided at the dataset tertiles. Regularity is
+divided at its median. The present catalogue’s velocity cut points are approximately 1.10 and
+1.51ms−1 on the equivalent-speed scale, while density cut points are approximately 0.59 and
+0.85s−1. These thresholds are derived from the catalogue. Their purpose is to support stratified
+diversity choices and interpretable diagnostics without requiring a learned motion-style classifier.
+4.5 SMPL-to-G1 Retargeting
+Figure 4.1 compares the source human mesh with the stored G1 trajectory at identical frame in-
+dices. Theexamplesareselectedfromsource-motionwristseparationandheight,ratherthanfrom
+target-fit quality. They illustrate preservation of broad gestures alongside changes in body pro-
+portions and joint configuration; they are qualitative examples, not evidence of dynamic tracking
+or contact stability.
+4.5.1 Human forward kinematics and coordinate conversion
+The AIST++ pose at each frame contains local axis–angle rotations for the 24 SMPL joints and,
+when available, root translation. Retargeting individual local angles directly would ignore the
+different kinematic trees and proportions of the human and robot. The implementation therefore
+composes rotations through the complete SMPL hierarchy to obtain world-space joint positions
+and orientations. Root translation is divided by the sequence’s SMPL scale before being applied.
+AIST++/SMPLmotionisexpressedinaY-upconvention,whereasthetargetMuJoComodel
+is Z-up. Positions and orientations are transformed by
+ 
+1 0 0
+C Y→Z =  0 0 −1  . (4.10)
+0 1 0
+Worldrotationsareconvertedtoscalar-firstquaternionsQ=[Q ,Q ,Q ,Q ]. BecauseQand
+w x y z
+−Qencodethesamerotation, quaternionsignsaremadetemporallycontinuous. Thisapparently
+small step is essential: an untreated sign flip appears as a large angular change to interpolation
+and velocity calculations even though the physical orientation is unchanged.
+29
+
+--- PDF PAGE 36 ---
+Frame 269 | 4.48 s Frame 358 | 5.97 s Frame 422 | 7.03 s
+SOURCE
+SMPL
+24 joints
+TARGET
+Unitree G1
+29 DoF
+Motion: gBR_sBM_cAll_d04_mBR0_ch01 | 60 fps | Zero-based frame indices
+Figure 4.1: Same-frame SMPL-to-G1 retargeting comparison for AIST++ sequence
+gBR sBM cAll d04 mBR0 ch01.
+30
+
+--- PDF PAGE 37 ---
+Fourteen human transforms are supplied as GMR targets: pelvis, upper spine, left and right
+hips,knees,feet,shoulders,elbows,andwrists. Thissubsetcapturesrootplacement,legcontacts,
+torso orientation, and expressive arm motion while leaving GMR to resolve the different source
+andtargetskeletons. Themethodfollowsthegeneralprinciplethatretargetingqualitymaterially
+affects the feasibility of subsequent humanoid tracking [3].
+4.5.2 GMR inverse-kinematics solve
+The target is the free-root Unitree G1 model with 29 actuated joints. For every source frame,
+GMRsolvesaconstrainedinverse-kinematicsproblemthatbalancestheselectedhumantransforms
+againsttherobotkinematicstructureandjointlimits. TheimplementationusestheDAQP-based
+solver with velocity limiting. A symmetric two-step arm seed is applied before the sequence solve
+to reduce the risk that the nonlinear optimiser enters a mirrored arm configuration.
+Reproducibilityrequirescontroloflibraryinterfacesaswellasdatafiles. ThecheckedGMRre-
+visionexpectsanearlierpositionalformoftheMinkinverse-kinematicsAPI,whereastheinstalled
+Mink version assigns a different meaning to the corresponding argument. A narrow compatibility
+adaptermapsthecallexplicitlyandrecordsthedetectedlimits-APImodeineveryartefact. With-
+outthisadapter,theprogramcaneitherfailatruntimeor,moredangerously,runwithconstraints
+in the wrong parameter position. The adapter is kept at the integration boundary rather than
+modifying the optimisation algorithm.
+4.5.3 Collision-aware retargeting
+Pose matching alone can place a robot hand through its torso or allow opposite limbs to inter-
+sect. Collision avoidance is therefore enabled during trajectory generation. The project’s G1
+self-collision preset defines nine groups of non-adjacent body pairs. Adjacent links are omitted
+becausetheirmeshesnaturallyoverlaparoundajointandwouldcreatepersistentfalseconstraints.
+Hand geometries that are visual-only in the source model are activated for collision evaluation.
+The current preset uses a 5mm minimum separation, an 80mm detection distance, a gain
+of 0.85, and no constraint-bound relaxation. Validation uses a 6mm separation requirement,
+providing a 1mm numerical buffer beyond the generation constraint. The expanded preset cur-
+rently yields 226 geometry pairs, although this count is recorded rather than assumed because a
+robot-model revision may change the geometry set.
+Collision validity is checked against both the GMR retargeting model and the MuJoCo play-
+back model. This dual-model check matters because different XML files can use different meshes,
+contact exclusions, or visual/collision roles. Where shallow contact behaviour differs between
+MuJoCo versions, the validator uses explicit geometry-distance queries so that the intended sepa-
+rationcontractremainsvisible. Thescopeofthiskinematicvalidationisstatedwiththecomplete
+preflight procedure in Section 4.7.1.
+4.5.4 Continuity conditioning
+Even a collision-free per-frame solution can contain an abrupt change between neighbouring
+frames. After retargeting, joint positions are first clamped for minor numerical overshoot be-
+31
+
+--- PDF PAGE 38 ---
+yond their model limits. Root quaternions are renormalised and their signs are made continuous.
+Segment velocities are then limited to
+∥q˙ ∥ ≤3π rads−1, ∥p˙ ∥ ≤3ms−1, (4.11)
+joint ∞ root 2
+and root angular speed is limited to 4πrads−1. For a violating segment, the correction is not
+accepted solely from endpoint tests. The candidate interpolation is sampled at 40 intermediate
+poses and checked against the collision constraints. A 14-iteration binary line search finds the
+largest safe progress towards the proposed frame. Two stabilisation passes are used because
+restricting one segment changes the starting state of the next. If the first retargeted frame is
+colliding, it is backed off towards the neutral configuration.
+This stage conditions the source trajectory but does not close its loop. A forced last-to-first
+match would change valid one-shot motion and hide the real seam that the online transition
+controller must handle. Loop suitability and clip-to-clip blending are therefore addressed during
+playback.
+4.6 Canonical Trajectory and Dataset Build
+4.6.1 Canonical G1 artefact
+Each successfully retargeted dance is stored as a canonical binary artefact. Its primary arrays are
+P∈RN×3, Q ∈RN×4, Q ∈RN×29, (4.12)
+r j
+representing root position, root orientation in wxyz order, and G1 joint positions. The stored
+joint-name list fixes the semantic order of all 29 columns. Array width alone is insufficient be-
+cause two 29-DoF models may use a different order. The artefact also stores frame rate, format
+and pipeline versions, source identifier and digest, SMPL-model digest, retargeter name and full
+revision, collision settings, compatibility mode, and continuity limits.
+4.6.2 Cached builds, quarantine, and atomic publication
+Retargeting hundreds of clips is expensive, so the builder supports validated reuse. Before reuse,
+a cached artefact is checked for the expected schema, source and model hashes, complete GMR
+revision, frame rate, joint order, quaternion convention, collision preset, and continuity settings.
+Array shapes, finite values, quaternion norms, and sign continuity are checked as well. A file
+that fails validation is renamed with an .invalid suffix rather than being left under its canonical
+name.
+New trajectories are generated to a temporary .build path. Only a fully validated output
+atomicallyreplacesthecanonicalpath. Datasetmanifestsfollowthesamepublish-after-validation
+rule. A complete build of an official split may replace its manifest. A partial build is merged so
+thataninterruptedexperimentdoesnoteraseunrelatedvalidrows. Failedidentifiersareremoved
+from the active manifest and written to a separate failure report.
+These measures turn the manifest into a declaration of validated availability. They also make
+interruptedbuildsrecoverable. Thenextruncanreuseverifiedartefacts, quarantineincompatible
+32
+
+--- PDF PAGE 39 ---
+ones, and continue without assuming that an existing filename is complete.
+4.7 Trajectory Preflight and Catalogue Admission
+4.7.1 MuJoCo kinematic preflight
+Thecataloguebuildertreatstrajectoryloadingasatestableoperation. Thepreflightvalidatorfirst
+repeats the canonical schema and provenance checks. It rejects non-finite arrays, an unexpected
+joint order, invalid quaternion norms, missing source identity, disabled collision generation, or an
+abbreviated software revision. It also applies secondary corruption thresholds of 20rads−1 for
+joint speed, 10ms−1 for root translation, and 20rads−1 for root angular speed. These are looser
+than the generation limits in Section 4.5.4. Their role is to detect malformed data.
+The trajectory is then loaded into the headless G1 playback model and grounded. For each
+frame, the validator checks finite joint values and actual model joint ranges. At a fixed stride of
+four frames it writes the kinematic state into MuJoCo and calls forward evaluation. Generalised
+position,velocity,andactuator-statearraysmustremainfinite,andtheminimumfootheightmust
+not fall below −10−5m after grounding. No actuator command is applied in this test.
+Preflight is therefore a kinematic admission test. It catches schema mismatch, model-order
+errors, invalid states, excessive discontinuities, and grounding failure at catalogue-build time.
+Dynamic tracking, torque limits, balance, and hardware safety require a later controller and a
+separate experimental evaluation.
+4.7.2 Joining audio and motion records
+After preflight, the builder joins each valid motion profile to its music segments. A row enters
+the searchable catalogue only if the audio source, source SMPL motion, canonical G1 artefact,
+key-pose profile, and preflight result are all present. Excluded rows are written to a dedicated
+CSVfilewithamachine-readablereason. Thisstrictinnerjoinpreventsahigh-scoringaudioentry
+from referring to a motion that the online process cannot load.
+Thecurrentcataloguecontains411pairedmanifestrows. All411motionrowspassedadmission
+intherecordedbuild,withzeroexcludedmotions. Becauseseveraldancessharemusic,theserows
+referto60musicidentifiers, 70representativeaudiovariants, and348audiosegments. Theglobal
+median equivalent motion speed is approximately 1.31ms−1. These figures document the current
+artefact. A rebuild with different data, model weights, or validation settings must update them.
+4.8 Integrity Guarantees and Remaining Limitations
+The finished offline catalogue provides five guarantees to the online matcher. First, the query and
+reference audio paths share one documented extractor and one learned-model identity, so their
+descriptors are compared within a consistent feature space. Second, dense matrices have known
+dimensionsandreference-setnormalisationstatistics,preservingcomparabilityacrosslivequeries.
+Third, every selectable motion has stable source and retargeting provenance, including source
+and model hashes, software revision, and generation settings. Fourth, key poses and activity
+statistics have been computed consistently from the source sequence, providing comparable entry
+33
+
+--- PDF PAGE 40 ---
+candidatesandmotionprofiles. Fifth,theexacttrajectorycanbeloaded,grounded,andevaluated
+in the target MuJoCo kinematic model, with its joint ordering, numerical validity, and model
+compatibility checked before admission.
+Together, these guarantees establish a traceable connection between an audio retrieval result
+and an available robot trajectory. Validated caching, quarantine of incompatible artefacts, and
+atomic publication reduce the risk of exposing stale or incomplete outputs. The final audio–
+motion join further ensures that searchable entries refer to motions with the required profiles
+and preflight results. These guarantees remain specific to the recorded data, model assets, and
+validation settings. Changes to those dependencies require the corresponding artefacts to be
+rebuilt or revalidated.
+But these guarantees stop short of several stronger claims. A Discogs-derived embedding is
+not a direct measure of choreographic correctness: musical similarity does not establish that a
+particularmotionsuitsthephrasingorexpressiveintentofanewpassage. Avelocityvalleyisnot
+necessarilyasemanticdanceboundary,andalow-velocitysourceposedoesnotbyitselfguarantee
+a smooth transition from the robot’s current state. Retargeting and continuity conditioning may
+also alter the motion around a source-derived key pose, so entry suitability still requires online
+evaluation.
+IK and self-collision constraints do not prove balance, torque feasibility, or safe hardware
+execution. TheMuJoCopreflightevaluateskinematicstateswithoutapplyingactuatorcommands,
+and its sampled checks do not establish continuous-time dynamic feasibility. Likewise, validating
+individual clips does not validate every possible blend, loop seam, or playback-speed change.
+Finally,AIST++pairingsreflectthechoreographyinthedatasetandmaynotcoverarbitrarylive
+music or all desired G1 behaviours.
+34
+
+--- PDF PAGE 41 ---
+Chapter 5
+Real-Time Music–Motion
+Matching and Continuous Control
+5.1 Chapter Overview
+Chapter 4 constructed a catalogue in which every audio reference has a consistent descriptor and
+every selectable dance has a preflight-passed Unitree G1 trajectory. This chapter develops the
+online method that uses this catalogue. The method receives an audio stream, retrieves musically
+relatedreferences,rankstheirassociatedmotions,accumulatesevidenceforastableselection,and
+connects the selected trajectory to the currently playing one. At the same time, a causal beat
+controller adjusts motion phase without discontinuously jumping between poses.
+The proposed method is retrieval-based rather than generative. It cannot create an unseen
+choreography, but it offers three practical advantages for the present humanoid system. First,
+the source of every commanded pose is known. Second, expensive retargeting and preflight are
+completed before live use. Third, retrieval, selection, timing, and transition errors can be mea-
+sured separately. These properties complement recent work on expressive audio-driven humanoid
+locomotion and streaming character generation, which demonstrates the importance of musical
+responsiveness but also highlights the difficulty of causal control [19, 15].
+The online method is organised around three different decisions:
+(1) what music and motion are supported by the recent audio.
+(2) when the evidence is stable enough to authorise a switch.
+(3) how the current and selected robot trajectories can be joined without a pose, velocity,
+contact, or root discontinuity.
+5.2 Online Problem Formulation
+LetA denoteaudioobserveduptocurrenttimet, andletM={M }N bethefinitecatalogue
+≤t i i=1
+of robot-ready motions. Each M is associated with source music u , an authored tempo, an
+i i
+activity profile, key-pose phases, foot-contact states, and a G1 trajectory. The online system
+35
+
+--- PDF PAGE 42 ---
+selects motion M and phase ϕ , then produces the emitted configuration qout using only A
+it t t ≤t
+and stored state:
+(cid:0)
+i ,ϕ
+,qout(cid:1)
+=G(A ,M,H ), (5.1)
+t t t ≤t t
+whereH contains thecurrentmotion, recent rankings, acceptedbeats, played-motionhistory,
+t
+preparedcandidates,andcontrollerstate. Thehistorytermmakesexplicitthatselectionisstateful.
+Applying a memoryless nearest-neighbour rule independently to every window would make i
+t
+oscillate when several catalogue items have similar scores.
+Throughout the thesis, F denotes audio feature extraction and G denotes stateful online con-
+trol. The waveform history A is distinct from its descriptor x . The full catalogue D contains
+≤t t
+descriptors, trajectories M and metadata m ; M is its trajectory collection, and C is the ranked
+i i t
+motion candidate set. Thus x and M denote different parts of an item, rather than alternative
+i i
+names for it. The index i identifies the selected motion, ϕ is playback phase, and qout is the
+t t t
+emitted robot configuration after blending and output constraints. The time subscript refers to
+the current update instant; ∆t is the elapsed time between updates.
+The method optimises no single end-to-end objective at runtime. Instead, it uses a sequence
+of constrained local objectives:
+audio retrieval: maxs ,
+track
+motion ranking: maxs ,
+final
+(5.2)
+entry search: minC ,
+entry
+playback: min|e | subject to phase-rate and output constraints.
+ϕ
+This factorisation reflects the available evidence. Audio descriptors can indicate semantic and
+rhythmic compatibility, but they cannot determine the instantaneous joint configuration at which
+aswitchissmooth. Conversely,joint-spaceentrycostcannotdecidewhetheradanceisappropriate
+for the music.
+5.2.1 Dual-timescale causal processing
+Thesameaudiostreamisprocessedattwotimescales. Asix-secondrollingwaveformsuppliesthe
+contextrequiredbythecatalogueextractor. Aretrievalattemptismadeoncepersecondwhenthe
+previousattempthascompleted. Inparallel,ashort-blockanalyseremitsactivity,onset,spectral,
+and beat events used for phase control and subtle pose modulation. The retrieval view therefore
+estimates musical identity and compatibility, whereas the event view estimates local timing.
+Bothpathsarecausal. Nosamplelaterthanthecurrentaudiopositionisused. Thisisstricter
+thanmerelyplayinganofflinemodelincrementally,adistinctionemphasisedinreal-timediffusion
+control[15]. Thelongerretrievalwindowdoesintroduceanobservationdelayatstartupandafter
+a musical change. This delay is explicit and can be measured. It is not hidden by using future
+context.
+Feature extraction and catalogue search run in a single background worker. If that worker
+is occupied, the next submission opportunity is skipped. Requests are not accumulated in a
+queue. Thus the live controller consumes the newest completed evidence instead of processing
+36
+
+--- PDF PAGE 43 ---
+an increasing backlog of stale audio windows. Completed rankings are passed to the bounded
+candidate-preparation subsystem described in Section 5.4.3.
+5.3 Hierarchical Music-to-Motion Retrieval
+5.3.1 Query standardisation and segment similarity
+Foreveryquerywindow,theonlineextractorproducesthesamethreevectorsastheofflinepipeline:
+a learned embedding e , a rhythm–timbre vector r , and style activations g . The embedding is
+q q q
+derived from the same Discogs EffNet model used to construct the catalogue [2]. Model identity
+and feature dimensions are checked at startup. A mismatch is treated as an error.
+Learnedandrhythmvectorsarestandardisedusingthecataloguestatisticsandthennormalised
+to unit length. For feature family f ∈{e,r},
+(f −µ )/max(σ ,ϵ)
+f q = (cid:13) q f f (cid:13) . (5.3)
+(cid:13)(f
+q
+−µ
+f
+)/max(σ
+f
+,ϵ)(cid:13)
+2
+Styleactivationsareunit-normalisedwithoutz-standardisationbecausetheircoordinateshave
+a direct label meaning. Cosine similarity is mapped into [0,1]:
+T
+1+f f
+q n
+s (q,n)= . (5.4)
+f
+2
+For catalogue segment n, the fused score is
+s (q,n)=0.70s (q,n)+0.20s (q,n)+0.10s (q,n). (5.5)
+seg e r g
+The learned representation supplies the main semantic neighbourhood, while explicit rhythm
+preventstwostylisticallysimilarbutrhythmicallydissimilarpassagesfrombeingtreatedasidenti-
+cal. Styleactivationshavethesmallestweightbecausetheyareusefulpriorsbutaretoocoarseto
+determine a track on their own. If style-vector dimensions are unavailable, the remaining weights
+arerenormalisedto0.70/0.90and0.20/0.90. Missingevidenceisnotinterpretedaszerosimilarity.
+5.3.2 Track pooling and genre-first restriction
+Atracknormallycontributesseveraloverlappingcataloguesegments. Usingitssinglebestsegment
+issensitivetoaccidentallocalagreement,whereasanaverageovertheentiretrackpenaliseslonger
+recordings and music with legitimate internal variation. Let s ≥ s ≥ ··· be the ordered
+u,(1) u,(2)
+segment scores belonging to track u. The track score is the mean of at most the three highest
+values:
+1 (cid:88)
+Ku
+s (q,u)= s , K =min(3,N ). (5.6)
+track K u,(k) u u
+u
+k=1
+Tracks are next grouped by their AIST++ genre code. An initial genre score is the same top-
+three mean over tracks in that genre. Discogs labels are also mapped to broad AIST++ families.
+Forexample,hip-hoplabelssupportthemiddle-andlow-hip-hopfamilies,whilehouseandtechno
+37
+
+--- PDF PAGE 44 ---
+labelssupportthehousefamily. Thesemappingsaredeliberatelybroadpriorsratherthanaclaim
+that Discogs and AIST++ define identical taxonomies.
+When the largest mapped tag prior is at least 0.08, the final genre score is
+s genre (h)=0.35s (cid:101)track-genre (h)+0.65p (cid:101)tag (h), (5.7)
+wherebothtermsarenormalisedwithinthecurrentquery. Thedefaultstyle-firstpolicyadmits
+thehighest-scoringfamily. Italsoadmitsthesecondfamilywhenthegenre-scoremarginisnomore
+than 0.025. All later motion ranking is restricted to admitted families and to tracks among the
+retrieved set. This hierarchy reduces an important failure mode of flat retrieval. A small acoustic
+advantage from an unrelated genre cannot be compensated later by a mechanically convenient
+motion.
+5.3.3 Abstention and match confidence
+The system is allowed to abstain. It computes a negative-style score as the largest activation
+among non-music, ambient, drone, field-recording, noise, and related tags. If this value is at least
+0.17fortwoconsecutiveretrievalwindows,thequeryisrejectedasnon-danceorambientmaterial.
+Persistence prevents one uncertain tag activation from cancelling a valid dance selection. A query
+is also rejected when the beat-quality value defined in Equation 4.3 is below 0.35.
+For diagnostics, confidence combines beat quality q and the leading genre margin ∆ :
+b h
+(cid:18) (cid:18) (cid:19)(cid:19)
+∆
+h
+c =clip 0.55q +0.45clip . (5.8)
+match [0,1] b [0,1] 0.10
+This confidence value explains the strength of the evidence but does not override the explicit
+rejectionrules. Whenaresultisrejected, nonewmotionevidenceisaccumulatedandthecurrent
+motion remains active. Therefore, the system fails by holding a known trajectory.
+5.3.4 Motion-specific compatibility
+Music retrieval identifies relevant recordings, but each recording can be associated with several
+dances that differ in speed, event density, and activity. A second ranking stage evaluates the
+motion itself. Only motions whose offline preflight passed and whose music and genre survived
+the preceding stage are considered.
+Tempocompatibilityhandleshalf-timeanddouble-timeambiguity. ForqueryBPMb andthe
+q
+source tempo b of motion M , the candidate playback ratios are
+i i
+(cid:26) (cid:27)
+b b 2b
+R = q , q , q . (5.9)
+i
+b 2b b
+i i i
+Only ratios in [0.55,1.60] are retained. The valid ratio closest to one in log space is selected,
+and its compatibility is
+(cid:34) (cid:18) (cid:19)2 (cid:35)
+1 logr
+s (i)=exp − i . (5.10)
+tempo
+2 0.28
+38
+
+--- PDF PAGE 45 ---
+If no ratio is feasible, the motion is excluded. If reliable tempo is absent, the implementation
+assigns a deliberately weak score of 0.25 at authored speed.
+Rhythmic compatibility compares the audio event rate with the motion key-pose rate. The
+query and motion rates are
+b
+q
+ρ =0.70 +0.30d , ρ =r d , (5.11)
+q o i i k,i
+60
+where d is onset density and d is confidence-weighted key-pose density. Their scale-
+o k,i
+symmetric agreement and the motion regularity term are
+(cid:34)
+1
+(cid:18)
+|log(ρ /ρ )|
+(cid:19)2 (cid:35)
+s (i)=exp − i q , (5.12)
+density
+2 0.65
+s (i)=0.80s (i)+0.20exp[−min(c ,2)]. (5.13)
+key density v,i
+When either rate is effectively zero, s = 0.25. This avoids an undefined logarithm while
+key
+preserving the uncertainty penalty.
+Motionactivityisobtainedfromthecatalogue-relative90th-percentilevelocity. Withcatalogue
+median µ and robust scale σ ,
+v v
+1
+a = , s (i)=1−|a −a |, (5.14)
+i 1+exp[−(v −µ )/σ ] activity q i
+90,i v v
+where a is the audio activity from Equation 4.2. The complete motion and final scores are
+q
+s (i)=0.50s (i)+0.35s (i)+0.15s (i), (5.15)
+motion tempo key activity
+s (i)=0.65s (u )+0.35s (i). (5.16)
+final track i motion
+Musicevidenceremainsdominant,butthemotion-specifictermpreventsasemanticallysimilar
+track from authorising choreography that would require extreme time scaling or has incompatible
+event density. All component values are retained for evaluation and ablation.
+5.4 Stable Selection and Candidate Readiness
+5.4.1 Relevance hysteresis
+Let i∗ be the leading motion at retrieval update t, and let i be the currently playing motion. A
+t c
+relevance switch is armed only when
+i∗ ̸=i , s (i∗)≥s (i )+0.08, (5.17)
+t c final t final c
+for three consecutive completed retrievals with the same i∗. If the leader changes, the current
+t
+motion becomes best, the score margin disappears, or the match is rejected, the streak is reset. A
+successful streak creates a pending relevance selection. It does not immediately alter playback.
+39
+
+--- PDF PAGE 46 ---
+Thishysteresisisimportantbecauseoverlappingaudiowindowsarestronglycorrelated. Three
+wins should not be interpreted as three independent statistical observations. They are instead
+a temporal persistence rule that filters short score inversions while giving sustained evidence a
+bounded path to a switch.
+5.4.2 Diversity under a relevance constraint
+A stable musical passage can keep the same motion at rank one for a long time. To avoid visible
+repetition, diversity is handled by a second policy. It considers the latest top five motions and
+retains only candidates satisfying
+s (i)≥s (i∗)−0.05,
+final final
+(5.18)
+s
+track
+(u
+i
+)≥s
+track
+(u i∗)−0.08.
+Thecandidatemustremaineligibleforthesamethree-updatestreak. Afterthecurrentmotion
+has been held for four accepted-beat bars, the selector first prefers a motion cluster absent from
+thethree-itemrecenthistory,thenanunseenmotionidentifier,andfinallytheleastrecentlyplayed
+eligible item. The score constraints are applied before recency, so variation cannot introduce an
+arbitrarily poor match.
+Relevance and diversity selections record different reasons. A relevance selection can be com-
+mitted at the next valid boundary as soon as it is ready. A diversity selection is committed only
+after the maximum hold has actually been reached. This distinction allows a genuine musical
+change to take priority over a cosmetic rotation.
+5.4.3 Accepted-beat commitment and prepared candidates
+The switch clock counts accepted alignment beats rather than raw detector peaks. Every four
+accepted beats defines a bar boundary. A pending selection becomes eligible for commitment at
+this boundary, ensuring that switching and phase control share one rhythmic interpretation. The
+logical state progression is
+current→evidence→pending→prepared→transitioning→current. (5.19)
+Wheneverarankingarrives,thependingmotionandotherhigh-rankedmotionsaresubmitted
+to a bounded preparation pool. Preparation includes canonical trajectory loading, grounding
+in the playback model, joint-name adaptation, and construction of the entry features used in
+Section 5.6. As a bar boundary approaches, ready candidates are scored against an estimate of
+the source phase expected at that boundary.
+The pending identifier remains the preferred choice whenever it is fully prepared. Entry cost
+choosesthebestphasewithinthatmotion. Itdoesnotsilentlyreplaceamusicallypreferredmotion
+with a less relevant one. If the preferred motion is not ready, a different ranked and prepared
+candidatemaybeusedasanexplicitfallback. Ifnoevidence-backedcandidateisready,thesystem
+continues the current trajectory. File I/O and grounding are never performed synchronously
+merely to meet a boundary.
+40
+
+--- PDF PAGE 47 ---
+5.5 Causal Beat and Phase Control
+5.5.1 Activity gate and beat candidates
+Microphonestartupincludesashortcalibrationfromwhichthe90thpercentileofRMSandonset
+changeestimatesthelocalnoisefloor. SubsequentaudioisactiveonlywhenitsRMSexceedsboth
+a fixed floor and a multiple of the calibrated floor. A short release interval prevents the activity
+statefromchatteringnearthethreshold. Whenaudioisinactive, beathistoryisresetandmotion
+amplitude returns gradually towards zero.
+Beatcandidatesareproducedbypredominantlocalpulse(PLP)estimation,followingGrosche
+and Mu¨ller [11]. The implementation uses the librosa library [21], applying librosa.beat.plp
+to a rolling history of already acquired audio. PLP combines locally estimated periodicities into
+a pulse curve; its peaks supply beat candidates. Block-level onset and loudness histories supply
+local event contrast. Analysis can revise estimates inside its available window, but the controller
+acts only when results are delivered and cannot revise emitted poses. This online PLP path is
+distinct from the dynamic-programming beat tracker used for catalogue descriptors [8]. In the
+presentmethod, eachcandidatehaspulseconfidencec andrecent-eventcontrastc . Itsselection
+p x
+score is
+c =(1−w )c +w c , w =0.5. (5.20)
+b x p x x x
+Candidatesbelowthehardconfidencethresholdc <0.35arerejectedbeforetheycaninfluence
+p
+phase or the bar counter.
+5.5.2 Motion-aware beat acceptance
+Dense music may contain subdivisions faster than the current dance can travel between authored
+keyposes. Thecontrollerthereforederivesanadmissibletimeintervalfromthenextkey-posegap
+T and the playback-speed limits:
+k
+T T
+k k
+T =η , T = , (5.21)
+min max
+r r
+max min
+where η is the key-point interval ratio and is one in the current matcher configuration. A beat
+earlier than T after the previous accepted beat is rejected. When the detector itself proposes
+min
+periods shorter than this feasible interval, recent candidate scores define an adaptive quantile
+threshold. Weak subdivisions are rejected early in the admissible window. The threshold falls as
+elapsed time approaches T . At the deadline, an eligible beat is accepted so that the controller
+max
+cannot wait indefinitely for an ideal accent.
+This policy treats beat detection and beat use as different problems. The analyser may re-
+port all plausible pulses, but only events compatible with the motion’s next authored interval
+become control targets. Beat-synchronised dance methods likewise demonstrate that temporal
+correspondence must be represented explicitly rather than inferred from visual plausibility alone
+[14].
+41
+
+--- PDF PAGE 48 ---
+5.5.3 Target rate and gradual phase correction
+For accepted beat index k, the controller selects the corresponding authored key-pose phase ϕ∗.
+k
+The wrapped phase error is
+e =wrap (ϕ∗ −ϕ). (5.22)
+ϕ [−1/2,1/2) k
+The first accepted beat uses the full error as a correction request. Later events use gain
+0.25+0.35c , so a high-quality beat creates a stronger but still gradual correction. In adaptive
+b
+mode, if ∆ϕ is the authored phase gap and ∆t is the last accepted-beat interval, the target
+k k
+phase rate is
+(cid:18) (cid:19)
+∆ϕ
+ω∗ =clip k , (5.23)
+[rminωa,rmaxωa] ∆t
+k
+whereω istheauthoredphaserate. Therunningbaserateisexponentiallysmoothedtowards
+a
+ω∗. Phase correction is not applied by assigning ϕ ← ϕ∗. Instead, the remaining correction e is
+k r
+consumed with time constant τ :
+p
+(cid:16) (cid:17)
+∆ϕ =e 1−e−∆t/τp . (5.24)
+c r
+Thecorrectionisclippedsothattheeffectivephaserateremainswithinthesamespeedinterval.
+Its change is also slew-limited. With the resulting ω , phase evolves continuously as
+eff
+ϕ =wrap (ϕ +ω ∆t). (5.25)
+t+1 [0,1) t eff
+Thismechanismsynchronisesbytemporarilyacceleratingordeceleratingtheauthoredmotion,
+not by teleporting to a different frame. When beat evidence times out, the target rate returns
+to ω . When a new motion controller is created, it inherits the previous tempo, amplitude, beat
+a
+history, and effective-rate state, while its phase is initialised at the selected entry. Thus switching
+does not restart rhythmic estimation.
+5.5.4 Bounded pose modulation
+Timing adaptation preserves the selected trajectory as the primary source of movement. A sec-
+ondary modulation layer adds small, zero-centred offsets from low-, mid-, and high-frequency
+energy, rhythm density, off-beat ratio, and beat accent. In the default subtle mode, the authored
+pose is not multiplied by a global amplitude. Instead, bounded offsets are applied mainly to the
+waist, shoulders, wrists, and knees. For example, high-frequency activity produces a small alter-
+nating wrist and shoulder detail, while low-frequency energy produces a small knee component.
+This layer is intentionally secondary. It improves immediate responsiveness between slower
+retrievalupdateswithoutchangingmotionidentityorroottrajectory. Becauseitcancreateposes
+not present in the offline artefact, its result still passes through the output conditioning described
+in Section 5.8.
+42
+
+--- PDF PAGE 49 ---
+5.6 Transition-Entry Optimisation
+5.6.1 Entry candidates and state features
+Motion matching and motion-graph methods establish the value of comparing state features at
+possible transition points [16, 13]. The present method uses this principle only after music has
+supplied a small candidate set. For each target key pose, the search includes its central frame
+and up to three frames on either side. The neighbouring candidates receive linearly decreasing
+salience. Thislocalexpansioncanfindamateriallycloserrobotconfigurationwithoutturningthe
+entry search into an unconstrained scan over the whole clip.
+Ateachcandidate,thecachedstatecontainsnamedjointpositionsandvelocities,jointranges,
+grounded root position, root tilt after removing yaw, root linear velocity, root angular speed, and
+binary left/right foot contacts. Only joint names shared by source, target, and the output-limits
+table are used. The current source phase is mapped to its nearest source frame.
+5.6.2 Normalised entry cost
+For source frame s and target candidate j, joint-pose and velocity costs are
+(cid:118)
+C (j)= (cid:117) (cid:117) (cid:116) 1 (cid:88) D (cid:18) q j,d −q s,d (cid:19)2 , (5.26)
+q
+D R
+d
+d=1
+(cid:118)
+C (j)= (cid:117) (cid:117) (cid:116) 1 (cid:88) D (cid:18) q˙ j,d −q˙ s,d (cid:19)2 , (5.27)
+v D vmax
+d=1 d
+where R is the model joint range and vmax is the configured speed limit. Contact cost is the
+d d
+fraction of the two feet whose support states differ:
+1 (cid:88)
+C (j)= 1[c ̸=c ]. (5.28)
+c j,f s,f
+2
+f∈{L,R}
+Root cost averages four separately normalised disagreements:
+(cid:18)
+1 |z −z | |θ −θ | ∥p˙ −p˙ ∥
+j s j s j s 2
+C (j)= + +
+r
+4 0.15 0.35 3.0
+(5.29)
+(cid:19)
+|ω −ω |
+r,j r,s
++ ,
+4π
+where θ is non-yaw root tilt. The key-pose term C (j) = 1−s favours a salient velocity
+m j
+valley. The total entry cost is
+C (j)=0.45C (j)+0.20C (j)+0.20C (j)+0.10C (j)+0.05C (j). (5.30)
+entry q v c r m
+Posemismatchreceivesthelargestweightbecauseitisthemostimmediatelyvisiblediscontinu-
+ity. Velocity and contact distinguish frames that have a similar pose but incompatible movement
+43
+
+--- PDF PAGE 50 ---
+or support. Root state and musical salience refine the decision without overriding a severe whole-
+body mismatch.
+5.6.3 Feasibility and transition duration
+Anentrywithlowinstantaneouscostcanstillbeunsuitableifitoccursneartheendofaone-shot
+target. The conservative remaining playback time is
+(1−ϕ )T
+j i
+T (j)= . (5.31)
+remain
+r
+max
+Itmustcoverboththetransitionandatleastoneremainingbarunderthedefaultconfiguration.
+Theunquantisedtransitionlowerboundisderivedfromjointdisplacementandthesamedynamics
+limits used by the output layer:
+(cid:32) (cid:115) (cid:33)
+1.5|q −q | 6|q −q |
+j,d s,d j,d s,d
+T (j)=max , . (5.32)
+raw
+d
+vmax amax
+d d
+After enforcing a minimum, the duration is rounded upward to a half-beat multiple:
+(cid:18)(cid:24) (cid:25) (cid:19)
+max(0.35,T (j)) T
+raw b
+T (j)=clip . (5.33)
+tr [0.35,1.20] T /2 2
+b
+ThecandidateiseligiblewhenT ≥T +T . Candidateswhoserawrequirementexceeds
+remain tr bar
+the maximum transition duration are avoided whenever a feasible alternative exists. Eligible
+candidates are ordered first by total cost, then by salience cost, remaining duration, and phase. If
+none leaves the required duration, the earliest key-pose candidate is used as a controlled fallback.
+This fallback is recorded. It is not presented as an optimal entry.
+5.7 Continuous Transition and Root Motion
+5.7.1 Target-root alignment
+Catalogue trajectories use clip-local roots. Before a target is blended, its entry root is aligned to
+thecurrentworldstateinhorizontalpositionandyaw. Let(p ,R )bethetargetclip’sentryroot
+s s
+and (p ,R ) the current root. With Y(R) denoting the yaw-only component,
+c c
+A=Y(R )Y(R )−1. (5.34)
+c s
+For every target frame (p,R), the aligned horizontal root and orientation are
+p′ =p +[A(p−p )] , (5.35)
+xy c,xy s xy
+R′ =AR. (5.36)
+The grounded vertical coordinate and the target roll and pitch are preserved. The same rigid
+transform is retained throughout the transition, so target displacement is preserved rather than
+repeatedly forcing its root onto the source.
+44
+
+--- PDF PAGE 51 ---
+5.7.2 Smooth pose and orientation blending
+For elapsed transition fraction u∈[0,1], the blend weight is the cubic smoothstep
+h(u)=3u2−2u3. (5.37)
+Joint positions and root translation use linear interpolation with h(u),
+q(u)=(1−h(u))q (u)+h(u)q (u), (5.38)
+c n
+while root orientation uses shortest-path quaternion spherical interpolation. Both the old
+and new motion controllers continue to advance during the blend. Consequently, the transition
+connects two moving trajectories rather than freezing their entry frames.
+After blending, a persistent root-continuity transform maps the active clip-local displacement
+into one world trajectory. On a source change, the world anchor becomes the last emitted world
+root and the new clip origin becomes its current raw root. In continuous mode,
+p (t)=a +[A (p(t)−p )] , (5.39)
+w,xy xy a 0 xy
+where a and A are the stored world anchor. This prevents each new catalogue clip from
+a
+returning the robot to the dataset origin.
+5.7.3 One-shot completion and state transfer
+Thecataloguemotionsaretreatedasone-shottrajectories. Phaseisclampedbeforeitcansample
+the implicit last-to-first interpolation used by generic preview samplers. When a clip approaches
+its end, a prepared transition can be started even if no regular bar switch is ready. Its blend
+progressiscoupledtotheremainingsourcephasesothattheoldtrajectoryisfullyreleasedbefore
+theterminalposestalls. Ifnoprepared,rankedcandidateexists,thelastposeisheld. Anoptional
+very small stationary breathing signal can avoid a perfectly frozen appearance without moving
+the root.
+At blend completion, the target sampler, phase controller, phase tracker, root references, and
+motion identifier are committed together. Only after this transfer does the selection policy reset
+itsheld-barcountandrecordthenewiteminrecencyhistory. Thisavoidsamixedframeinwhich,
+for example, the new identifier is paired with the old controller state.
+5.8 Output Conditioning
+5.8.1 Stateful joint dynamics limits
+Entry optimisation and smoothstep blending reduce discontinuity, but music modulation and two
+simultaneously moving clips can still produce an excessive joint target increment. A stateful
+limiter therefore operates on the final joint target q . For every joint d, the emitted velocity and
+d
+acceleration must satisfy
+|q˙ |≤vmax, |q˙ −q˙−|≤amax∆t. (5.40)
+d d d d d
+45
+
+--- PDF PAGE 52 ---
+The limiter computes the velocity needed to approach q , clips it by speed, and then clips its
+d
+change around the previous emitted velocity. When a target stops, a braking-distance test begins
+decelerationearlyenoughtoavoidovershoot. Ifthetarget canbereachedwithinbothlimits, itis
+snapped only to the feasible target rather than passing beyond it. Per-joint limits may be loaded
+from a validated table. Otherwise configured defaults are used. Limiter activation, requested
+speed, emitted speed, and emitted acceleration are retained as diagnostics.
+5.8.2 Collision policy and state consistency
+Offlinepreflightcoverseachcanonicaltrajectory,butitcannotcertifyeveryposecreatedbyonline
+blending or modulation. The runtime supports collision checking for modified poses or for every
+pose. When enabled, collision handling is applied after the joint limiter because it must inspect
+theposethatwouldotherwisebeemitted. Ifitchangesthatpose,thelimiterisresettotheactual
+collision-resolved output. Without this reset, the next update would compute acceleration from a
+state that the robot never received.
+The current default runtime collision mode is disabled because full geometric checking has a
+nontrivial online cost. Experiments that claim online collision protection must therefore enable
+and report the selected policy explicitly. Regardless of this runtime option, all source motions
+have passed the offline preflight described in Chapter 4. The resulting pose is finally written by
+joint name into the G1 MuJoCo model for kinematic state evaluation [24].
+5.9 Method Observability and Failure Behaviour
+Theonlinetracefollowstheprocessingboundariesestablishedabove. Retrievalrecordsacceptance,
+rejection reason, genre, score margins, component scores, BPM, and leading tags. Selection and
+preparation record pending reason, recent cluster, ready candidates, load failures, and explicit
+fallback use. Control and transition records contain accepted-beat time, phase rate, remaining
+phase correction, entry-cost components, transition duration, blend progress, root deltas, limiter
+intervention, and collision override.
+These fields distinguish failures that can look alike in the final animation. For example, a
+late accent can be attributed to beat rejection, phase-rate saturation, transition blending, or the
+joint limiter. Repetition can be attributed to weak retrieval evidence, rejection, readiness, or
+the diversity clock. The associated fallback is always conservative: the system skips stale work,
+excludes failed candidates, and otherwise retains the last valid active state. It never responds
+to failure with an arbitrary catalogue item or synchronous retargeting. The trace supplies the
+intermediate measurements used by the experiments in the next chapter.
+46
+
+--- PDF PAGE 53 ---
+Chapter 6
+Experimental Evaluation
+6.1 Experimental Questions and Protocol
+This chapter evaluates BeatWeaver as a retrieval-based music-to-motion system with continuous
+kinematicplayback. Itseparatesthequalityoftheselectedmotionfromthequalityandtimeliness
+ofitsexecution. Afastcataloguesearchdoesnotestablishafastmusicalresponse,andabounded
+intermediate joint command does not establish that the final displayed pose satisfies the same
+bounds.
+Five research questions organise the evaluation:
+1. RQ1: does the catalogue support meaningful retrieval for unseen music, and can unsuitable
+inputs be rejected?
+2. RQ2: does beat-synchronised timing improve rhythm alignment, and does the selection
+policy maintain diversity without losing relevance?
+3. RQ3: aremotiontransitionsandfinaloutputscontinuousandwithinthespecifiedkinematic
+and clearance constraints?
+4. RQ4: which computational stages dominate latency, and does the complete system meet its
+real-time operating targets?
+5. RQ5: which component effects are supported by ablations and long-duration operation?
+6.2 Datasets, Splits and Reproducibility
+The local catalogue contains 60 music identities, 348 descriptor segments and 411 selectable mo-
+tionsspanningtenAIST++genres. Thesearetheassetsavailabletothisimplementation,notthe
+complete AIST++ dataset [18]. Strict leave-one-music-out evaluation removes every descriptor,
+track record and motion associated with the query music identity before ranking. The 60 music
+identities define the independent units of this retrieval evaluation.
+The offline motion-distribution subset freezes four music identities per genre. Each identity is
+paired with its lexicographically first preflight-passed ground-truth motion. Five seeds yield 200
+47
+
+--- PDF PAGE 54 ---
+Evaluation Inputs and conditions Seeds Count
+Offline retrieval 60 held-out music identities – 60
+Offline rejection 30 recordings; overlapping windows – 750
+Offline SMPL features 40 music/reference pairs; recon- 0–4 200
+structed output
+120 Hz pilot, 60 s 3 inputs; full and authored 0–2 18
+120 Hz pilot, 306 s 1 stitched input; full 0–2 3
+60 Hz formal, 40 s 13 inputs; full 0–4 65
+60 Hz formal, 40 s Same 13 inputs; authored 0–4 65
+60 Hz formal, 606 s 1 stitched input; full 0–4 5
+Table 6.1: Evaluation matrix. Counts are queries, windows, reconstructed outputs, or runtime
+runs as indicated. Runtime durations include six seconds of warm-up. Only the final three rows
+constitute the 135 formal runs.
+reconstructed outputs, evaluated as five separate sets of 40 against the same 40 references. These
+outputs use preanalysed musical timing and trace-based SMPL reconstruction; they characterise
+motion features and do not measure online beat delivery or control deadlines. The evaluation
+excludes six seconds of warm-up and reconstructs the following 20 seconds at 60 frames per
+second. The deployed catalogue is used without a leave-one-music-out exclusion, so this is not
+another held-out retrieval test.
+The causal short suite compares the full system with authored timing on the same 13 inputs:
+thestitchedAIST++recording,tenCC0recordings,atempojump,andasilence/recoverystream.
+Eachconditionhas65runsof40seconds, includingsixsecondsofwarm-up. Fivefull-systemlong
+runs use 606-second inputs, giving approximately 600 seconds of post-warm-up observation per
+seed. Short source recordings are deterministically repeated when necessary. In particular, the
+stitched source has a 39-second cycle because of its crossfades. Its repetition boundary is itself a
+musical change, not a seamless continuation.
+The rejection evaluation includes the ten CC0 inputs and 20 synthetic negative inputs, with
+750 overlapping query windows in total. The negatives comprise silence, pink noise, ambient
+drones and speech-like signals. They constitute a synthetic stress test, not coverage of recorded
+human speech or environmental sound. The window-level rejection scores below are descriptive.
+Adjacent windows are not treated as 750 independent recordings.
+Table 6.1 states the experimental units and run counts. The 135 formal runs are exactly
+13×2×5+1×1×5. The separate 120 Hz capacity pilot comprises 18 short runs: three inputs
+(stitched AIST++, silence/recovery, and a 90-to-150 BPM tempo jump), two conditions (full and
+authoredtiming),andseeds0–2. Eachuses60secondsofinput,includingsixsecondsofwarm-up.
+Three full-system runs of the repeated stitched input use the same seeds and 306 seconds each,
+including warm-up. The 21-run denominator excludes the ten-second smoke check.
+The runtime experiments are serial and headless, with a six-second matching window, one-
+secondmatchinginterval,collisioncheckingandfinal-outputauditingenabled. Thepilotteststhe
+120 Hz design target stated in Section 1.3: control-work p99 below 8.33 ms and a deadline-miss
+ratio below 1% for each run. Only six of its 21 runs pass all gates; the worst p99 is 15.572 ms and
+the worst miss ratio is 0.18544. The formal operating point was consequently set to 60 Hz before
+theformalmatrixwasexecuted. Itsp99budgetis16.67ms;the1%missthresholdandfinal-output
+constraints remain the same. This is a reduced operating target, not evidence that the initial 120
+48
+
+--- PDF PAGE 55 ---
+Hz requirement was met. Different source coverage and durations also prevent treating the pilot
+and formal matrix as a paired estimate of the effect of frequency. Their results are not pooled.
+The recorded platform has 20 logical CPU cores and an RTX 3080, but ONNX inference uses
+CPUExecutionProvider exclusively. Python 3.11.14, NumPy 1.26.4, librosa 0.10.2.post1, ONNX
+Runtime 1.28.0, SciPy 1.11.4 and MuJoCo 3.10.0 are recorded in the manifest.
+Every formal run preserves its command, source identity, seed, trace, timing report, final-pose
+archive and log. The audit checks the declared run matrix, artifact hashes, strictly increasing
+output clocks and consistent robot identity. All 538 frozen input-file hashes matched during
+the post-run audit, and the formal run index contained no failed attempts. Source-file hashes
+supplementtheGitcommitidentifiertocaptureuncommittedimplementationchanges. Pilotand
+formal artifacts have separate manifests.
+6.3 Evaluation Metrics
+6.3.1 Retrieval, rejection and statistical units
+Genre Recall@K, macro-F , mean reciprocal rank (MRR) and NDCG@5 measure catalogue
+1
+matching. Source motion recall is retained only as an internal same-catalogue sanity check. It
+cannot establish generalisation because the target and candidates share catalogue provenance.
+CC0 genre labels are sets of acceptable catalogue genres, rather than a complete taxonomy of the
+recordings.
+Forruntimequalitymetrics,framesarefirstreducedtoarunsummary. Seedsarethenaveraged
+withineachsourcerecording. Confidenceintervalsuse2,000bootstrapresamplesofsourcemeans.
+Ablations use two-sided paired sign-flip permutation tests after averaging matched seeds within
+eachsource. Holmcorrectioncoversthereportedcondition-by-metrictestswithineachsuite. The
+direction of a mean difference alone is not evidence of a component benefit. For the long-run
+suite, five seeds of one repeated source quantify repeatability. A one-source bootstrap interval is
+degenerate and must not be read as strong generalisation evidence.
+6.3.2 Rhythm and motion diversity
+Following the beat-alignment evaluation family used in dance generation [18, 23], this chapter
+defines the music-to-dance score as
+A = 1 (cid:88) exp
+(cid:18)
+− min u∈Bd
+(u−t)2(cid:19)
+, σ = 3 s. (6.1)
+m→d |B | 2σ2 60
+m
+t∈Bm
+The reverse score is calculated by exchanging the beat sets. Their harmonic mean is the main
+BAS summary. Robot output is resampled to 60 FPS. Motion beats are local minima of mean
+body-speed magnitude, with a minimum separation of 0.20 seconds. The stationary MuJoCo
+world body is excluded and the pelvis is used as the positional reference.
+For causal runs, B contains the actual delivery times of all online detected beats, not retro-
+m
+spectively estimated beat times and not only the subset accepted by the phase controller. Con-
+sequently the score assesses alignment to delivered control information, not accuracy against an
+49
+
+--- PDF PAGE 56 ---
+annotated musical beat ground truth. When no music beats are available, BAS is undefined and
+excluded from numerical averages with its missingness retained.
+Fr´echet Inception Distance (FID) compares Gaussian approximations to reference and output
+feature distributions [12]. Following the AIST++/FACT and Bailando evaluation convention [18,
+23],thischapterusesmotiondescriptorsinplaceofimageInceptionfeatures. Thesubscriptskand
+g identify kinetic and geometric feature spaces: the pinned AIST++ extractor returns 72 kinetic
+components (horizontal and vertical kinetic energy and an acceleration-based expenditure statis-
+ticforeachof24joints)and32geometriccomponentssummarisingbody-configurationpredicates.
+Theextractorisfixedtogoogle/aistplusplus apicommit2dd7b3e946b794fd0081c98e2e2433545abf8b87;
+local changes concern imports and formatting only.
+For feature space h∈{k,g}, let µ and Σ be the reference sample mean and covariance,
+R,h R,h
+and let µ and Σ be their output counterparts. The reported distance is
+O,h O,h
+FID =∥µ −µ ∥2
+h R,h O,h 2
+(cid:18) (cid:16) (cid:17)1/2 (cid:19) (6.2)
++tr Σ +Σ −2 Σ1/2Σ Σ1/2 .
+R,h O,h R,h O,h R,h
+Lower FID indicates closer feature distributions, not necessarily better musical correspondence.
+Diversity (Div) is the mean Euclidean distance among all distinct output feature-vector pairs, in
+the same evaluation family [23]:
+2 (cid:88)
+Div = ∥z −z ∥ , n=40. (6.3)
+h n(n−1) a,h b,h 2
+a<b
+Herez isthedescriptorofoutputainfeaturespaceh. Eachseedusesall
+(cid:0)40(cid:1)
+=780unordered
+a,h 2
+pairs, with the reference Div calculated identically on the 40 ground-truth items. Larger Div
+meansgreaterspread; itisinterpretedrelativetoreferencespreadratherthanmaximisedwithout
+regard to plausibility.
+Both metrics use reconstructed AIST++/SMPL motion, not G1 joint angles. Raw results
+use the extractor’s native scale. Standardised results transform both sets using reference means
+and population standard deviations, with each denominator floored at 10−8. FID itself uses
+sample covariances. The kinetic covariance is necessarily rank deficient with only 40 samples in
+72 dimensions; the implementation uses a symmetric eigendecomposition with negative numerical
+eigenvalues clipped to zero. Finite-sample FID can be biased [7], so neither this stabilisation nor
+averaging five seeds establishes comparability with larger published benchmarks.
+Robot-domain diversity additionally reports unique selected motions, catalogue-cluster cov-
+erage and normalised selection entropy. This entropy is computed over selection episodes, after
+collapsing consecutive identical motion IDs. It is not a dwell-time-weighted entropy. Catalogue
+clusters are engineered motion descriptors, not human judgements of visual style.
+6.3.3 Continuity, contact and constraints
+Final joint positions are read from MuJoCo qpos after limiting, collision projection and joint-
+range clipping. Velocity uses successive actual wall-clock differences. Acceleration and jerk use
+the corresponding midpoint clocks.
+50
+
+--- PDF PAGE 57 ---
+Retrieval metric Value Rejection metric Value
+Recall@1 0.317 Precision 0.964
+Recall@3 0.533 Recall 0.720
+Recall@5 0.783 F 0.824
+1
+Macro-F 0.272 AUROC 0.646
+1
+MRR 0.505 False rejection 0.062
+NDCG@5 0.550 Missed rejection 0.280
+Table6.2: Strictleave-one-music-outgenreretrieval(60musicidentities)anddescriptivewindow-
+level rejection (750 windows from 30 recordings)
+Genre N Recall@1 Recall@5
+BR 6 0.333 1.000
+HO 6 1.000 1.000
+JB 6 0.000 0.833
+JS 6 0.000 0.500
+KR 6 0.000 0.500
+LH 6 0.167 0.667
+LO 6 0.500 1.000
+MH 6 0.667 0.833
+PO 6 0.333 1.000
+WA 6 0.167 0.500
+Table 6.3: Per-genre leave-one-music-out results. Each genre has six music identities. Codes: BR
+=breaking;HO=house;JB=balletjazz;JS=streetjazz;KR=krump;LH=LA-stylehip-hop;
+LO = locking; MH = middle hip-hop; PO = popping; WA = waacking [26, 18]
+The safety audit distinguishes candidate clearance detections, corrective projections and vi-
+olations remaining in the final pose. The configured clearance target is 6 mm, comprising the
+existing 5 mm minimum plus a 1 mm buffer. A residual clearance violation therefore does not,
+by itself, prove geometric penetration. Conversely, a correction count is not a residual violation
+count. Both are useful but answer different questions.
+PhysicalFootContact(PFC)wasintroducedtoassessdanceplausibility[25]. TheG1adapta-
+tion follows the official evaluator’s algebra on a 30 FPS grid. The magnitude of root acceleration,
+after clamping its downward component, is normalised by its sequence maximum and multiplied
+by the horizontal displacements of the two feet. The result is averaged and scaled by 104. Unlike
+the SMPL implementation’s ankle/toe minima, G1 uses one recorded body anchor per foot. Zero
+root acceleration is assigned zero score instead of an undefined division. These explicit differ-
+ences preclude direct numerical comparison with published SMPL PFC results. Foot skating and
+support-height diagnostics are also retained in the machine-readable results.
+6.4 Retrieval and Rejection Results
+Recall@1 is 0.317, whereas Recall@5 reaches 0.783 (Table 6.2). Relevant genre information is
+therefore more reliably retained in a shortlist than selected as the single best answer. The results
+support a useful retrieval signal, but not consistently correct genre identification for previously
+unseen music.
+The per-genre results in Table 6.3 prevent the overall average from obscuring genre-dependent
+51
+
+--- PDF PAGE 58 ---
+CC0input Genrehitrate Rejectionrate
+01electronicbackbeat 1.000 0.000
+02hiphophippetyhop 0.040 0.400
+03jazzbebopforjoey 1.000 0.000
+04worldbollywoodgroove 0.840 0.000
+05latincumbish 1.000 0.000
+06upbeatbarbrawl 0.000 0.000
+07orchestralbattleready 0.200 0.000
+08waltzisolationwaltz 0.000 0.160
+09funkfunkyenergyloop 0.000 0.000
+10ambientalienspaceship – 0.960
+Table 6.4: Per-recording CC0 results from offline query evaluation
+Cohort/condition N HarmonicBAS[95%CI] G1PFC[95%CI]
+Replayfull 350 0.213[0.202,0.224] –
+Causalfull 65 0.313[0.270,0.348] 4.139[2.882,5.766]
+Causalauthored 65 0.306[0.269,0.340] 5.001[2.866,7.911]
+Causallong 5 0.335[0.335,0.335] 1.456[1.456,1.456]
+Table 6.5: Source-averaged rhythm and adapted physical-contact scores. (N is the number of
+runs)
+failure. The rejection AUROC is 0.646. The operating-point precision and recall must be con-
+sidered alongside that ranking score and the unequal number of positive and negative windows.
+Precision alone does not establish robust rejection.
+Table 6.4 reports each CC0 recording rather than treating ten heterogeneous inputs as a
+large domain-generalisation benchmark. Together, the retrieval and rejection results answer RQ1
+partially: the catalogue provides useful candidates, but neither top-one matching nor rejection is
+sufficiently reliable to serve as an unqualified deployment guarantee.
+6.5 Rhythm, Diversity and Physical Plausibility
+Table 6.5 and Figure 6.1 expose variability that would be hidden by reporting a single BAS.
+The valid timing ablation is full versus authored within the causal short suite: sources, seeds,
+inputlengthsandmeasurementinstrumentsarematched. Theofflinereconstructedfeaturesubset
+supplies a separate description of motion spread and is not included in this timing comparison.
+Inthematchedcausalcomparison,full-systemharmonicBASis0.313,comparedwith0.306for
+authored timing. The full-minus-authored gain is 0.0067 with a source-bootstrap 95% interval of
+[-0.0078,0.0228]. TheintervalincludeszeroandtheHolm-adjustedpermutationp-valueis1.0000.
+The formal causal evidence therefore does not establish that beat-synchronised timing improves
+BAS relative to authored timing under this delivered-beat metric.
+Table 6.6 is deliberately a within-protocol characterisation, not a leaderboard comparison.
+Trace phases and blend factors are interpolated within unchanged motion/transition segments,
+whilecategoricalswitchboundariesarehandledseparately. Reconstructionalignsroottranslation
+but cannot recover every sub-trace boundary or the robot’s final yaw, limiting and projection
+effects. Short ground-truth motions are cycled, potentially introducing root seams. Finally, the
+system retrieves real source motions, whereas an unconstrained generator must produce its own
+trajectories. These differences can bias FID and Div, and diversity is interpreted relative to the
+reference distribution.
+52
+
+--- PDF PAGE 59 ---
+Figure 6.1: Distributions of run-level BAS and selection-episode entropy across the three formal
+conditions.
+Scale FIDk FIDg Divk Divg
+raw 2.93e+07±2.63e+07 0.643±0.031 3214.397±841.277 0.675±0.008
+realstandardised 73.438±28.920 1.40e+12±8.04e+11 4.504±0.854 4.77e+05±1.47e+05
+Scale Ground-truthDivk Ground-truthDivg
+raw 4089.854 1.441
+realstandardised 9.239 7.326
+Table 6.6: Reconstructed SMPL feature metrics: mean and standard deviation over five separate
+40-output seed evaluations.
+The raw geometric Div is only 0.468 of the ground-truth value, indicating a narrower recon-
+structed geometric feature distribution. More importantly, some ground-truth geometric dimen-
+sionshavezerovariance. Dividingoutputdeviationsbytheimplemented10−8 standard-deviation
+floor produces the extremely large standardised geometric values in Table 6.6. Those entries di-
+agnose ill-conditioned normalisation, not a meaningful ranking of dance quality. They are not
+used as a primary success criterion. The large raw kinetic scale and its seed variability must also
+be read alongside the cyclic-source and reconstruction limitations, rather than compared directly
+with published generation benchmarks.
+Figure 6.2 reports catalogue-cluster coverage per input alongside the per-run maximum final-
+outputspeed. Coveragecomplementsentropy: anapproximatelyuniformdistributionoverasmall
+visited subset is not broad catalogue exploration. Likewise, low adapted PFC does not establish
+smooth transitions or balanced locomotion. These measures jointly qualify the answer to RQ2
+instead of reducing dance quality to one score.
+6.6 Transition Continuity and Safety
+Thecausalshortfull-systempeakis15.4rad/sandthelong-runpeakis15.4rad/s. Thesearefinal-
+output,actual-clockderivatives,notthelimiter’sinternalnominal-stepreport. Table6.7therefore
+evaluates a stricter and more relevant output contract than checking the limiter in isolation. The
+logged position limits, clearance outcomes and dynamic bounds must each be judged separately.
+53
+
+--- PDF PAGE 60 ---
+Figure 6.2: Left: mean catalogue-cluster coverage across five seeds per causal short-suite input,
+orderedbysourceID.Right: empiricaldistributionsofper-runmaximumfinal-outputspeed. The
+dashed line is the 16 rad/s target.
+Causal condition N Max speed Max accel. Residual frames Limit frames
+Causal full 65 15.4 1673.4 0 0
+Causal authored 65 15.4 1523.3 0 0
+Causal long 5 15.4 1633.8 0 0
+Table 6.7: Post-warm-up final-output diagnostics
+All 135 causal formal runs pass the registered final-output contract at 60 Hz. The maximum
+final speed is 15.4 rad/s for the causal short full system, 15.4 rad/s for authored timing and 15.4
+rad/sforthelongruns, ineverycasebelowthe16rad/slimit; thelargestaccelerationreportedin
+Table 6.7 is 1673.4 rad/s2, below the 2000 rad/s2 limit. Residual-clearance and final joint-range
+violationcountsarebothzero. Candidatecollisiondetectionsandcorrectiveprojectionsstilloccur,
+so this result establishes the audited final-pose contract rather than an absence of interventions.
+Figure 6.3 shows the corresponding behaviour around a single switch, where the transition
+is the point at which entry error, blending and the output limiter interact most strongly. The
+output pipeline measures actual output intervals, constrains collision projection by the remaining
+dynamic envelope and audits the emitted MuJoCo state. The formal result supports RQ3 for the
+registered kinematic bounds at 60 Hz.
+6.7 Inference Time and End-to-End Response
+6.7.1 Computation, preparation and control work
+The causal short full-system median run-level query p95 is 50.489 ms, but its corresponding
+control-work p99 is 4.657 ms (Table 6.8). Retrieval latency and control deadline compliance are
+therefore separate outcomes. The long-run median p99 is 8.724 ms and its median deadline-miss
+ratio is 0.000. Figure 6.4 gives the full per-run distributions behind these medians, so that the
+margin to each target can be read rather than inferred from a central value. No formal 60 Hz run
+fails either real-time gate. The worst individual long run remains below the registered limits, at
+54
+
+--- PDF PAGE 61 ---
+Figure 6.3: Actual-clock speed and jerk around the first post-warm-up switch in the fixed causal-
+full stitched seed-0 run
+Condition Query p95 Work p99 Miss ratio p99 fails Miss fails
+Replay full 63.1 5.89 0.006 47/350 51/350
+Causal full 50.5 4.66 0.000 0/65 0/65
+Causal authored 50.6 4.77 0.000 0/65 0/65
+Causal long 116.2 8.72 0.000 0/5 0/5
+Table6.8: Mediansacrossrunsofeachrun’squeryp95, control-workp99anddeadline-missratio.
+Timesareinms. Failurecountsapplythe16.67msp99and1%deadline-misstargetstoindividual
+runs. These are not pooled frame percentiles.
+14.483 ms p99 and 0.00693 deadline-miss ratio.
+Tables6.9and6.10distinguishONNXexecution,hand-craftedfeatures,trackretrieval,motion
+ranking, candidate preparation and control work. Candidate grounding and readiness are back-
+ground operations. Their wall-clock preparation latency is not an additional synchronous delay
+on every control frame. However, asynchronous execution does not remove resource contention or
+the need for a candidate to be ready when selected.
+The recorded ready-pool underrun and hold-last totals are both zero across all 135 causal
+formal runs (Table 6.11). The prepared-cache fallback therefore meets the registered operational
+readiness targets in this cohort.
+The final-output audit performs an additional clearance check, including forward kinematics.
+Its overhead is reported separately and remains inside total control work. First-call/cold labels
+in some stage counters also do not establish an OS-cache-cold benchmark. Complete cold/warm
+distributions for every stage, and a separate mel-construction timer, are not uniformly available.
+The chapter reports the timing actually recorded.
+Submission attempts require particular care. While a retrieval worker is busy, the control
+loop can attempt submission repeatedly before a successful update advances the matching clock.
+55
+
+--- PDF PAGE 62 ---
+Figure6.4: EmpiricalCDFsofper-runqueryp95andcontrol-workp99,withthe16.67mscontrol-
+work target marked.
+Consequently,busyattemptsdividedbyallattemptsarenotautomaticallyaone-secondquery-slot
+lossrate. Acompleted/submittedratiocanalsoincludeonequerystillinflightatshutdown. The
+machine-readable operational counters are retained, but a 99% scheduled-slot completion claim is
+not established from those counters alone.
+6.7.2 Musical changes and observable response
+Figure 6.5 separates a new genre-compatible ranking from pending selection, switch initiation,
+half blending and completion. Six seconds of accumulated context are needed for the first query,
+and a post-change window contains a mixture of old and new audio until that context has been
+replaced. Query scheduling, repeated-winner evidence, bar boundaries and candidate readiness
+can introduce further waiting. The six-second window is therefore neither an ONNX inference
+time nor a universal fixed response latency.
+Milestone traces are censored at the next musical change, including the repeated stitched
+boundary in long runs. Genre-target matching is available for stitched inputs. Tempo-jump and
+silence/recoverymilestonesareschedulingdiagnostics,notindependentlyverifiedcorrect-tempoor
+correct-rejectionresponses. Pendingandswitcheventsalsoneednotrefertoanidenticalcandidate
+throughout a complex change episode. These limitations prevent interpreting every observed
+milestone chain as a successful semantic response. RQ4 is answered at the stage and control-
+loop level, while fully attributed end-to-end responsiveness remains a stricter future evaluation
+requirement.
+6.8 Ablation Study
+The formal ablation compares full beat-synchronised control with authored timing on the same
+13 inputs and five matched seeds. Authored timing disables beat-driven retiming while retaining
+retrieval, motion selection, transitions, collision checking and output constraints. The formal
+evaluation does not isolate the contributions of retrieval scoring, diversity selection, entry search
+or output limiting; those component benefits remain unestablished.
+56
+
+--- PDF PAGE 63 ---
+Figure6.5: Responsemilestonesaftereachmusicalchangeinthecausal-fullstitchedAIST++run
+atseed0. Greyverticallinesmarkthechangetimes; thefiveseriesgivethefirstgenre-compatible
+match, the pending selection, switch initiation, half blending and switch completion. The run is
+selecteddeterministicallyasthelexicallyfirststitchedsourceatseed0,notchosenforafavourable
+response profile.
+Table6.12reportspairedtimingcomparisonsafteraveragingmatchedseedswithineachsource.
+The65source/seedcombinationsarenottreatedas65independentmusicalinputs. Thedisplayed
+tests retain Holm correction over the full set of recorded condition-by-metric tests in the short
+suite, rather than recomputing correction over only the displayed rows. There is no corrected
+evidence of a BAS difference. Absence of significance is not proof of equivalence. The source-
+mean deadline-miss ratio differs from full by 0.0000 (adjusted p = 1.0000), and both conditions
+pass the absolute 60 Hz gates. RQ5 is therefore answered for the timing condition and sustained
+operation, with the other component effects left open. Conditions were executed serially in a
+fixedmatrixorder, ratherthanrandomisedacrosstime. Background-loaddriftremainsapossible
+timing confound. Here “causal” describes audio availability, not a guarantee of unconfounded
+causal inference about every performance difference.
+6.9 Long-Run Reliability
+All five causal long runs completed their registered duration, passed artifact integrity and passed
+every evaluated real-time, readiness and final-output gate. Repeating a 39-second source for ap-
+proximatelytenminutesstressesrecurrentswitchingandresourceuse,butsuppliesonlyonesource
+distribution. The causal long runs provide sustained evidence for the selected 60 Hz operating
+point. The separate 120 Hz pilot has 15/21 failures, so the initial design target remains unmet on
+this platform.
+6.10 Discussion by Research Question
+ForRQ1,theleave-one-music-outshortlistprovidesstrongerevidencethanthesame-sourcemotion
+sanity check, but top-one and rejection errors remain material. For RQ2, rhythm alignment is
+57
+
+--- PDF PAGE 64 ---
+measurable under a genuinely online delivery protocol, yet it remains a proxy for musical timing
+and does not replace judged dance quality. Coverage, entropy and reference-distribution diversity
+describe complementary properties and should not be collapsed into an unrestricted diversity
+objective.
+For RQ3, auditing final qpos verifies the registered end-to-end kinematic constraints at 60 Hz
+while preserving the distinction from dynamics and hardware safety. For RQ4, retrieval compu-
+tation and asynchronous preparation are explicitly measurable, and the selected 60 Hz operating
+pointpassestheempiricalcontrolgates;the120Hztargetdoesnot. ForRQ5,thepairedstatistics
+delimitthetimingclaim; theothercomponentcontributionshavenotbeenisolatedbythisformal
+matrix.
+Overall, BeatWeaver is an auditable retrieval and playback pipeline that meets its registered
+kinematic and empirical real-time contracts at 60 Hz on the measured platform. It is not a
+hard-real-time or physically safe humanoid dance controller.
+58
+
+--- PDF PAGE 65 ---
+Stage (causal full short) p50 p95 p99 Worst max
+Audio copy 0.070 0.090 0.122 0.678
+Audio preprocessing 1.914 2.204 2.391 3.565
+Hand-crafted features 24.924 25.915 26.311 29.382
+ONNX inference 15.541 16.350 16.765 20.175
+Track retrieval 2.169 2.353 2.424 3.462
+Motion ranking 0.375 0.470 0.528 1.009
+Selection policy 0.023 0.033 0.052 0.126
+Waveform to match 49.927 50.489 60.867 67.213
+Motion file load 13.686 17.908 17.936 63.979
+Grounding 257.758 375.522 390.527 1334.635
+Entry features 16.845 22.297 22.385 83.780
+Entry scoring 0.333 0.947 1.403 2.782
+Submission to ready 1025.265 1861.576 2026.973 8383.264
+Audio/beat control stage 0.041 0.546 0.714 4.368
+Phase controller 0.018 0.043 0.060 0.689
+Pose sampling 0.103 0.144 0.203 1.642
+Transition/root blending 0.163 0.368 0.548 3.063
+Limiter/collision 0.718 2.793 3.416 8.235
+MuJoCo forward 0.214 0.309 0.434 2.573
+Final-output safety audit 0.073 0.132 0.318 2.321
+Table 6.9: Stage-resolved timing for the causal full short suite
+Startup stage Median ms
+ONNX session 89.8
+Catalogue 21.3
+Matcher initialisation 1.9
+MuJoCo initialisation 134.3
+Initial grounding 1362.1
+Until control loop 1.04e+04
+Table 6.10: Process-start measurements for the causal full short suite
+Causal condition Underruns Runs with hold Hold events
+Causal full 0 0 0
+Causal authored 0 0 0
+Causal long 0 0 0
+Table 6.11: Whole-run operational readiness counters
+Ablation minus full Sources ∆ p p
+Holm
+Legacy retrieval: Recall@1 9 -0.001 1.0000 1.0000
+No diversity: entropy 13 0.001 0.7344 1.0000
+No diversity: match score 13 -0.000 0.2477 1.0000
+Fixed entry: nominal jerk 13 2256.867 0.6648 1.0000
+Replay authored: BAS 13 -0.023 0.0023 0.1391
+Causal authored: BAS 13 -0.007 0.4205 1.0000
+Causal authored: miss ratio 13 0.000 1.0000 1.0000
+Table 6.12: Selected paired ablation comparisons after source-level seed averaging. (∆ is ablation
+minus full)
+59
+
+--- PDF PAGE 66 ---
+Chapter 7
+Conclusions and Future Work
+This dissertation investigated how streaming music can guide the selection, timing and transition
+of humanoid dance drawn from a finite motion library. The resulting BeatWeaver connects offline
+AIST++ preparation and G1 retargeting with online music retrieval, stateful motion selection
+and continuous kinematic playback. The experiments establish a working, inspectable integration
+with measurable rhythm alignment and a validated 60 Hz operating point, while leaving the 120
+Hz design target in Section 1.3 unmet. This chapter summarises the work, states the limits of
+thoseconclusionsandidentifiesthedevelopmentsneededforbroadermusicalcoverageandphysical
+robot execution.
+7.1 Summary of the Work
+Data preparation and motion representation. The offline pipeline established a traceable
+association between music, human choreography and target-robot trajectories. Audio windowing,
+robust amplitude normalisation and source-motion analysis produced comparable music descrip-
+tors and velocity-valley key poses. SMPL sequences were converted through GMR into named-
+joint, floating-base trajectories for the 29-DoF Unitree G1. Versioned artefacts, source and model
+hashes, validated caching and MuJoCo preflight made catalogue admission explicit. The recorded
+build contains 411 admitted motions linked to 60 music identities and 348 audio segments. These
+checks establish representation and sampled kinematic validity for the stored clips. They do not
+certify every subsequent retiming or blend.
+Hierarchical music retrieval. The final catalogue uses the Discogs EffNet ONNX represen-
+tation, comprising a 1,280-dimensional embedding and 400 style activations, together with a 24-
+dimensional DSP rhythm–timbre descriptor. The retargeting artefacts use pipeline version 4.
+The DSP-only embedding remains an alternative backend, requiring a separately built catalogue,
+rather than the representation evaluated as the final system. Online queries use six seconds of
+accumulatedaudioandthesameextractionandnormalisationcontractasthereferencecatalogue.
+Segment evidence is pooled at track level, filtered by genre and abstention rules, and passed to
+motion ranking. Strict leave-one-music-out evaluation in Chapter 6 obtained genre Recall@1 of
+0.317 and Recall@5 of 0.783. Thus the representation supplies useful shortlist evidence, although
+60
+
+--- PDF PAGE 67 ---
+its leading result is frequently incorrect for unseen music.
+Motion compatibility and stable selection. The system separates musical similarity from
+suitability of the associated movement. Tempo feasibility, key-pose density and motion activity
+refine the track-based ranking before selection. Consecutive-winner evidence and a score margin
+provide relevance hysteresis, while a bounded-hold policy permits variation among similarly rel-
+evant motions. Prepared-candidate requirements separate selection intent from execution readi-
+ness. These mechanisms make repetition, rejection and switching decisions observable. Their
+implementation is a contribution of the work, but the formal experiment isolates only the full
+versus authored-timing comparison. It does not establish a separate benefit for retrieval scoring,
+selection policy or entry search. In particular, a diversity benefit cannot be inferred merely from
+the presence of a rotation policy.
+Beat-awaretimingandgradualphasecontrol. Thetimingcontrollerdistinguishesdetected
+pulses from events accepted for motion alignment. Relative beat contrast and authored key-pose
+spacing guide beat acceptance, and bounded speed adaptation consumes phase error gradually
+instead of resetting the sampler instantaneously. In the matched causal short suite, harmonic
+beat alignment score (BAS) was 0.306 under authored timing and 0.313 with the full controller.
+The source-averaged gain was 0.0067, with a 95% bootstrap interval of [-0.0078, 0.0228] and a
+Holm-adjusted p-value of 1.0000. The formal experiment therefore does not establish a timing
+benefit under the specified delivered-beat metric.
+Continuous switching and output conditioning. Thetransitionmechanismsearchesneigh-
+bourhoodsofsalienttargetposesusingjointposition,velocity,foot-contact,root-stateandsalience
+costs. Root alignment, smoothstep blending, quaternion interpolation and atomic state transfer
+connect successive moving trajectories. One-shot completion avoids an implicit last-to-first seam,
+while joint limiting and configurable collision handling condition the output. These mechanisms
+provideanexplicitroutefromaselectedmotiontoadisplayedpose. Thefinal-outputauditverifies
+thatall135formalcausalrunssatisfytheregisteredjoint-range,speed,accelerationandclearance
+constraints at 60 Hz. This remains a kinematic contract rather than evidence of dynamic balance
+or hardware safety.
+Real-time implementation and evaluation. Retrievalandcandidatepreparationexecutein
+boundedbackgroundworkers,whiletheforegroundloopconsumescompletedresultsandadvances
+playback. Theevaluationrecordsrankings, beatdelivery, preparation, transitions, finalposesand
+actual output clocks. The formal matrix in Table 6.1 contains 130 matched short runs and five
+long runs. All 135 pass the registered real-time, readiness and final- output gates at 60 Hz. A
+separate 120 Hz pilot passes only 6/21 runs, so the original frequency is not a reliable operating
+pointonthisplatform. Theoverallachievementisthereforeareproducibleretrieval-and-playback
+system with an empirically validated 60 Hz configuration and a measured capacity limit.
+61
+
+--- PDF PAGE 68 ---
+7.2 Limitations
+Kinematic playback and physical feasibility. The current player writes root pose and joint
+positions directly to MuJoCo state and evaluates forward kinematics. It does not apply a torque-
+controlled tracking policy or solve closed-loop balance. Grounding and binary contact features
+describegeometricsupport,withoutenforcingcontactforces,friction,actuatorcapacityordistur-
+bance recovery. Consequently, a displayed G1 trajectory may remain dynamically infeasible even
+when its joint positions and sampled geometry are valid. No physical Unitree G1 deployment has
+been evaluated in this dissertation.
+Operating-point and final-output limits. The formal 60 Hz cohort passes all registered
+output constraints. Maximum speed is 15.404 rad/s, maximum acceleration is 1673.415 rad/s2,
+and both residual clearance and final joint-range violation counts are zero. Ready-pool underruns
+andhold-lasteventsarealsozero. Theseresultsapplytoauditedkinematicposesontherecorded
+machine. They do not establish torque feasibility, balance, contact stability or physical-robot
+safety.
+For the causal full short suite, the median run-level control-work p99 is 4.657 ms. The five
+long runs have a median of 8.724 ms. All 135 formal runs remain below the 16.67 ms p99 limit
+and 0.01 deadline-miss-ratio limit, although the worst long run reaches 14.483 ms and 0.00693
+respectively. In contrast, the separate 120 Hz pilot passes only 6/21 runs. Its worst p99 is 15.572
+ms against an 8.33 ms period and its worst miss ratio is 0.18544. The 60 Hz evidence is therefore
+empirical soft-real-time evidence for this platform, not a hard- real-time guarantee or evidence
+that the original 120 Hz target has been met.
+Finite coverage and unequal genre performance. The matcher adapts existing clips and
+cannot supply a movement vocabulary absent from the catalogue. Its coverage depends on the
+available AIST++ pairs, their retargeting quality and manually designed compatibility weights.
+Musical similarity is also an indirect proxy for choreographic suitability. Genre Recall@1 ranged
+from1.000forhouse(HO)to0.000forballetjazz(JB),streetjazz(JS)andkrump(KR),usingthe
+genrekeyinTable6.3, inthesix-identities-per-genreevaluation. BroadDiscogs-to-AIST++label
+mappingsandearlygenrerestrictioncanpropagateaclassificationerrorintothemotioncandidate
+set. Theseresultsrevealsubstantialclassdifferences,whilethesmallnumberofidentitiesperclass
+limits generalisation.
+Metreassumptionsandweak-beatbehaviour. Theswitchclockgroupseveryfouraccepted
+alignment beats into a logical bar. It does not estimate musical metre or identify downbeats.
+Since beat acceptance depends on motion feasibility, rejected subdivisions can also change the
+relationship between this clock and the underlying musical pulse. The rule is therefore poorly
+suited to triple metre, including waltz, and cannot promise phrase-aligned switching even for all
+quadruple-metre music. The observed waltz retrieval errors should not, however, be attributed to
+this scheduling rule without an experiment that isolates metre from retrieval.
+For ambient or otherwise weakly rhythmic input, persistent negative-style and beat-quality
+gates provide conservative abstention. The ambient CC0 recording was rejected in 96% of evalu-
+atedwindows,butonerecordingisinsufficientevidenceofrobusthandlingofthecategory. Holding
+62
+
+--- PDF PAGE 69 ---
+the active motion or returning towards authored timing can remain musically inappropriate when
+the audio becomes quiet or loses its pulse. In particular, reducing secondary pose modulation
+does not necessarily stop the underlying authored trajectory. The system lacks a fully specified
+transition from dancing to low-activity behaviour and back, calibrated across diverse weak-beat
+recordings.
+Engineering proxies and experimental coverage. No user study assesses naturalness, ex-
+pressiveness or preference. BAS measures alignment to delivered detector events, while contact
+proxies,entropy,coverageandsmoothnesseachcaptureonlypartofdancequality. Reconstructed
+SMPL FID/Div additionally depend on trace interpolation, source-motion reuse and cyclic ref-
+erence construction. Near-zero reference variance makes some standardised geometric results ill-
+conditioned, so they cannot support an aesthetic ranking. The ten external CC0 recordings and
+synthetic negatives offer limited acoustic diversity. Headless file-input trials do not reproduce
+microphone reverberation, clipping or room noise. Repeated seeds improve repeatability evidence
+without creating independent musical sources, and the causal long runs repeat only one stitched
+source. The formal ablation covers full versus authored timing; causal component tests for re-
+trieval, diversity and transition entry remain future work.
+7.3 Future Work
+Extend the validated operating envelope. The immediate systems priority is to preserve
+the coherent final-output contract while reducing foreground work enough to evaluate 120 Hz
+again. Ashort-horizonconstrainedtrajectoryupdatecouldincorporatecollisioncorrectionwithin
+thesametemporalproblemasjointlimiting. Itsfeasibilityandfallbackbehaviourshouldcontinue
+to be evaluated from actual output timestamps rather than from an intermediate limiter report.
+Profiling should guide reductions in repeated grounding work and especially foreground collision
+cost, with prepared data reused under an explicit model-and-version contract. New comparisons
+should freeze the machine, backend, window settings and audit configuration, and counterbalance
+run order to reduce background-load confounding. Explicit query-slot identifiers and a persistent
+candidateidentifieracrossmatch,pending,readinessandblendeventswouldalsomakeend-to-end
+response attribution more reliable.
+Metre and downbeat-aware control. A causal beat, downbeat and metre estimator could
+replace the fixed four-event clock with an estimate of musical position. The scheduler should
+distinguish the underlying beat sequence from the subset used for motion alignment, so skipping
+an infeasible accent does not redefine the bar. Uncertain metre should lead to a documented
+beat-level fallback rather than an assumed downbeat. Evaluation should include triple metre,
+compound metre, tempo changes and weak percussion, using independently annotated beat and
+downbeattimesalongsidedetectordeliverylatency. Acomplementaryphasestudyshouldcoverat
+leastthreedistinctmotionspergenre,stratifiedbytempoandkey-posedensity. Multiplewindows
+or seeds of one motion should not count as additional motions.
+63
+
+--- PDF PAGE 70 ---
+Learnedtransition-entryscoring. Thecurrentweightedentrycostoffersausefulbaselinefor
+learningwhichcandidatestateproducesasuccessfultransition. Trainingexamplescouldcombine
+current and target pose, velocity, contact, root motion and musical context with measured transi-
+tion outcomes and human pairwise preferences. A learned ranker could then capture interactions
+that a fixed weighted sum misses, while explicit feasibility checks continue to determine admissi-
+bility. Evaluation should hold out source motions and music identities and compare the ranker
+with the existing cost on both perceived continuity and final-output constraints. An improved
+prediction score alone would not establish a better executed transition.
+Motion-fragmentretrievalandcomposition. Theexistingsystemcanenterpartwaythrough
+a selected clip, but retrieval and activity metadata remain primarily clip-level. A fragment cat-
+alogue could instead index phrases or contact-consistent movement units, each with local music
+descriptors, entry and exit states, duration and feasible tempo range. Searching compatible frag-
+mentsequenceswouldpermitfinerresponsestochangeswithinasongandreusealargercombina-
+tion of existing motifs. A sparse transition graph or bounded-horizon search could balance music
+relevance, contactcompatibilityandmotifcontinuity. Suchanextensionneedsnewchecksforthe
+joins and composed sequence. Validating each fragment separately would not establish that their
+concatenation is feasible. Diversity should remain subordinate to coherent musical phrasing.
+Contact-constrained tracking and balance. Foot-contact states should become constraints
+on execution rather than only terms in entry ranking. A subsequent controller could combine
+support-phase information, foot placement and floating-base state estimation with whole-body
+inverse dynamics, model-predictive control or a learned tracking policy. Its role would be to track
+the selected reference subject to contact and actuator constraints, reducing motion intensity or
+delaying a transition when necessary. Dynamics-based simulation should evaluate tracking error,
+foot slip, support transitions, torque saturation and recovery from disturbances. This would test
+a different and stronger claim than the present kinematic preview.
+Physical Unitree G1 deployment. Hardware integration should follow validated closed-loop
+simulation and a measured final-output contract. The music matcher would supply motion ref-
+erences to the tracking controller rather than directly assign the physical root state. Initial
+trials could progress from supported, low-amplitude movements to freestanding sequences and
+then music-driven transitions. They should record microphone acquisition, communication and
+actuator-responsedelaysseparately,aswellastrackingfailuresandinterventions. Thisstagedeval-
+uationwouldrevealhowacousticconditions,state-estimationerrorandactuatorlimitschangethe
+behaviour observed in headless file-input experiments.
+User preference and weak-beat adaptation. A preference-aware selector could allow users
+to favour particular styles, energy levels or degrees of repetition within the feasible candidate
+set. Pairwise judgements of musical fit, transition naturalness and overall appeal would support
+both preference learning and a direct evaluation of dance quality. Weak-beat behaviour should
+similarlybecomeaselectable,explicitresponse. Forexample,acontrolledchangetoalow-activity
+motion followed by a gradual return when rhythmic evidence recovers. Additional real ambient,
+64
+
+--- PDF PAGE 71 ---
+speech, noise and mixed recordings are needed to calibrate rejection and recovery separately.
+User preferences should influence the choice among feasible motions while preserving execution
+constraints, and subjective gains should be reported alongside relevance, continuity and timing
+measurements.
+The work provides a basis for these extensions by making the chain from musical evidence to
+robot pose traceable. Its current results support finite-library retrieval and a 60 Hz kinematic
+operatingpoint,butdonotestablishthatcausalphasecontrolimprovesBASorthat120Hzisre-
+liable. Theydemonstratewhymusicalresponsiveness, outputfeasibilityandreal-timecompliance
+must be evaluated separately. Resolving their interaction is the next step towards a humanoid
+that can perform continuously and expressively under physical control.
+65
+
+--- PDF PAGE 72 ---
+Bibliography
+[1] SimonAlexanderson,RajmundNagy,JonasBeskow,andGustavEjeHenter. Listen,denoise,
+action! audio-drivenmotionsynthesiswithdiffusionmodels. ACM Transactions on Graphics
+(TOG), 42(4):1–20, 2023.
+[2] Pablo Alonso-Jim´enez, Xavier Serra, and Dmitry Bogdanov. Music representation learning
+based on editorial metadata from discogs. In Rao P, Murthy H, Srinivasamurthy A, Bittner
+R,CaroRepettoR,GotoM,SerraX,MironM,editors.Proceedingsofthe23ndInternational
+SocietyforMusicInformationRetrievalConference(ISMIR2022); 2022Dec4-8; Bengaluru,
+India.[Canada]: International Society for Music Information Retrieval; 2022. p. 825-33. In-
+ternational Society for Music Information Retrieval (ISMIR), 2022.
+[3] Joao Pedro Araujo, Yanjie Ze, Pei Xu, Jiajun Wu, and C Karen Liu. Retargeting matters:
+General motion retargeting for humanoid motion tracking. arXiv preprint arXiv:2510.02252,
+2025.
+[4] JuanPabloBello,LaurentDaudet,SamerAbdallah,ChrisDuxbury,MikeDavies,andMarkB
+Sandler. A tutorial on onset detection in music signals. IEEE Transactions on speech and
+audio processing, 13(5):1035–1047, 2005.
+[5] SebastianB¨ock,FilipKorzeniowski,JanSchlu¨ter,FlorianKrebs,andGerhardWidmer. mad-
+mom: A new Python audio and music signal processing library. In Proceedings of the 24th
+ACM International Conference on Multimedia, pages 1174–1178, 2016.
+[6] Dmitry Bogdanov, Nicolas Wack, Emilia G´omez Guti´errez, Sankalp Gulati, Perfecto Her-
+rera Boyer, Oscar Mayor, Gerard Roma Trepat, Justin Salamon, Jos´e Ricardo Zap-
+ata Gonz´alez, and Xavier Serra. Essentia: An audio analysis library for music information
+retrieval. InBritto A, Gouyon F, Dixon S, editors. 14th Conference of the International Soci-
+etyforMusicInformationRetrieval(ISMIR);2013Nov4-8;Curitiba,Brazil.[placeunknown]:
+ISMIR; 2013. p. 493-8.InternationalSocietyforMusicInformationRetrieval(ISMIR),2013.
+[7] Min Jin Chong and David Forsyth. Effectively unbiased fid and inception score and where
+to find them. In 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR), pages 6069–6078. IEEE, 2020.
+[8] Daniel PW Ellis. Beat tracking by dynamic programming. Journal of New Music Research,
+36(1):51–60, 2007.
+[9] Derry Fitzgerald. Harmonic/percussive separation using median filtering. 2010.
+66
+
+--- PDF PAGE 73 ---
+[10] Michael Gleicher. Retargetting motion to new characters. In Proceedings of the 25th annual
+conference on Computer graphics and interactive techniques, pages 33–42, 1998.
+[11] Peter Grosche and Meinard Muller. Extracting predominant local pulse information from
+musicrecordings.IEEETransactionsonAudio,Speech,andLanguageProcessing,19(6):1688–
+1701, 2010.
+[12] MartinHeusel,HubertRamsauer,ThomasUnterthiner,BernhardNessler,andSeppHochre-
+iter. Gans trained by a two time-scale update rule converge to a local nash equilibrium.
+Advances in neural information processing systems, 30, 2017.
+[13] Daniel Holden, Oussama Kanoun, Maksym Perepichka, and Tiberiu Popa. Learned motion
+matching. ACM Transactions on Graphics (ToG), 39(4):53–1, 2020.
+[14] Zikai Huang, Xuemiao Xu, Cheng Xu, Huaidong Zhang, Chenxi Zheng, Jing Qin, and
+Shengfeng He. Beat-it: Beat-synchronized multi-condition 3d dance generation. In Euro-
+pean conference on computer vision, pages 273–290. Springer, 2024.
+[15] Kaiyang Ji, Bingsheng Qian, Binghuan Wu, Kangyi Chen, Ye Shi, and Jingya Wang. Dis-
+coforcing: A unified framework for real-time audio-driven character control with diffusion
+forcing. arXiv preprint arXiv:2605.28491, 2026.
+[16] Lucas Kovar, Michael Gleicher, and Fr´ed´eric Pighin. Motion graphs. In Seminal Graphics
+Papers: Pushing the Boundaries, Volume 2, pages 723–732. 2023.
+[17] Ronghui Li, Junfan Zhao, Yachao Zhang, Mingyang Su, Zeping Ren, Han Zhang, Yansong
+Tang, and Xiu Li. Finedance: A fine-grained choreography dataset for 3d full body dance
+generation. In2023IEEE/CVFInternationalConferenceonComputerVision(ICCV),pages
+10200–10209. IEEE, 2023.
+[18] Ruilong Li, Shan Yang, David A Ross, and Angjoo Kanazawa. Ai choreographer: Music
+conditioned 3d dance generation with aist++. In 2021 IEEE/CVF International Conference
+on Computer Vision (ICCV), pages 13381–13392. Ieee, 2021.
+[19] ZheLi,ChengChi,YangyangWei,BoanZhu,TaoHuang,ZhenguoSun,YiboPeng,Pengwei
+Wang, Zhongyuan Wang, Fangzhou Liu, et al. Do you have freestyle? expressive humanoid
+locomotion via audio control. In Proceedings of the IEEE/CVF Conference on Computer
+Vision and Pattern Recognition, pages 956–965, 2026.
+[20] MatthewLoper,NaureenMahmood,JavierRomero,GerardPons-Moll,andMichaelJBlack.
+Smpl: Askinnedmulti-personlinearmodel. InSeminalGraphicsPapers: PushingtheBound-
+aries, Volume 2, pages 851–866. 2023.
+[21] Brian McFee, Colin Raffel, Dawen Liang, Daniel PW Ellis, Matt McVicar, Eric Battenberg,
+Oriol Nieto, et al. librosa: Audio and music signal analysis in python. SciPy, 2015(18-24):7,
+2015.
+[22] Xue Bin Peng, Pieter Abbeel, Sergey Levine, and Michiel Van de Panne. Deepmimic:
+Example-guided deep reinforcement learning of physics-based character skills. ACM Trans-
+actions On Graphics (TOG), 37(4):1–14, 2018.
+67
+
+--- PDF PAGE 74 ---
+[23] Li Siyao, Weijiang Yu, Tianpei Gu, Chunze Lin, Quan Wang, Chen Qian, Chen Change Loy,
+andZiweiLiu. Bailando: 3ddancegenerationbyactor-criticgptwithchoreographicmemory.
+InProceedingsoftheIEEE/CVFconferenceoncomputervisionandpatternrecognition,pages
+11050–11059, 2022.
+[24] Emanuel Todorov, Tom Erez, and Yuval Tassa. Mujoco: A physics engine for model-based
+control. In 2012 IEEE/RSJ international conference on intelligent robots and systems, pages
+5026–5033. IEEE, 2012.
+[25] Jonathan Tseng, Rodrigo Castellon, and Karen Liu. Edge: Editable dance generation from
+music. In Proceedings of the IEEE/CVF conference on computer vision and pattern recogni-
+tion, pages 448–458, 2023.
+[26] Shuhei Tsuchida, Satoru Fukayama, Masahiro Hamasaki, and Masataka Goto. Aist dance
+videodatabase: Multi-genre, multi-dancer, andmulti-cameradatabasefordanceinformation
+processing. In ISMIR, volume 1, page 6, 2019.
+68
+
+--- PDF PAGE 75 ---
+Appendix A
+Source Code Repository
+The source code for the BeatWeaver system described in this dissertation is available in the
+following GitHub repository:
+https://github.com/EddieOuyang2004/MusicRobot/tree/main
+The humanoid implementation is located in realtime/humanoid robot/. Readers should
+consult the repository’s top-level README and the README in that directory for the project
+structure and instructions for running the system.
+69

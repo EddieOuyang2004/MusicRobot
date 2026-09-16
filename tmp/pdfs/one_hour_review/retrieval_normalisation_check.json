@@ -1,0 +1,353 @@
+{
+  "catalog_sha256": "896fdddd9e5b3dc9d27e78f6c895cc6e85b0236388fca3a498c1212f91547407",
+  "existing_global_statistics": {
+    "ranking": {
+      "queries": 60,
+      "recall_at_1": 0.31666666666666665,
+      "recall_at_3": 0.5333333333333333,
+      "recall_at_5": 0.7833333333333333,
+      "macro_f1": 0.2719120879120879,
+      "mean_reciprocal_rank": 0.504755291005291,
+      "ndcg_at_5": 0.550108390029706,
+      "per_genre": {
+        "BR": {
+          "queries": 6,
+          "precision": 0.2857142857142857,
+          "recall": 0.3333333333333333,
+          "f1": 0.30769230769230765,
+          "recall_at_1": 0.3333333333333333,
+          "recall_at_3": 0.8333333333333334,
+          "recall_at_5": 1.0
+        },
+        "HO": {
+          "queries": 6,
+          "precision": 0.3157894736842105,
+          "recall": 1.0,
+          "f1": 0.4799999999999999,
+          "recall_at_1": 1.0,
+          "recall_at_3": 1.0,
+          "recall_at_5": 1.0
+        },
+        "JB": {
+          "queries": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.6666666666666666,
+          "recall_at_5": 0.8333333333333334
+        },
+        "JS": {
+          "queries": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.16666666666666666,
+          "recall_at_5": 0.5
+        },
+        "KR": {
+          "queries": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.0,
+          "recall_at_5": 0.5
+        },
+        "LH": {
+          "queries": 6,
+          "precision": 1.0,
+          "recall": 0.16666666666666666,
+          "f1": 0.2857142857142857,
+          "recall_at_1": 0.16666666666666666,
+          "recall_at_3": 0.16666666666666666,
+          "recall_at_5": 0.6666666666666666
+        },
+        "LO": {
+          "queries": 6,
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6666666666666666,
+          "recall_at_1": 0.5,
+          "recall_at_3": 0.8333333333333334,
+          "recall_at_5": 1.0
+        },
+        "MH": {
+          "queries": 6,
+          "precision": 0.4444444444444444,
+          "recall": 0.6666666666666666,
+          "f1": 0.5333333333333333,
+          "recall_at_1": 0.6666666666666666,
+          "recall_at_3": 0.6666666666666666,
+          "recall_at_5": 0.8333333333333334
+        },
+        "PO": {
+          "queries": 6,
+          "precision": 0.10526315789473684,
+          "recall": 0.3333333333333333,
+          "f1": 0.16,
+          "recall_at_1": 0.3333333333333333,
+          "recall_at_3": 0.8333333333333334,
+          "recall_at_5": 1.0
+        },
+        "WA": {
+          "queries": 6,
+          "precision": 1.0,
+          "recall": 0.16666666666666666,
+          "f1": 0.2857142857142857,
+          "recall_at_1": 0.16666666666666666,
+          "recall_at_3": 0.16666666666666666,
+          "recall_at_5": 0.5
+        }
+      },
+      "confusion": {
+        "BR": {
+          "MH": 3,
+          "PO": 1,
+          "BR": 2
+        },
+        "HO": {
+          "HO": 6
+        },
+        "JB": {
+          "BR": 3,
+          "PO": 3
+        },
+        "JS": {
+          "PO": 3,
+          "HO": 3
+        },
+        "KR": {
+          "MH": 1,
+          "BR": 1,
+          "PO": 2,
+          "HO": 2
+        },
+        "LH": {
+          "PO": 3,
+          "LH": 1,
+          "HO": 2
+        },
+        "LO": {
+          "LO": 3,
+          "PO": 1,
+          "HO": 2
+        },
+        "MH": {
+          "MH": 4,
+          "PO": 1,
+          "HO": 1
+        },
+        "PO": {
+          "BR": 1,
+          "JS": 1,
+          "MH": 1,
+          "PO": 2,
+          "HO": 1
+        },
+        "WA": {
+          "PO": 3,
+          "WA": 1,
+          "HO": 2
+        }
+      }
+    },
+    "music_level_bootstrap_95_ci": {
+      "recall_at_1": {
+        "samples": 60,
+        "mean": 0.31666666666666665,
+        "low": 0.2,
+        "high": 0.43333333333333335
+      },
+      "recall_at_3": {
+        "samples": 60,
+        "mean": 0.5333333333333333,
+        "low": 0.4166666666666667,
+        "high": 0.6666666666666666
+      },
+      "recall_at_5": {
+        "samples": 60,
+        "mean": 0.7833333333333333,
+        "low": 0.6666666666666666,
+        "high": 0.8833333333333333
+      }
+    }
+  },
+  "fold_only_audio_statistics": {
+    "ranking": {
+      "queries": 60,
+      "recall_at_1": 0.31666666666666665,
+      "recall_at_3": 0.55,
+      "recall_at_5": 0.7833333333333333,
+      "macro_f1": 0.2719120879120879,
+      "mean_reciprocal_rank": 0.5061441798941799,
+      "ndcg_at_5": 0.5512637807284828,
+      "per_genre": {
+        "BR": {
+          "queries": 6,
+          "precision": 0.2857142857142857,
+          "recall": 0.3333333333333333,
+          "f1": 0.30769230769230765,
+          "recall_at_1": 0.3333333333333333,
+          "recall_at_3": 0.8333333333333334,
+          "recall_at_5": 1.0
+        },
+        "HO": {
+          "queries": 6,
+          "precision": 0.3157894736842105,
+          "recall": 1.0,
+          "f1": 0.4799999999999999,
+          "recall_at_1": 1.0,
+          "recall_at_3": 1.0,
+          "recall_at_5": 1.0
+        },
+        "JB": {
+          "queries": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.6666666666666666,
+          "recall_at_5": 0.8333333333333334
+        },
+        "JS": {
+          "queries": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.16666666666666666,
+          "recall_at_5": 0.5
+        },
+        "KR": {
+          "queries": 6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.0,
+          "recall_at_5": 0.5
+        },
+        "LH": {
+          "queries": 6,
+          "precision": 1.0,
+          "recall": 0.16666666666666666,
+          "f1": 0.2857142857142857,
+          "recall_at_1": 0.16666666666666666,
+          "recall_at_3": 0.16666666666666666,
+          "recall_at_5": 0.6666666666666666
+        },
+        "LO": {
+          "queries": 6,
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6666666666666666,
+          "recall_at_1": 0.5,
+          "recall_at_3": 0.8333333333333334,
+          "recall_at_5": 1.0
+        },
+        "MH": {
+          "queries": 6,
+          "precision": 0.4444444444444444,
+          "recall": 0.6666666666666666,
+          "f1": 0.5333333333333333,
+          "recall_at_1": 0.6666666666666666,
+          "recall_at_3": 0.8333333333333334,
+          "recall_at_5": 0.8333333333333334
+        },
+        "PO": {
+          "queries": 6,
+          "precision": 0.10526315789473684,
+          "recall": 0.3333333333333333,
+          "f1": 0.16,
+          "recall_at_1": 0.3333333333333333,
+          "recall_at_3": 0.8333333333333334,
+          "recall_at_5": 1.0
+        },
+        "WA": {
+          "queries": 6,
+          "precision": 1.0,
+          "recall": 0.16666666666666666,
+          "f1": 0.2857142857142857,
+          "recall_at_1": 0.16666666666666666,
+          "recall_at_3": 0.16666666666666666,
+          "recall_at_5": 0.5
+        }
+      },
+      "confusion": {
+        "BR": {
+          "MH": 3,
+          "PO": 1,
+          "BR": 2
+        },
+        "HO": {
+          "HO": 6
+        },
+        "JB": {
+          "BR": 3,
+          "PO": 3
+        },
+        "JS": {
+          "PO": 3,
+          "HO": 3
+        },
+        "KR": {
+          "MH": 1,
+          "BR": 1,
+          "PO": 2,
+          "HO": 2
+        },
+        "LH": {
+          "PO": 3,
+          "LH": 1,
+          "HO": 2
+        },
+        "LO": {
+          "LO": 3,
+          "PO": 1,
+          "HO": 2
+        },
+        "MH": {
+          "MH": 4,
+          "PO": 1,
+          "HO": 1
+        },
+        "PO": {
+          "BR": 1,
+          "JS": 1,
+          "MH": 1,
+          "PO": 2,
+          "HO": 1
+        },
+        "WA": {
+          "PO": 3,
+          "WA": 1,
+          "HO": 2
+        }
+      }
+    },
+    "music_level_bootstrap_95_ci": {
+      "recall_at_1": {
+        "samples": 60,
+        "mean": 0.31666666666666665,
+        "low": 0.2,
+        "high": 0.43333333333333335
+      },
+      "recall_at_3": {
+        "samples": 60,
+        "mean": 0.55,
+        "low": 0.43333333333333335,
+        "high": 0.6666666666666666
+      },
+      "recall_at_5": {
+        "samples": 60,
+        "mean": 0.7833333333333333,
+        "low": 0.6666666666666666,
+        "high": 0.8833333333333333
+      }
+    }
+  },
+  "elapsed_seconds": 3.9298049999999876,
+  "scope": "Diagnostic only; audio normalisation changed in memory. No saved catalogue, source code, thesis, or frozen result modified. Motion statistics and manually selected settings were not re-estimated."
+}

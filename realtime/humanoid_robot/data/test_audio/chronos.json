@@ -1,0 +1,14 @@
+{
+  "title": "Chronos",
+  "file": "chronos.mp3",
+  "source_library": "FreePD",
+  "source_page": "https://en.freepd.cn/music/electronic",
+  "download_url": "https://en.freepd.cn/api/music/456c656374726f6e69632f4368726f6e6f732e6d7033",
+  "license_as_listed_by_source": "CC0 / public domain",
+  "downloaded_on": "2026-09-14",
+  "duration_seconds": 129.222375,
+  "estimated_bpm": 117.1875,
+  "tempo_method": "librosa.beat.beat_track, entire track resampled to 16000 Hz; diagnostic estimate, not ground truth",
+  "sha256": "ba90826638bc43f8449a7417c6b64e5329891dd5414c980f78b32cbe10276ddd",
+  "test_role": "New electronic track outside the AIST++ catalog and existing ten-track test set; causal rhythm acquisition and repeated transition preparation."
+}

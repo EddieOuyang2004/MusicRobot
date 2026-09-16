@@ -1,0 +1,3 @@
+# Optional backend for realtime_music_humanoid_matcher_v2.py.
+# Install alongside the repository's normal requirements.
+ruckig==0.19.4

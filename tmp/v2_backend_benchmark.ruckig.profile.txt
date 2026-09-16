@@ -1,0 +1,33 @@
+         38863 function calls in 0.026 seconds
+
+   Ordered by: cumulative time
+   List reduced from 32 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      212    0.001    0.000    0.026    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\test\benchmark_v2_bridge_backends.py:67(solve)
+      212    0.008    0.000    0.025    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:155(make_bridge)
+     4440    0.003    0.000    0.009    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:71(_wrapreduction)
+     3172    0.001    0.000    0.007    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:2421(all)
+      846    0.003    0.000    0.007    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:141(_within)
+      424    0.000    0.000    0.005    0.000 {built-in method builtins.any}
+     1696    0.001    0.000    0.004    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:160(<genexpr>)
+     4440    0.004    0.000    0.004    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+      848    0.000    0.000    0.002    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:2322(any)
+     4440    0.001    0.000    0.001    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:72(<dictcomp>)
+      420    0.000    0.000    0.001    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:2692(max)
+      210    0.000    0.000    0.001    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:134(require_ruckig)
+      210    0.000    0.000    0.001    0.000 C:\Users\Eddie\miniconda3\envs\librosa\Lib\importlib\__init__.py:108(import_module)
+      210    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:1192(_gcd_import)
+     1890    0.000    0.000    0.000    0.000 {method 'tolist' of 'numpy.ndarray' objects}
+     4440    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
+      212    0.000    0.000    0.000    0.000 C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\motion_bridges.py:157(<listcomp>)
+     1260    0.000    0.000    0.000    0.000 {built-in method builtins.setattr}
+     3172    0.000    0.000    0.000    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:2416(_all_dispatcher)
+      210    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:1165(_find_and_load)
+     1680    0.000    0.000    0.000    0.000 {built-in method builtins.getattr}
+      210    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:1101(_sanity_check)
+     1060    0.000    0.000    0.000    0.000 {built-in method numpy.asarray}
+      848    0.000    0.000    0.000    0.000 C:\Users\Eddie\Desktop\MusicRobot\.venv\Lib\site-packages\numpy\core\fromnumeric.py:2317(_any_dispatcher)
+      210    0.000    0.000    0.000    0.000 {built-in method builtins.max}
+
+

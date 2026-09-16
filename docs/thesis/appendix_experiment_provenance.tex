@@ -1,0 +1,129 @@
+\chapter{Experimental Provenance and Historical Configurations}
+\label{app:experiment_provenance}
+
+This appendix records the relationship between the archived development
+experiments and the final evaluation in Chapter~\ref{chap:experimental_evaluation}.
+Historical results remain available for audit, but their runtime scores are
+not pooled with or substituted for the final 60 Hz formal results.
+
+\section{Historical preanalysed replay}
+
+The historical runtime suites used file playback with preanalysed musical
+timing, a 120 Hz control target, a six-second matching window, a one-second
+matching interval and six seconds of warm-up. Runs were headless, with runtime
+collision checking enabled. Seeds were 0--4. Durations below include warm-up.
+Unlike the final causal protocol, this mode could use musical timing obtained
+from audio beyond the current playback position.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{p{0.18\linewidth}p{0.56\linewidth}r}
+\toprule
+Archived suite & Configuration and purpose & Runs \\
+\midrule
+Replay full & 60 AIST++ music identities and ten CC0 recordings;
+full system; 30 s each. Broad playback characterisation. & 350 \\
+Replay ablation & 13 inputs, eight conditions, 40 s each.
+Exploratory component comparisons within the replay protocol. & 520 \\
+Replay long & One repeated stitched input, the same eight conditions,
+606 s each. Historical sustained-playback diagnostics. & 40 \\
+SMPL subset & 40 music/reference pairs, five seeds, 26 s each.
+Traces reused for the separate offline feature analysis. & 200 \\
+Preflight & One 10 s development smoke check. & 1 \\
+\bottomrule
+\end{tabular}
+\caption{Archived replay configuration. These 1,111 process runs are separate
+from the 135 final formal runtime runs. The SMPL analysis retains its own
+200-output denominator.}
+\label{tab:app_replay_matrix}
+\end{table}
+
+The replay ablation inputs were the stitched AIST++ stream, ten CC0 recordings,
+a tempo jump and a silence/recovery stream. Its eight conditions were full,
+legacy retrieval, no motion compatibility, instant top-one selection,
+no diversity, authored timing, fixed entry/simple transition and no output
+limiter. Each condition had $13\times5=65$ runs. Thus a replay ablation
+difference used its own matched 65-run full condition, not the separate
+350-run Replay full suite. The historical long suite used five runs per
+condition, giving $1\times8\times5=40$.
+
+\section{Meaning of historical row names}
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{p{0.24\linewidth}p{0.67\linewidth}}
+\toprule
+Former row label & Provenance and configuration \\
+\midrule
+Replay full, $N=350$ & The archived 70-input playback suite in
+Table~\ref{tab:app_replay_matrix}; not a formal 60 Hz result. \\
+Legacy retrieval & Replay ablation setting the match policy to legacy. \\
+No diversity & Replay ablation setting diversity top-$k$ to 1 and
+maximum hold bars to 1,000,000. This is the implemented diagnostic configuration,
+not a claim that every possible source of motion diversity is removed. \\
+Fixed entry & Replay ablation using the fixed-entry/simple-transition
+diagnostic switch; it changes the combined mechanism rather than isolating
+entry search alone. \\
+Replay authored & Replay ablation using authored motion timing;
+its reference is full within that replay ablation suite. \\
+Causal authored & A name also used for the earlier 120 Hz causal supplement
+in the archived combined analysis. The final 60 Hz condition is explicitly
+identified as F-authored in Chapter~\ref{chap:experimental_evaluation}. \\
+\bottomrule
+\end{tabular}
+\caption{Provenance of labels that appeared together in earlier result tables.
+Historical replay comparisons and earlier causal comparisons are not arms
+of a single formal ablation.}
+\label{tab:app_historical_labels}
+\end{table}
+
+The earlier causal supplement also had 130 short and five long runs, but ran
+at 120 Hz with an earlier implementation. Its 135-run count must not be
+confused with the final 135-run cohort. Similarly, the 21-run 120 Hz v5
+capacity pilot reported in Chapter~\ref{chap:experimental_evaluation} is a
+separate experiment from both the old replay suites and that earlier supplement.
+Condition names and equal run counts alone do not identify an experiment.
+
+\section{Permitted comparisons and artifact locations}
+
+Historical replay BAS uses the original preanalysed beat records. Formal
+causal BAS uses actual online beat-delivery times. The old records cannot
+recover actual frame and response clocks; their nominal-rate joint derivatives
+cannot validate the final actual-clock output contract. The old physical-contact
+proxy is also distinct from the adapted G1 PFC used in the formal analysis.
+Changes in implementation, audio availability, control rate, source coverage
+and duration therefore prevent interpreting replay-to-formal differences as
+isolated component effects. Reanalysis can improve summaries but cannot recover
+measurements that were never recorded.
+
+Within the formal cohort, F-full and F-authored share sources, seeds, durations
+and measurement instruments. They support the timing comparison reported in
+Chapter~\ref{chap:experimental_evaluation}. F-long supplies sustained-operation
+evidence for one repeated source. The historical component ablations are
+development diagnostics and do not establish the corresponding component
+benefits for the final implementation. Offline retrieval/rejection and SMPL
+feature characterisation retain the separate units and limitations stated in
+that chapter.
+
+\begin{samepage}
+For reproducibility, the following paths are relative to the repository root:
+\begin{itemize}[leftmargin=*]
+    \item Archived replay commands, manifests and per-suite run indices:
+    \path{realtime/humanoid_robot/src/test/output/thesis_final/}.
+    \item Earlier causal supplement:\\
+    \path{realtime/humanoid_robot/src/test/output/thesis_supplement/}.
+    \item Archived combined replay/causal analysis containing the former
+    mixed table rows: \path{docs/thesis/experiment_results/reanalysis_v2/}.
+    \item Separate 120 Hz v5 capacity-pilot analysis:
+    \path{docs/thesis/experiment_results/reanalysis_pilot_120_v5/}.
+    \item Final formal runtime commands, manifest and run indices:
+    \path{realtime/humanoid_robot/src/test/output/thesis_rescue_formal_60_v5/}.
+    \item Final analysis and the tables/macros imported by the thesis:
+    \path{docs/thesis/experiment_results/reanalysis_rescue_60_v5/}.
+\end{itemize}
+\end{samepage}
+The final analysis bundle retains historical material for provenance and
+offline feature reconstruction. The runtime table export explicitly selects
+its final \texttt{online\_causal} short and long groups. Presence in that bundle
+does not make an archived replay run part of the formal cohort. Each cohort's
+manifest and recorded commands determine its implementation and configuration.

@@ -1,0 +1,586 @@
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gLO_sBM_cAll_d13_mLO2_ch02.pkl with constant root Z offset +0.836900 m.
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d10_mPO3_ch02.pkl with constant root Z offset +0.803349 m.
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO0_ch02.pkl with constant root Z offset +0.854044 m.
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d20_mHO5_ch04.pkl with constant root Z offset +0.828414 m.
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d20_mHO5_ch05.pkl with constant root Z offset +0.843518 m.
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d19_mHO2_ch02.pkl with constant root Z offset +0.845639 m.
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO2_ch02.pkl with constant root Z offset +0.843206 m.
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO5_ch02.pkl with constant root Z offset +0.831763 m.
+{
+  "clips": {
+    "gLO_sBM_cAll_d13_mLO2_ch02": {
+      "plateaus": [
+        {
+          "frames": [
+            19,
+            23
+          ],
+          "duration_s": 0.06666666666666667,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            27,
+            127
+          ],
+          "duration_s": 1.6666666666666667,
+          "audio_window": [
+            "0.056000",
+            "1.208000"
+          ]
+        },
+        {
+          "frames": [
+            137,
+            144
+          ],
+          "duration_s": 0.11666666666666667,
+          "audio_window": [
+            "1.400000",
+            "1.464000"
+          ]
+        },
+        {
+          "frames": [
+            146,
+            258
+          ],
+          "duration_s": 1.8666666666666667,
+          "audio_window": [
+            "1.528000",
+            "3.320000"
+          ]
+        },
+        {
+          "frames": [
+            259,
+            274
+          ],
+          "duration_s": 0.25,
+          "audio_window": [
+            "3.352000",
+            "3.512000"
+          ]
+        },
+        {
+          "frames": [
+            276,
+            281
+          ],
+          "duration_s": 0.08333333333333333,
+          "audio_window": [
+            "3.672000",
+            "3.672000"
+          ]
+        },
+        {
+          "frames": [
+            301,
+            416
+          ],
+          "duration_s": 1.9166666666666667,
+          "audio_window": [
+            "3.960000",
+            "5.560000"
+          ]
+        },
+        {
+          "frames": [
+            428,
+            449
+          ],
+          "duration_s": 0.35,
+          "audio_window": [
+            "5.816000",
+            "6.104000"
+          ]
+        },
+        {
+          "frames": [
+            452,
+            575
+          ],
+          "duration_s": 2.05,
+          "audio_window": [
+            "6.200000",
+            "6.264000"
+          ]
+        }
+      ]
+    },
+    "gPO_sBM_cAll_d10_mPO3_ch02": {
+      "plateaus": [
+        {
+          "frames": [
+            18,
+            26
+          ],
+          "duration_s": 0.13333333333333333,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            93,
+            102
+          ],
+          "duration_s": 0.15,
+          "audio_window": [
+            "7.704000",
+            "7.800000"
+          ]
+        },
+        {
+          "frames": [
+            108,
+            148
+          ],
+          "duration_s": 0.6666666666666666,
+          "audio_window": [
+            "7.928000",
+            "8.408000"
+          ]
+        },
+        {
+          "frames": [
+            220,
+            225
+          ],
+          "duration_s": 0.08333333333333333,
+          "audio_window": [
+            "9.816000",
+            "9.880000"
+          ]
+        },
+        {
+          "frames": [
+            226,
+            230
+          ],
+          "duration_s": 0.06666666666666667,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            237,
+            257
+          ],
+          "duration_s": 0.3333333333333333,
+          "audio_window": [
+            "10.072000",
+            "10.328000"
+          ]
+        },
+        {
+          "frames": [
+            366,
+            374
+          ],
+          "duration_s": 0.13333333333333333,
+          "audio_window": [
+            "12.216000",
+            "12.408000"
+          ]
+        },
+        {
+          "frames": [
+            401,
+            414
+          ],
+          "duration_s": 0.21666666666666667,
+          "audio_window": [
+            "13.272000",
+            "13.624000"
+          ]
+        }
+      ]
+    },
+    "gPO_sBM_cAll_d11_mPO0_ch02": {
+      "plateaus": [
+        {
+          "frames": [
+            40,
+            67
+          ],
+          "duration_s": 0.45,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            143,
+            208
+          ],
+          "duration_s": 1.0833333333333333,
+          "audio_window": [
+            "16.632000",
+            "18.232000"
+          ]
+        },
+        {
+          "frames": [
+            210,
+            215
+          ],
+          "duration_s": 0.08333333333333333,
+          "audio_window": [
+            "18.328000",
+            "18.424000"
+          ]
+        },
+        {
+          "frames": [
+            217,
+            222
+          ],
+          "duration_s": 0.08333333333333333,
+          "audio_window": [
+            "18.520000",
+            "18.552000"
+          ]
+        },
+        {
+          "frames": [
+            237,
+            241
+          ],
+          "duration_s": 0.06666666666666667,
+          "audio_window": [
+            "18.968000",
+            "19.000000"
+          ]
+        },
+        {
+          "frames": [
+            251,
+            266
+          ],
+          "duration_s": 0.25,
+          "audio_window": [
+            "19.320000",
+            "19.608000"
+          ]
+        },
+        {
+          "frames": [
+            330,
+            356
+          ],
+          "duration_s": 0.43333333333333335,
+          "audio_window": [
+            "20.856000",
+            "21.304000"
+          ]
+        },
+        {
+          "frames": [
+            388,
+            418
+          ],
+          "duration_s": 0.5,
+          "audio_window": [
+            "21.976000",
+            "22.552000"
+          ]
+        },
+        {
+          "frames": [
+            509,
+            557
+          ],
+          "duration_s": 0.8,
+          "audio_window": [
+            "24.984000",
+            "26.360000"
+          ]
+        },
+        {
+          "frames": [
+            563,
+            572
+          ],
+          "duration_s": 0.15,
+          "audio_window": [
+            "26.520000",
+            "26.712000"
+          ]
+        },
+        {
+          "frames": [
+            575,
+            584
+          ],
+          "duration_s": 0.15,
+          "audio_window": [
+            "26.808000",
+            "26.968000"
+          ]
+        },
+        {
+          "frames": [
+            595,
+            604
+          ],
+          "duration_s": 0.15,
+          "audio_window": [
+            "27.224000",
+            "27.352000"
+          ]
+        },
+        {
+          "frames": [
+            658,
+            719
+          ],
+          "duration_s": 1.0166666666666666,
+          "audio_window": null
+        }
+      ]
+    },
+    "gHO_sBM_cAll_d20_mHO5_ch04": {
+      "plateaus": []
+    },
+    "gHO_sBM_cAll_d20_mHO5_ch05": {
+      "plateaus": []
+    },
+    "gHO_sBM_cAll_d19_mHO2_ch02": {
+      "plateaus": [
+        {
+          "frames": [
+            108,
+            127
+          ],
+          "duration_s": 0.31666666666666665,
+          "audio_window": [
+            "43.800000",
+            "44.216000"
+          ]
+        },
+        {
+          "frames": [
+            352,
+            378
+          ],
+          "duration_s": 0.43333333333333335,
+          "audio_window": [
+            "50.424000",
+            "50.616000"
+          ]
+        },
+        {
+          "frames": [
+            414,
+            420
+          ],
+          "duration_s": 0.1,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            424,
+            479
+          ],
+          "duration_s": 0.9166666666666666,
+          "audio_window": null
+        }
+      ]
+    },
+    "gHO_sBM_cAll_d21_mHO2_ch02": {
+      "plateaus": [
+        {
+          "frames": [
+            64,
+            74
+          ],
+          "duration_s": 0.16666666666666666,
+          "audio_window": [
+            "51.128000",
+            "51.256000"
+          ]
+        },
+        {
+          "frames": [
+            75,
+            82
+          ],
+          "duration_s": 0.11666666666666667,
+          "audio_window": [
+            "51.320000",
+            "51.480000"
+          ]
+        },
+        {
+          "frames": [
+            197,
+            203
+          ],
+          "duration_s": 0.1,
+          "audio_window": [
+            "54.328000",
+            "54.424000"
+          ]
+        },
+        {
+          "frames": [
+            327,
+            332
+          ],
+          "duration_s": 0.08333333333333333,
+          "audio_window": [
+            "57.400000",
+            "57.528000"
+          ]
+        },
+        {
+          "frames": [
+            433,
+            441
+          ],
+          "duration_s": 0.13333333333333333,
+          "audio_window": null
+        }
+      ]
+    },
+    "gHO_sBM_cAll_d21_mHO5_ch02": {
+      "plateaus": [
+        {
+          "frames": [
+            126,
+            131
+          ],
+          "duration_s": 0.08333333333333333,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            178,
+            182
+          ],
+          "duration_s": 0.06666666666666667,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            338,
+            345
+          ],
+          "duration_s": 0.11666666666666667,
+          "audio_window": null
+        },
+        {
+          "frames": [
+            393,
+            398
+          ],
+          "duration_s": 0.08333333333333333,
+          "audio_window": null
+        }
+      ]
+    }
+  },
+  "bridges": [
+    {
+      "audio_start": 6.296,
+      "source": "gLO_sBM_cAll_d13_mLO2_ch02",
+      "target": "gPO_sBM_cAll_d10_mPO3_ch02",
+      "clearance_violating_samples": 29,
+      "samples": 351,
+      "minimum_distance_capped_at_6mm": 0.0,
+      "pair": [
+        "pelvis",
+        "right_wrist_pitch_link"
+      ],
+      "violation_bridge_time_range": [
+        0.101,
+        0.217
+      ]
+    },
+    {
+      "audio_start": 16.248,
+      "source": "gPO_sBM_cAll_d10_mPO3_ch02",
+      "target": "gPO_sBM_cAll_d11_mPO0_ch02",
+      "clearance_violating_samples": 105,
+      "samples": 351,
+      "minimum_distance_capped_at_6mm": 0.0,
+      "pair": [
+        "right_hip_yaw_link",
+        "right_wrist_yaw_link"
+      ],
+      "violation_bridge_time_range": [
+        0.17200000000000001,
+        0.276
+      ]
+    },
+    {
+      "audio_start": 27.448,
+      "source": "gPO_sBM_cAll_d11_mPO0_ch02",
+      "target": "gHO_sBM_cAll_d20_mHO5_ch04",
+      "clearance_violating_samples": 0,
+      "samples": 351,
+      "minimum_distance_capped_at_6mm": 0.006,
+      "pair": [
+        "left_hip_yaw_link",
+        "right_hip_yaw_link"
+      ],
+      "violation_bridge_time_range": null
+    },
+    {
+      "audio_start": 34.872,
+      "source": "gHO_sBM_cAll_d20_mHO5_ch04",
+      "target": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "clearance_violating_samples": 0,
+      "samples": 351,
+      "minimum_distance_capped_at_6mm": 0.006,
+      "pair": [
+        "left_hip_yaw_link",
+        "right_hip_yaw_link"
+      ],
+      "violation_bridge_time_range": null
+    },
+    {
+      "audio_start": 42.776,
+      "source": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "target": "gHO_sBM_cAll_d19_mHO2_ch02",
+      "clearance_violating_samples": 0,
+      "samples": 351,
+      "minimum_distance_capped_at_6mm": 0.006,
+      "pair": [
+        "left_hip_yaw_link",
+        "right_hip_yaw_link"
+      ],
+      "violation_bridge_time_range": null
+    },
+    {
+      "audio_start": 50.616,
+      "source": "gHO_sBM_cAll_d19_mHO2_ch02",
+      "target": "gHO_sBM_cAll_d21_mHO2_ch02",
+      "clearance_violating_samples": 0,
+      "samples": 351,
+      "minimum_distance_capped_at_6mm": 0.006,
+      "pair": [
+        "left_hip_yaw_link",
+        "right_hip_yaw_link"
+      ],
+      "violation_bridge_time_range": null
+    },
+    {
+      "audio_start": 58.936,
+      "source": "gHO_sBM_cAll_d21_mHO2_ch02",
+      "target": "gHO_sBM_cAll_d21_mHO5_ch02",
+      "clearance_violating_samples": 0,
+      "samples": 351,
+      "minimum_distance_capped_at_6mm": 0.006,
+      "pair": [
+        "left_hip_yaw_link",
+        "right_hip_yaw_link"
+      ],
+      "violation_bridge_time_range": null
+    }
+  ]
+}

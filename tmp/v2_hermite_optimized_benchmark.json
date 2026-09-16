@@ -1,0 +1,32 @@
+{
+  "chronos": {
+    "original": {
+      "mean_ms": 71.99761367924368,
+      "p95_ms": 95.10135999953482,
+      "total_ms": 15263.494099999662,
+      "accepted": 1
+    },
+    "optimized": {
+      "mean_ms": 1.7150905659946147,
+      "p95_ms": 2.075450000120327,
+      "total_ms": 363.5991999908583,
+      "accepted": 1
+    },
+    "identical_decisions_and_durations": true
+  },
+  "synthetic": {
+    "original": {
+      "mean_ms": 13.859489062724606,
+      "p95_ms": 21.432549999735784,
+      "total_ms": 887.0073000143748,
+      "accepted": 64
+    },
+    "optimized": {
+      "mean_ms": 0.6206718746852857,
+      "p95_ms": 1.1986149998847377,
+      "total_ms": 39.72299997985829,
+      "accepted": 64
+    },
+    "identical_decisions_and_durations": true
+  }
+}

@@ -1827,7 +1827,7 @@ class FileMicrophoneSource:
         self.cursor = end
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(*, control_rate_default: float = 120.0) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Realtime music-adaptive MuJoCo humanoid dancer.")
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
     parser.add_argument(
@@ -1931,8 +1931,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--control-rate-hz",
         type=float,
-        default=120.0,
-        help="Realtime kinematic control frequency (default: 120 Hz).",
+        default=control_rate_default,
+        help="Realtime kinematic control frequency (default: %(default)s Hz).",
     )
     parser.add_argument(
         "--viewer-rate-hz",
