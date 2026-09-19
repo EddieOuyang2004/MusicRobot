@@ -1,0 +1,40 @@
+{
+  "motion": "gWA_sBM_cAll_d26_mWA0_ch07",
+  "fps": 60.0,
+  "frames": 720,
+  "smoothness_weight": 2.0,
+  "baseline": {
+    "all_joint_hold_intervals": 234,
+    "joint_target_rmse_rad": 0.29362921406240905,
+    "peak_speed_rad_s": 9.424777960769386,
+    "acceleration_rms_rad_s2": 81.03329952192608,
+    "peak_acceleration_rad_s2": 1130.9733552923256,
+    "jerk_rms_rad_s3": 7186.74480657174
+  },
+  "projected": {
+    "all_joint_hold_intervals": 40,
+    "joint_target_rmse_rad": 0.1570065530456172,
+    "peak_speed_rad_s": 9.42477796076938,
+    "acceleration_rms_rad_s2": 46.875132404849175,
+    "peak_acceleration_rad_s2": 564.0003414160915,
+    "jerk_rms_rad_s3": 2349.424623708958
+  },
+  "projection_stats": {
+    "backtracked_frames": 67,
+    "solver_failures": 0,
+    "elapsed_seconds": 16.74755870000081
+  },
+  "validation": {
+    "baseline": {
+      "samples_per_interval": 81,
+      "clearance_m": 0.005,
+      "violating_samples": 0
+    },
+    "projected_w2": {
+      "samples_per_interval": 81,
+      "clearance_m": 0.005,
+      "violating_samples": 0
+    }
+  },
+  "caveat": "Sampled kinematic self-collision validation, not continuous collision or dynamic feasibility certification."
+}

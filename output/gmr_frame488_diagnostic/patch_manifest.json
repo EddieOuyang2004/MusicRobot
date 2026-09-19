@@ -1,0 +1,14 @@
+[
+  {
+    "target": "realtime/humanoid_robot/src/gmr_state_trajectory.py",
+    "staged": "candidate.py",
+    "before": "9c935c8b4a5fca104e0dcbe5facb0a7e85948641df6c56444339b81d0bffe429",
+    "after": "986f6ddfc60ee4602ce2752b1b9dc84add2febc054c9ba1c123faf40136c0877"
+  },
+  {
+    "target": "tests/test_gmr_state_trajectory.py",
+    "staged": "test_gmr_state_trajectory.py",
+    "before": "8f2d4e56a4cc6aa08e4070c9b61df246b0195f53ccd9a46be4bbc02c2960987c",
+    "after": "eaa691cd13d52be81d67f58bcf6bf933dda6b9dd0e14ee4cd54bec317c40a7cd"
+  }
+]

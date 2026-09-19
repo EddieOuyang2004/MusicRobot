@@ -1,0 +1,2066 @@
+{
+  "motion_id": "gWA_sBM_cAll_d26_mWA0_ch07",
+  "target_sha256": "e2e2ebc0c726ef0afeabb35fd323bb6b990c36283d11a84677dab391434488b4",
+  "replay_matches_saved": true,
+  "original_matches_replay": false,
+  "max_abs_errors_vs_original": {
+    "root_pos": 4.3057755433340006e-07,
+    "root_rot": 5.003645358315351e-06,
+    "dof_pos": 0.0014764830723943412
+  },
+  "fps": 60.0,
+  "confirmed_pause_frames": [
+    3,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    30,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    203,
+    204,
+    331,
+    332,
+    333,
+    334,
+    335,
+    336,
+    337,
+    338,
+    339,
+    340,
+    341,
+    342,
+    343,
+    344,
+    345,
+    346,
+    347,
+    348,
+    349,
+    420,
+    421,
+    422,
+    423,
+    424,
+    425,
+    426,
+    427,
+    428,
+    431,
+    432,
+    433,
+    434,
+    435,
+    436,
+    437,
+    438,
+    439,
+    440,
+    441,
+    442,
+    443,
+    444,
+    445,
+    446,
+    447,
+    448,
+    449,
+    450,
+    451,
+    452,
+    453,
+    454,
+    455,
+    456,
+    457,
+    458,
+    459,
+    460,
+    461,
+    462,
+    463,
+    464,
+    465,
+    466,
+    519,
+    520,
+    521,
+    522,
+    523,
+    528,
+    529,
+    530,
+    531,
+    532,
+    533,
+    534,
+    535,
+    536,
+    537,
+    538,
+    539,
+    540,
+    541,
+    542,
+    543,
+    544,
+    545,
+    546,
+    547,
+    548,
+    549,
+    550,
+    551,
+    552,
+    553,
+    554,
+    555,
+    556,
+    557,
+    558,
+    559,
+    560,
+    561,
+    562,
+    563,
+    564,
+    565,
+    566,
+    567,
+    568,
+    569,
+    570,
+    571,
+    572,
+    573,
+    574,
+    645,
+    646,
+    647,
+    648,
+    649,
+    650,
+    651,
+    652,
+    653,
+    654,
+    655,
+    656,
+    660,
+    661,
+    662,
+    663,
+    664,
+    665,
+    666,
+    667
+  ],
+  "events": [
+    {
+      "frame": 2,
+      "pass_number": 2,
+      "safe_amount": 0.41455078125,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.06511748444574549
+    },
+    {
+      "frame": 3,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 8,
+      "pass_number": 2,
+      "safe_amount": 0.369140625,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.05798447378207724
+    },
+    {
+      "frame": 9,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948954,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 10,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948954,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 11,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948954,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 12,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 13,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 14,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 15,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 16,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 17,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 18,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 19,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 20,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 21,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 22,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 23,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 24,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 25,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 26,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 27,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 28,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 29,
+      "pass_number": 2,
+      "safe_amount": 0.963623046875,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.15136555424461567
+    },
+    {
+      "frame": 30,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 31,
+      "pass_number": 2,
+      "safe_amount": 6.103515625e-05,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 9.587379924285257e-06
+    },
+    {
+      "frame": 32,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 33,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 34,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 35,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 36,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 37,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 38,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 39,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 40,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 41,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 42,
+      "pass_number": 2,
+      "safe_amount": 6.103515625e-05,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 9.587379924285257e-06
+    },
+    {
+      "frame": 54,
+      "pass_number": 2,
+      "safe_amount": 0.67083740234375,
+      "requested_max_joint_step": 0.15707963267948943,
+      "resulting_max_joint_step": 0.10537489274781911
+    },
+    {
+      "frame": 55,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 56,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 57,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 58,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 59,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 60,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 61,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 62,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 63,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 64,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 65,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 66,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 67,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 68,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 69,
+      "pass_number": 2,
+      "safe_amount": 0.1697998046875,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.026672090949361585
+    },
+    {
+      "frame": 70,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 71,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 72,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 73,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 74,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 75,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 76,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 77,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 78,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 79,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 80,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 81,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 82,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 83,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 84,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 85,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 86,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 87,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 88,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 89,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 90,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 91,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 92,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 93,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 94,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 95,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 96,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 97,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 98,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 99,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 100,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 101,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 102,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 103,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 104,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 105,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 106,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 107,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 120,
+      "pass_number": 2,
+      "safe_amount": 0.6522216796875,
+      "requested_max_joint_step": 0.036663895318535644,
+      "resulting_max_joint_step": 0.023912987388541987
+    },
+    {
+      "frame": 121,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.05489275620586298,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 122,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.10471308483705152,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 123,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 124,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 125,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 126,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 127,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 128,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 129,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 130,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 131,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 132,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 133,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 134,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948968,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 200,
+      "pass_number": 2,
+      "safe_amount": 0.2642822265625,
+      "requested_max_joint_step": 0.02976983066711325,
+      "resulting_max_joint_step": 0.007867637133093285
+    },
+    {
+      "frame": 201,
+      "pass_number": 2,
+      "safe_amount": 0.00048828125,
+      "requested_max_joint_step": 0.060354696473280456,
+      "resulting_max_joint_step": 2.9470066637343973e-05
+    },
+    {
+      "frame": 202,
+      "pass_number": 2,
+      "safe_amount": 6.103515625e-05,
+      "requested_max_joint_step": 0.08879891864883838,
+      "resulting_max_joint_step": 5.419855874562889e-06
+    },
+    {
+      "frame": 203,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.14159254053834136,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 204,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 330,
+      "pass_number": 2,
+      "safe_amount": 0.0594482421875,
+      "requested_max_joint_step": 0.0359325126126242,
+      "resulting_max_joint_step": 0.0021361247122006818
+    },
+    {
+      "frame": 331,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.045593742582118124,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 332,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.06817001934587086,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 333,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.07989772169850118,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 334,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.09816824127766827,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 335,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.13996651568103047,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 336,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 337,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 338,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 339,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 340,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 341,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 342,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 343,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 344,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 345,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 346,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 347,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 348,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 349,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 419,
+      "pass_number": 2,
+      "safe_amount": 0.54949951171875,
+      "requested_max_joint_step": 0.0360186190781826,
+      "resulting_max_joint_step": 0.019792213596244994
+    },
+    {
+      "frame": 420,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.03839516988350067,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 421,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.06845376080174614,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 422,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.12059918624839949,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 423,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15202661365318348,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 424,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 425,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.1570796326794897,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 426,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.1570796326794897,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 427,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.1570796326794897,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 428,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.1570796326794897,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 430,
+      "pass_number": 2,
+      "safe_amount": 0.26202392578125,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.04115862201495661
+    },
+    {
+      "frame": 431,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 432,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 433,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 434,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 435,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 436,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 437,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 438,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 439,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 440,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 441,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 442,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 443,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 444,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 445,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 446,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 447,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 448,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 449,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 450,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 451,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 452,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 453,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 454,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 455,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 456,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 457,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 458,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 459,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 460,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 461,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 462,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 463,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 464,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 465,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 466,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 467,
+      "pass_number": 2,
+      "safe_amount": 0.3590087890625,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.056392968714645886
+    },
+    {
+      "frame": 518,
+      "pass_number": 2,
+      "safe_amount": 0.94873046875,
+      "requested_max_joint_step": 0.1398759553892338,
+      "resulting_max_joint_step": 0.13270458072328187
+    },
+    {
+      "frame": 519,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 520,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 521,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 522,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 523,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 524,
+      "pass_number": 2,
+      "safe_amount": 0.5496826171875,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.08634394359811302
+    },
+    {
+      "frame": 525,
+      "pass_number": 2,
+      "safe_amount": 0.03076171875,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.004832039481839769
+    },
+    {
+      "frame": 526,
+      "pass_number": 2,
+      "safe_amount": 0.8251953125,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.12962137657633668
+    },
+    {
+      "frame": 527,
+      "pass_number": 2,
+      "safe_amount": 6.103515625e-05,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 9.587379924285257e-06
+    },
+    {
+      "frame": 528,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 529,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 530,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 531,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 532,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 533,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 534,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 535,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 536,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 537,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 538,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 539,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 540,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 541,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 542,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 543,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 544,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 545,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 546,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 547,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 548,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 549,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 550,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 551,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 552,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 553,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 554,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 555,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 556,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 557,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 558,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 559,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 560,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 561,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 562,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 563,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 564,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 565,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 566,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 567,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 568,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 569,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 570,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 571,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 572,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 573,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 574,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 644,
+      "pass_number": 2,
+      "safe_amount": 0.68109130859375,
+      "requested_max_joint_step": 0.0542654844805347,
+      "resulting_max_joint_step": 0.03695974983632121
+    },
+    {
+      "frame": 645,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.08033039538695162,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 646,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 647,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 648,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 649,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 650,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 651,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 652,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 653,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 654,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 655,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 656,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 657,
+      "pass_number": 2,
+      "safe_amount": 6.103515625e-05,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 9.587379924285257e-06
+    },
+    {
+      "frame": 659,
+      "pass_number": 2,
+      "safe_amount": 0.4580078125,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.07194369895183657
+    },
+    {
+      "frame": 660,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 661,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 662,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 663,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 664,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948966,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 665,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948977,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 666,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948977,
+      "resulting_max_joint_step": 0.0
+    },
+    {
+      "frame": 667,
+      "pass_number": 2,
+      "safe_amount": 0.0,
+      "requested_max_joint_step": 0.15707963267948977,
+      "resulting_max_joint_step": 0.0
+    }
+  ],
+  "definition": "Collision filter suppressed a nonzero proposed joint step; all final joint speeds <1e-6 rad/s. Root excluded."
+}

@@ -1,0 +1,261 @@
+[
+  {
+    "motion": "gBR_sBM_cAll_d05_mBR0_ch08",
+    "frames": 720,
+    "fps": 60.0,
+    "cap_intervals": 119,
+    "intervals": 719,
+    "max_speed": 9.424777960769386,
+    "max_acceleration": 1130.9733552923256,
+    "acceleration_peak": {
+      "center_time_s": 1.3333333333333333,
+      "joint": "left_wrist_pitch",
+      "before_speed": 9.42477796076938,
+      "after_speed": -9.42477796076938
+    },
+    "stationary_joint_intervals": 545,
+    "stationary_joint_runs": [
+      {
+        "start_s": 0.11666666666666667,
+        "end_s": 0.3,
+        "duration_s": 0.18333333333333332
+      },
+      {
+        "start_s": 0.35,
+        "end_s": 0.8666666666666667,
+        "duration_s": 0.5166666666666667
+      },
+      {
+        "start_s": 0.9,
+        "end_s": 0.95,
+        "duration_s": 0.05
+      },
+      {
+        "start_s": 0.9666666666666667,
+        "end_s": 1.3,
+        "duration_s": 0.3333333333333333
+      },
+      {
+        "start_s": 1.7166666666666666,
+        "end_s": 1.8833333333333333,
+        "duration_s": 0.16666666666666666
+      },
+      {
+        "start_s": 1.9333333333333333,
+        "end_s": 3.0166666666666666,
+        "duration_s": 1.0833333333333333
+      },
+      {
+        "start_s": 3.216666666666667,
+        "end_s": 3.7,
+        "duration_s": 0.48333333333333334
+      },
+      {
+        "start_s": 3.7666666666666666,
+        "end_s": 4.3,
+        "duration_s": 0.5333333333333333
+      },
+      {
+        "start_s": 4.316666666666666,
+        "end_s": 4.5,
+        "duration_s": 0.18333333333333332
+      },
+      {
+        "start_s": 4.716666666666667,
+        "end_s": 4.95,
+        "duration_s": 0.23333333333333334
+      },
+      {
+        "start_s": 4.983333333333333,
+        "end_s": 5.116666666666666,
+        "duration_s": 0.13333333333333333
+      },
+      {
+        "start_s": 5.133333333333334,
+        "end_s": 5.95,
+        "duration_s": 0.8166666666666667
+      },
+      {
+        "start_s": 6.3,
+        "end_s": 6.45,
+        "duration_s": 0.15
+      },
+      {
+        "start_s": 6.466666666666667,
+        "end_s": 7.35,
+        "duration_s": 0.8833333333333333
+      },
+      {
+        "start_s": 7.366666666666666,
+        "end_s": 7.45,
+        "duration_s": 0.08333333333333333
+      },
+      {
+        "start_s": 7.8,
+        "end_s": 8.133333333333333,
+        "duration_s": 0.3333333333333333
+      },
+      {
+        "start_s": 8.166666666666666,
+        "end_s": 9.016666666666667,
+        "duration_s": 0.85
+      },
+      {
+        "start_s": 9.583333333333334,
+        "end_s": 9.716666666666667,
+        "duration_s": 0.13333333333333333
+      },
+      {
+        "start_s": 9.933333333333334,
+        "end_s": 10.016666666666667,
+        "duration_s": 0.08333333333333333
+      },
+      {
+        "start_s": 10.083333333333334,
+        "end_s": 10.45,
+        "duration_s": 0.36666666666666664
+      },
+      {
+        "start_s": 10.533333333333333,
+        "end_s": 10.633333333333333,
+        "duration_s": 0.1
+      },
+      {
+        "start_s": 10.65,
+        "end_s": 10.7,
+        "duration_s": 0.05
+      },
+      {
+        "start_s": 10.733333333333333,
+        "end_s": 10.983333333333333,
+        "duration_s": 0.25
+      },
+      {
+        "start_s": 11.05,
+        "end_s": 11.35,
+        "duration_s": 0.3
+      },
+      {
+        "start_s": 11.4,
+        "end_s": 11.983333333333333,
+        "duration_s": 0.5833333333333334
+      }
+    ],
+    "root_speed_max": 3.000000000000006,
+    "root_angular_speed_max": 12.566370614359355,
+    "continuity": {
+      "max_joint_speed_rad_s": 9.42477796076938,
+      "max_root_speed_m_s": 3.0,
+      "max_root_angular_speed_rad_s": 12.566370614359172,
+      "limited_values": {
+        "root_position": 93,
+        "root_rotation": 263,
+        "joints": 11042,
+        "collision_frames_adjusted": 599,
+        "collision_line_search_evaluations": 8386,
+        "initial_frame_penetrating": 0,
+        "initial_frame_adjusted": 0,
+        "collision_filter_passes": 2,
+        "joint_limits": 118
+      },
+      "loop_closure_frames": 0
+    }
+  },
+  {
+    "motion": "gWA_sBM_cAll_d26_mWA0_ch07",
+    "frames": 720,
+    "fps": 60.0,
+    "cap_intervals": 168,
+    "intervals": 719,
+    "max_speed": 9.424777960769386,
+    "max_acceleration": 1130.9733552923256,
+    "acceleration_peak": {
+      "center_time_s": 5.85,
+      "joint": "left_shoulder_yaw",
+      "before_speed": -9.42477796076938,
+      "after_speed": 9.42477796076938
+    },
+    "stationary_joint_intervals": 234,
+    "stationary_joint_runs": [
+      {
+        "start_s": 0.13333333333333333,
+        "end_s": 0.4666666666666667,
+        "duration_s": 0.3333333333333333
+      },
+      {
+        "start_s": 0.5,
+        "end_s": 0.7,
+        "duration_s": 0.2
+      },
+      {
+        "start_s": 0.9166666666666666,
+        "end_s": 1.1333333333333333,
+        "duration_s": 0.21666666666666667
+      },
+      {
+        "start_s": 1.15,
+        "end_s": 1.7833333333333334,
+        "duration_s": 0.6333333333333333
+      },
+      {
+        "start_s": 2.0,
+        "end_s": 2.2333333333333334,
+        "duration_s": 0.23333333333333334
+      },
+      {
+        "start_s": 5.5,
+        "end_s": 5.816666666666666,
+        "duration_s": 0.31666666666666665
+      },
+      {
+        "start_s": 6.983333333333333,
+        "end_s": 7.116666666666666,
+        "duration_s": 0.13333333333333333
+      },
+      {
+        "start_s": 7.2,
+        "end_s": 7.766666666666667,
+        "duration_s": 0.5666666666666667
+      },
+      {
+        "start_s": 8.633333333333333,
+        "end_s": 8.716666666666667,
+        "duration_s": 0.08333333333333333
+      },
+      {
+        "start_s": 8.783333333333333,
+        "end_s": 9.566666666666666,
+        "duration_s": 0.7833333333333333
+      },
+      {
+        "start_s": 10.733333333333333,
+        "end_s": 10.933333333333334,
+        "duration_s": 0.2
+      },
+      {
+        "start_s": 10.983333333333333,
+        "end_s": 11.116666666666667,
+        "duration_s": 0.13333333333333333
+      }
+    ],
+    "root_speed_max": 0.7506676395718482,
+    "root_angular_speed_max": 10.23203344594995,
+    "continuity": {
+      "max_joint_speed_rad_s": 9.42477796076938,
+      "max_root_speed_m_s": 3.0,
+      "max_root_angular_speed_rad_s": 12.566370614359172,
+      "limited_values": {
+        "root_position": 0,
+        "root_rotation": 0,
+        "joints": 2896,
+        "collision_frames_adjusted": 259,
+        "collision_line_search_evaluations": 3626,
+        "initial_frame_penetrating": 0,
+        "initial_frame_adjusted": 0,
+        "collision_filter_passes": 2,
+        "joint_limits": 7
+      },
+      "loop_closure_frames": 0
+    }
+  }
+]

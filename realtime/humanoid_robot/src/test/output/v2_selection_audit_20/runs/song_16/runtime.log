@@ -1,0 +1,158 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gLO_sBM_cAll_d13_mLO1_ch01.pkl with constant root Z offset +0.839023 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\test\output\v2_selection_audit_20\audio\song_16.wav (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gLO_sBM_cAll_d13_mLO1_ch01
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=121.0 | speed=0.55x | amp=0.86 | rms/gate=0.3509/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.24 | bands=0.77/0.14/0.07 | rhythm=0.23 | offbeat=0.00
+match | accepted | confidence=0.87 | genre=PO:0.77 | bpm=163.0 | tracks=[LH4:0.91, MH4:0.73, LH3:0.66] | motion=gPO_sBM_cAll_d12_mPO5_ch02:0.58 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Deep House]
+music | bpm=121.0 | speed=0.55x | amp=0.56 | rms/gate=0.3104/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.39 | bands=0.51/0.25/0.24 | rhythm=0.26 | offbeat=0.03
+match | accepted | confidence=0.91 | genre=HO:0.80 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.65 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.68x | amp=0.84 | rms/gate=0.2825/0.0020 | beat=1 accepted=1 conf=0.80 contrast=0.80 result=accepted | bright=0.23 | bands=0.88/0.06/0.03 | rhythm=0.31 | offbeat=0.34
+music | bpm=121.0 | speed=0.55x | amp=0.73 | rms/gate=0.5383/0.0020 | beat=1 accepted=1 conf=0.64 contrast=0.64 result=accepted | bright=0.22 | bands=0.85/0.08/0.04 | rhythm=0.34 | offbeat=0.51
+match | accepted | confidence=0.93 | genre=HO:0.80 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.76, LH3:0.67] | motion=gHO_sBM_cAll_d21_mHO3_ch01:0.65 | tags=[Electronic---House, Electronic---Dubstep, Electronic---Deep House]
+Bridge rejection: motion=gPO_sBM_cAll_d12_mPO4_ch02 exit_frame=531 entry_frame=64: No feasible Hermite duration in the search interval; duration=9.80473s joint_index=0 constraint=position range=[-27.3188,-0.039456] limits=[-0.87267,0.5236]; joint_order=left_ankle_pitch,left_ankle_roll,left_elbow,left_hip_pitch,left_hip_roll,left_hip_yaw,left_knee,left_shoulder_pitch,left_shoulder_roll,left_shoulder_yaw,left_wrist_pitch,left_wrist_roll,left_wrist_yaw,right_ankle_pitch,right_ankle_roll,right_elbow,right_hip_pitch,right_hip_roll,right_hip_yaw,right_knee,right_shoulder_pitch,right_shoulder_roll,right_shoulder_yaw,right_wrist_pitch,right_wrist_roll,right_wrist_yaw,waist_pitch,waist_roll,waist_yaw
+music | bpm=121.0 | speed=1.07x | amp=0.89 | rms/gate=0.3262/0.0020 | beat=1 accepted=1 conf=0.33 contrast=0.33 result=low-confidence | bright=0.23 | bands=0.82/0.11/0.05 | rhythm=0.35 | offbeat=0.43
+match | accepted | confidence=0.93 | genre=HO:0.81 | bpm=121.0 | tracks=[LH4:0.99, MH4:0.75, LH3:0.67] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.66 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.55x | amp=0.69 | rms/gate=0.6465/0.0020 | beat=1 accepted=1 conf=0.83 contrast=0.83 result=too-early | bright=0.32 | bands=0.62/0.20/0.18 | rhythm=0.35 | offbeat=0.49
+match | accepted | confidence=0.93 | genre=HO:0.80 | bpm=121.0 | tracks=[LH4:0.99, MH4:0.75, LH3:0.67] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.65 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.55x | amp=0.83 | rms/gate=0.2806/0.0020 | beat=1 accepted=1 conf=0.18 contrast=0.18 result=low-confidence | bright=0.18 | bands=0.90/0.05/0.02 | rhythm=0.36 | offbeat=0.33
+match | accepted | confidence=0.93 | genre=HO:0.81 | bpm=121.0 | tracks=[LH4:0.99, MH4:0.75, LH3:0.68] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.66 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.55x | amp=0.76 | rms/gate=0.3769/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.53 result=accepted | bright=0.26 | bands=0.80/0.13/0.07 | rhythm=0.49 | offbeat=0.32
+match | accepted | confidence=0.93 | genre=HO:0.81 | bpm=121.0 | tracks=[LH4:0.99, MH4:0.77, LH3:0.68] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.83x | amp=0.82 | rms/gate=0.2444/0.0020 | beat=1 accepted=0 conf=0.21 contrast=0.21 result=low-confidence | bright=0.24 | bands=0.87/0.06/0.03 | rhythm=0.59 | offbeat=0.44
+match | accepted | confidence=0.93 | genre=HO:0.82 | bpm=121.0 | tracks=[LH4:0.99, MH4:0.77, LH3:0.68] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.55x | amp=0.83 | rms/gate=0.5166/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.62 result=too-early | bright=0.26 | bands=0.75/0.11/0.13 | rhythm=0.61 | offbeat=0.33
+match | accepted | confidence=0.93 | genre=HO:0.81 | bpm=121.0 | tracks=[LH4:0.99, MH4:0.77, LH3:0.68] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.80x | amp=0.84 | rms/gate=0.3345/0.0020 | beat=1 accepted=1 conf=0.12 contrast=0.12 result=low-confidence | bright=0.25 | bands=0.75/0.17/0.04 | rhythm=0.60 | offbeat=0.27
+match | accepted | confidence=0.91 | genre=HO:0.82 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.77, LH3:0.67] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+Switching (selected_exit, hermite): gLO_sBM_cAll_d13_mLO1_ch01 -> gPO_sBM_cAll_d12_mPO4_ch02 entry=0.1357 blend=0.350s
+Motion switch complete: gPO_sBM_cAll_d12_mPO4_ch02
+music | bpm=121.0 | speed=0.99x | amp=1.00 | rms/gate=0.5109/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.62 result=accepted | bright=0.18 | bands=0.90/0.04/0.02 | rhythm=0.62 | offbeat=0.36
+match | accepted | confidence=0.93 | genre=HO:0.83 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.78, LH3:0.68] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=1.01x | amp=0.80 | rms/gate=0.0708/0.0020 | beat=1 accepted=1 conf=0.26 contrast=0.26 result=low-confidence | bright=0.25 | bands=0.76/0.18/0.03 | rhythm=0.62 | offbeat=0.45
+match | accepted | confidence=0.93 | genre=HO:0.83 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.78, LH3:0.67] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.55x | amp=0.91 | rms/gate=0.5060/0.0020 | beat=1 accepted=1 conf=0.65 contrast=0.65 result=accepted | bright=0.21 | bands=0.85/0.08/0.06 | rhythm=0.63 | offbeat=0.54
+match | accepted | confidence=0.91 | genre=HO:0.82 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.77, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=1.09x | amp=0.77 | rms/gate=0.0602/0.0020 | beat=1 accepted=1 conf=0.06 contrast=0.06 result=low-confidence | bright=0.29 | bands=0.65/0.27/0.05 | rhythm=0.64 | offbeat=0.61
+match | accepted | confidence=0.92 | genre=HO:0.83 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.77, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.67 | tags=[Electronic---House, Electronic---Dubstep, Electronic---Deep House]
+music | bpm=121.0 | speed=0.55x | amp=1.01 | rms/gate=0.4646/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.59 result=accepted | bright=0.18 | bands=0.92/0.03/0.02 | rhythm=0.66 | offbeat=0.51
+match | accepted | confidence=0.92 | genre=HO:0.83 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.76, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.85x | amp=0.80 | rms/gate=0.1974/0.0020 | beat=1 accepted=1 conf=0.09 contrast=0.09 result=low-confidence | bright=0.16 | bands=0.89/0.08/0.02 | rhythm=0.65 | offbeat=0.46
+match | accepted | confidence=0.93 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.76, LH3:0.66] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.67 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.85x | amp=0.90 | rms/gate=0.4063/0.0020 | beat=1 accepted=1 conf=0.94 contrast=0.94 result=accepted | bright=0.24 | bands=0.85/0.05/0.10 | rhythm=0.63 | offbeat=0.31
+match | accepted | confidence=0.92 | genre=HO:0.83 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.76, LH3:0.66] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+Switching (selected_exit, hermite): gPO_sBM_cAll_d12_mPO4_ch02 -> gHO_sBM_cAll_d21_mHO2_ch02 entry=0.1190 blend=0.350s
+Motion switch complete: gHO_sBM_cAll_d21_mHO2_ch02
+music | bpm=121.0 | speed=0.93x | amp=0.80 | rms/gate=0.5313/0.0020 | beat=1 accepted=1 conf=0.09 contrast=0.09 result=low-confidence | bright=0.22 | bands=0.71/0.19/0.05 | rhythm=0.62 | offbeat=0.27
+match | accepted | confidence=0.92 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.75, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.81x | amp=0.96 | rms/gate=0.3522/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.88 result=accepted | bright=0.18 | bands=0.93/0.01/0.01 | rhythm=0.64 | offbeat=0.28
+match | accepted | confidence=0.93 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.75, LH3:0.66] | motion=gHO_sBM_cAll_d19_mHO2_ch02:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=1.08x | amp=0.77 | rms/gate=0.1960/0.0020 | beat=1 accepted=1 conf=0.15 contrast=0.15 result=low-confidence | bright=0.21 | bands=0.90/0.06/0.03 | rhythm=0.61 | offbeat=0.30
+match | accepted | confidence=0.92 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.75, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.55x | amp=0.88 | rms/gate=0.3221/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.76 result=accepted | bright=0.20 | bands=0.90/0.03/0.06 | rhythm=0.63 | offbeat=0.26
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.98, MH4:0.75, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.86x | amp=0.81 | rms/gate=0.3514/0.0020 | beat=1 accepted=1 conf=0.09 contrast=0.09 result=low-confidence | bright=0.19 | bands=0.77/0.15/0.04 | rhythm=0.64 | offbeat=0.36
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.97, MH4:0.74, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=1.00x | amp=0.95 | rms/gate=0.2953/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.74 result=too-early | bright=0.18 | bands=0.92/0.01/0.01 | rhythm=0.65 | offbeat=0.48
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.97, MH4:0.74, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+Switching (selected_exit, hermite): gHO_sBM_cAll_d21_mHO2_ch02 -> gHO_sBM_cAll_d21_mHO3_ch02 entry=0.0545 blend=0.350s
+music | bpm=121.0 | speed=0.98x | amp=0.79 | rms/gate=0.1945/0.0020 | beat=1 accepted=0 conf=0.18 contrast=0.18 result=low-confidence | bright=0.20 | bands=0.93/0.04/0.02 | rhythm=0.64 | offbeat=0.45
+Motion switch complete: gHO_sBM_cAll_d21_mHO3_ch02
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.97, MH4:0.74, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=1.13x | amp=0.89 | rms/gate=0.4636/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.71 result=accepted | bright=0.21 | bands=0.83/0.11/0.05 | rhythm=0.65 | offbeat=0.30
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.97, MH4:0.74, JS4:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.95x | amp=0.88 | rms/gate=0.5256/0.0020 | beat=1 accepted=1 conf=0.12 contrast=0.12 result=low-confidence | bright=0.16 | bands=0.83/0.10/0.03 | rhythm=0.65 | offbeat=0.36
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.97, MH4:0.74, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.89x | amp=0.95 | rms/gate=0.3547/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.76 result=accepted | bright=0.15 | bands=0.91/0.02/0.01 | rhythm=0.66 | offbeat=0.38
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.97, MH4:0.74, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.90x | amp=0.73 | rms/gate=0.2489/0.0020 | beat=1 accepted=0 conf=0.24 contrast=0.24 result=low-confidence | bright=0.17 | bands=0.93/0.03/0.02 | rhythm=0.68 | offbeat=0.37
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.97, MH4:0.74, LH3:0.66] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Ghetto House]
+music | bpm=121.0 | speed=0.57x | amp=0.93 | rms/gate=0.5892/0.0020 | beat=1 accepted=1 conf=0.79 contrast=0.79 result=too-early | bright=0.17 | bands=0.86/0.10/0.04 | rhythm=0.68 | offbeat=0.31
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.95x | amp=0.86 | rms/gate=0.4138/0.0020 | beat=1 accepted=1 conf=0.15 contrast=0.15 result=low-confidence | bright=0.12 | bands=0.80/0.15/0.04 | rhythm=0.69 | offbeat=0.27
+match | accepted | confidence=0.92 | genre=HO:0.86 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=1.12x | amp=0.74 | rms/gate=0.0656/0.0020 | beat=1 accepted=1 conf=0.85 contrast=0.85 result=accepted | bright=0.28 | bands=0.76/0.15/0.08 | rhythm=0.41 | offbeat=0.36
+Switching (selected_exit, hermite): gHO_sBM_cAll_d21_mHO3_ch02 -> gHO_sBM_cAll_d21_mHO2_ch02 entry=0.1211 blend=0.350s
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+Motion switch complete: gHO_sBM_cAll_d21_mHO2_ch02
+music | bpm=121.0 | speed=1.13x | amp=0.55 | rms/gate=0.2985/0.0020 | beat=1 accepted=0 conf=0.18 contrast=0.18 result=low-confidence | bright=0.37 | bands=0.61/0.24/0.15 | rhythm=0.42 | offbeat=0.23
+match | accepted | confidence=0.91 | genre=HO:0.86 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.55x | amp=0.93 | rms/gate=0.4054/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.59 result=accepted | bright=0.17 | bands=0.91/0.04/0.02 | rhythm=0.42 | offbeat=0.16
+match | accepted | confidence=0.91 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.55x | amp=0.91 | rms/gate=0.3751/0.0020 | beat=1 accepted=1 conf=0.09 contrast=0.09 result=low-confidence | bright=0.24 | bands=0.79/0.14/0.04 | rhythm=0.42 | offbeat=0.20
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.55x | amp=0.78 | rms/gate=0.3465/0.0020 | beat=1 accepted=1 conf=0.29 contrast=0.29 result=low-confidence | bright=0.33 | bands=0.58/0.25/0.16 | rhythm=0.41 | offbeat=0.17
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.56x | amp=0.63 | rms/gate=0.3422/0.0020 | beat=1 accepted=1 conf=0.44 contrast=0.44 result=accepted | bright=0.39 | bands=0.55/0.25/0.19 | rhythm=0.41 | offbeat=0.28
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.55x | amp=0.94 | rms/gate=0.3827/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.68 result=too-early | bright=0.26 | bands=0.74/0.10/0.12 | rhythm=0.40 | offbeat=0.43
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.55x | amp=0.91 | rms/gate=0.3791/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.47 result=accepted | bright=0.24 | bands=0.73/0.13/0.10 | rhythm=0.41 | offbeat=0.36
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.65x | amp=0.76 | rms/gate=0.2743/0.0020 | beat=1 accepted=0 conf=0.35 contrast=0.35 result=weak-overload-beat | bright=0.36 | bands=0.50/0.29/0.20 | rhythm=0.58 | offbeat=0.33
+Switching (selected_exit, hermite): gHO_sBM_cAll_d21_mHO2_ch02 -> gHO_sBM_cAll_d19_mHO2_ch02 entry=0.1232 blend=0.350s
+Motion switch complete: gHO_sBM_cAll_d19_mHO2_ch02
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.73, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.63x | amp=0.62 | rms/gate=0.1915/0.0020 | beat=1 accepted=1 conf=0.35 contrast=0.35 result=accepted | bright=0.42 | bands=0.44/0.25/0.31 | rhythm=0.60 | offbeat=0.34
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.75x | amp=0.94 | rms/gate=0.2738/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.76 result=accepted | bright=0.31 | bands=0.74/0.09/0.13 | rhythm=0.60 | offbeat=0.30
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.55x | amp=0.91 | rms/gate=0.2375/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.35 | bands=0.65/0.14/0.17 | rhythm=0.62 | offbeat=0.32
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.55x | amp=0.76 | rms/gate=0.0859/0.0020 | beat=1 accepted=1 conf=0.44 contrast=0.44 result=accepted | bright=0.40 | bands=0.44/0.25/0.29 | rhythm=0.62 | offbeat=0.31
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Techno]
+music | bpm=121.0 | speed=0.55x | amp=0.66 | rms/gate=0.1159/0.0020 | beat=1 accepted=1 conf=0.44 contrast=0.44 result=accepted | bright=0.42 | bands=0.44/0.24/0.31 | rhythm=0.64 | offbeat=0.56
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=1.01x | amp=0.90 | rms/gate=0.2703/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.74 result=too-early | bright=0.34 | bands=0.74/0.08/0.13 | rhythm=0.63 | offbeat=0.58
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.81x | amp=0.84 | rms/gate=0.0851/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.37 | bands=0.66/0.14/0.17 | rhythm=0.65 | offbeat=0.62
+Switching (selected_exit, hermite): gHO_sBM_cAll_d19_mHO2_ch02 -> gHO_sBM_cAll_d21_mHO2_ch02 entry=0.1190 blend=0.350s
+match | accepted | confidence=0.93 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+Motion switch complete: gHO_sBM_cAll_d21_mHO2_ch02
+music | bpm=121.0 | speed=1.00x | amp=0.73 | rms/gate=0.0448/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.36 | bands=0.58/0.23/0.18 | rhythm=0.63 | offbeat=0.54
+match | accepted | confidence=0.93 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=0.76x | amp=0.69 | rms/gate=0.0960/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.74 result=accepted | bright=0.29 | bands=0.80/0.10/0.10 | rhythm=0.64 | offbeat=0.36
+match | accepted | confidence=0.93 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Dubstep]
+music | bpm=121.0 | speed=1.00x | amp=0.83 | rms/gate=0.2891/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.76 result=accepted | bright=0.31 | bands=0.70/0.16/0.10 | rhythm=0.64 | offbeat=0.27
+match | accepted | confidence=0.93 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Ghetto House]
+music | bpm=121.0 | speed=0.55x | amp=0.80 | rms/gate=0.2194/0.0020 | beat=1 accepted=1 conf=0.79 contrast=0.79 result=accepted | bright=0.30 | bands=0.82/0.06/0.08 | rhythm=0.62 | offbeat=0.51
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.55x | amp=0.71 | rms/gate=0.5002/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=too-early | bright=0.33 | bands=0.64/0.20/0.15 | rhythm=0.62 | offbeat=0.38
+match | accepted | confidence=0.92 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.55x | amp=0.64 | rms/gate=0.0920/0.0020 | beat=1 accepted=1 conf=0.65 contrast=0.65 result=accepted | bright=0.39 | bands=0.64/0.06/0.28 | rhythm=0.62 | offbeat=0.23
+match | accepted | confidence=0.93 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.68] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.93x | amp=0.86 | rms/gate=0.3808/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.68 result=accepted | bright=0.25 | bands=0.80/0.11/0.06 | rhythm=0.64 | offbeat=0.28
+Switching (selected_exit, hermite): gHO_sBM_cAll_d21_mHO2_ch02 -> gHO_sBM_cAll_d19_mHO2_ch02 entry=0.1232 blend=0.350s
+Motion switch complete: gHO_sBM_cAll_d19_mHO2_ch02
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.64x | amp=0.77 | rms/gate=0.1050/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.74 result=accepted | bright=0.26 | bands=0.83/0.05/0.06 | rhythm=0.64 | offbeat=0.53
+match | accepted | confidence=0.92 | genre=HO:0.85 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.82x | amp=0.83 | rms/gate=0.4219/0.0020 | beat=1 accepted=1 conf=0.41 contrast=0.41 result=accepted | bright=0.26 | bands=0.75/0.13/0.11 | rhythm=0.65 | offbeat=0.39
+match | accepted | confidence=0.92 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.55x | amp=0.60 | rms/gate=0.0410/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.59 result=accepted | bright=0.36 | bands=0.73/0.07/0.19 | rhythm=0.65 | offbeat=0.22
+match | accepted | confidence=0.92 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.74, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.69 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.55x | amp=0.87 | rms/gate=0.4224/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.53 result=accepted | bright=0.22 | bands=0.84/0.08/0.05 | rhythm=0.66 | offbeat=0.27
+match | accepted | confidence=0.92 | genre=HO:0.84 | bpm=121.0 | tracks=[LH4:0.96, MH4:0.75, LH3:0.67] | motion=gHO_sBM_cAll_d20_mHO5_ch10:0.68 | tags=[Electronic---House, Electronic---Deep House, Electronic---Big Beat]
+music | bpm=121.0 | speed=0.55x | amp=0.75 | rms/gate=0.4121/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.74 result=accepted | bright=0.23 | bands=0.88/0.04/0.04 | rhythm=0.65 | offbeat=0.45
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO5_ch02.pkl with constant root Z offset +0.805854 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO5_ch01.pkl with constant root Z offset +0.823898 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO5_ch01.pkl with constant root Z offset +0.814856 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO5_ch02.pkl with constant root Z offset +0.833597 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO2_ch02.pkl with constant root Z offset +0.794167 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO2_ch01.pkl with constant root Z offset +0.805104 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d12_mPO4_ch02.pkl with constant root Z offset +0.809989 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d19_mHO2_ch02.pkl with constant root Z offset +0.845639 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d20_mHO5_ch10.pkl with constant root Z offset +1.000147 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO3_ch01.pkl with constant root Z offset +0.904718 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d20_mHO5_ch06.pkl with constant root Z offset +0.964589 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO5_ch10.pkl with constant root Z offset +1.010818 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO2_ch01.pkl with constant root Z offset +0.865442 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO5_ch09.pkl with constant root Z offset +0.854375 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO3_ch02.pkl with constant root Z offset +0.839569 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO2_ch02.pkl with constant root Z offset +0.843206 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d19_mHO2_ch01.pkl with constant root Z offset +0.855197 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO5_ch03.pkl with constant root Z offset +0.872148 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d21_mHO5_ch05.pkl with constant root Z offset +0.887299 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gHO_sBM_cAll_d20_mHO5_ch05.pkl with constant root Z offset +0.843518 m.

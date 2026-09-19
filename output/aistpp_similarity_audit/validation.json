@@ -1,0 +1,28 @@
+{
+  "synthetic_checks": "PASS: self 0 degrees; constant offset 5 degrees",
+  "matrix_checks": "PASS: finite, symmetric",
+  "resolution_pairs": 542,
+  "median_absolute_change_deg": 0.19023796622078315,
+  "p95_absolute_change_deg": 0.8634230074281187,
+  "max_absolute_change_deg": 2.726276379655154,
+  "threshold_classification_changes": {
+    "5": 1,
+    "10": 6,
+    "15": 6,
+    "20": 5
+  },
+  "closest_pair_details": [
+    {
+      "id": "gJS_sBM_cAll_d03_mJS2_ch02",
+      "duration": 9.583333333333334,
+      "temporal_rms_deg": 3.0626662637938873,
+      "old_cluster": "JS:v0:k0:r0"
+    },
+    {
+      "id": "gJS_sBM_cAll_d03_mJS3_ch02",
+      "duration": 8.716666666666667,
+      "temporal_rms_deg": 3.0283570943197478,
+      "old_cluster": "JS:v0:k0:r0"
+    }
+  ]
+}

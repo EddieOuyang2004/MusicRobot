@@ -1,0 +1,97 @@
+{
+  "clips": [
+    {
+      "motion": "gWA_sBM_cAll_d26_mWA0_ch07",
+      "frames": 720,
+      "fps": 60.0,
+      "interpolation": "actual AuthoredTrajectory quintic; float32 sampler positions",
+      "mujoco_version": "3.12.0",
+      "model_count": 2,
+      "samples_per_interval": 81,
+      "finite_difference_peak_speed": 9.424781799316406,
+      "speed_limit": 9.42477796076938,
+      "quintic_peak_speed": 11.554463669872678,
+      "quintic_peak_acceleration": 1060.9520136770616,
+      "quintic_joint_range_excess_rad": 0.014090862293298367,
+      "clearance_m": 0.005,
+      "violating_samples": 0,
+      "violating_intervals": []
+    },
+    {
+      "motion": "gBR_sBM_cAll_d05_mBR0_ch08",
+      "frames": 720,
+      "fps": 60.0,
+      "interpolation": "actual AuthoredTrajectory quintic; float32 sampler positions",
+      "mujoco_version": "3.12.0",
+      "model_count": 2,
+      "samples_per_interval": 81,
+      "finite_difference_peak_speed": 9.424781799316406,
+      "speed_limit": 9.42477796076938,
+      "quintic_peak_speed": 12.002542684998739,
+      "quintic_peak_acceleration": 1349.4849752833088,
+      "quintic_joint_range_excess_rad": 0.013081393668539776,
+      "clearance_m": 0.005,
+      "violating_samples": 29,
+      "violating_intervals": [
+        22,
+        557
+      ],
+      "worst_clearance_in_flagged_intervals_m": 0.004802763830677803,
+      "worst_clearance_time_s": 0.3722222222222222,
+      "worst_clearance_body_pair": [
+        "left_knee_link",
+        "left_wrist_yaw_link"
+      ]
+    }
+  ],
+  "boundary_example": {
+    "state_matched": {
+      "start": {
+        "position": [
+          0.0
+        ],
+        "velocity": [
+          1.0
+        ],
+        "acceleration": [
+          0.4
+        ]
+      },
+      "end": {
+        "position": [
+          0.5000000000000016
+        ],
+        "velocity": [
+          0.6000000000000082
+        ],
+        "acceleration": [
+          -0.19999999999996942
+        ]
+      }
+    },
+    "rest_to_rest": {
+      "start": {
+        "position": [
+          0.0
+        ],
+        "velocity": [
+          0.0
+        ],
+        "acceleration": [
+          0.0
+        ]
+      },
+      "end": {
+        "position": [
+          0.5
+        ],
+        "velocity": [
+          0.0
+        ],
+        "acceleration": [
+          0.0
+        ]
+      }
+    }
+  }
+}

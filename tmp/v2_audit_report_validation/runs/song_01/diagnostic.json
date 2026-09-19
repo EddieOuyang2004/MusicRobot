@@ -1,0 +1,1790 @@
+[
+  {
+    "end_seconds": 2,
+    "start_seconds": 0,
+    "condition": "production",
+    "embedding_tracks": [
+      {
+        "music_id": "HO5",
+        "score": 0.665313720703125
+      },
+      {
+        "music_id": "HO4",
+        "score": 0.6385678052902222
+      },
+      {
+        "music_id": "JB5",
+        "score": 0.5795484781265259
+      },
+      {
+        "music_id": "HO3",
+        "score": 0.5789755582809448
+      },
+      {
+        "music_id": "BR5",
+        "score": 0.5773691534996033
+      }
+    ],
+    "result": {
+      "tracks": [
+        {
+          "music_id": "HO5",
+          "genre": "HO",
+          "score": 0.7235314249992371,
+          "embedding_score": 0.6616511344909668,
+          "rhythm_timbre_score": 0.8356565833091736,
+          "tag_score": 0.9324424862861633
+        },
+        {
+          "music_id": "HO4",
+          "genre": "HO",
+          "score": 0.6569377183914185,
+          "embedding_score": 0.6385678052902222,
+          "rhythm_timbre_score": 0.7212780714035034,
+          "tag_score": 0.6568464040756226
+        },
+        {
+          "music_id": "HO3",
+          "genre": "HO",
+          "score": 0.5973052978515625,
+          "embedding_score": 0.5789755582809448,
+          "rhythm_timbre_score": 0.6872917413711548,
+          "tag_score": 0.5456405282020569
+        },
+        {
+          "music_id": "PO0",
+          "genre": "PO",
+          "score": 0.5910503268241882,
+          "embedding_score": 0.5331001877784729,
+          "rhythm_timbre_score": 0.7757859230041504,
+          "tag_score": 0.6272296905517578
+        },
+        {
+          "music_id": "HO2",
+          "genre": "HO",
+          "score": 0.5900378227233887,
+          "embedding_score": 0.5493502616882324,
+          "rhythm_timbre_score": 0.7446889281272888,
+          "tag_score": 0.5655485987663269
+        }
+      ],
+      "motions": [
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.7464985142088301,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7891516798837888,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.5026325354558631,
+          "activity_score": 0.7716967076426804,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.7441532894041863,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7824510375848065,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.4287375808635083,
+          "activity_score": 0.899447319698293,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.7438284229229075,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7815228476382955,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.47125329569000207,
+          "activity_score": 0.7940560521264008,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.743151554181559,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7795889369487282,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.4011486114638784,
+          "activity_score": 0.9447409107235745,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch03",
+          "music_id": "HO5",
+          "final_score": 0.738627082614107,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7666618753274369,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.3555764748486729,
+          "activity_score": 0.9648954853504457,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.7305821030851698,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7436762195304732,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.34371464512641603,
+          "activity_score": 0.8393353827226199,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch02",
+          "music_id": "HO5",
+          "final_score": 0.7279660607194418,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7362018127712506,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.2854092611031829,
+          "activity_score": 0.9255519003820135,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.7267309889309284,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7326730362326408,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.3706287991532007,
+          "activity_score": 0.7031811346745729,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.7265952625397084,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7322852465434408,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.3410994462093864,
+          "activity_score": 0.7694976936154732,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.7253280010079247,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7286644993097733,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.2600954603490142,
+          "activity_score": 0.9343686790652245,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.7248547721557009,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7273124168748482,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.22823223633346434,
+          "activity_score": 0.9997023188686738,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.7247937776674618,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7271381469084506,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.2879375768897969,
+          "activity_score": 0.8592280577945806,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.7201720911424326,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.71393332826551,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.19177718492136303,
+          "activity_score": 0.9955701814346561,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.7198641226301851,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7130534182305172,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.3086608955999337,
+          "activity_score": 0.7169754562847055,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.7183532083787556,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7087365203692899,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.25543262410887074,
+          "activity_score": 0.8123954373556699,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.717949717278539,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7075836886543853,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.19546022031512367,
+          "activity_score": 0.9446455014417159,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d21_mHO5_ch20",
+          "music_id": "HO5",
+          "final_score": 0.717921554485111,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.7075032235303054,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.17933160671271914,
+          "activity_score": 0.9817424990201267,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d19_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.7116157096776162,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.6894865240803205,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.15734212456899155,
+          "activity_score": 0.9129399610222593,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch01",
+          "music_id": "HO5",
+          "final_score": 0.7100706550935484,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.6850720824115553,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.16909705109980216,
+          "activity_score": 0.8560821879919327,
+          "speed_ratio": 0.9722222222222223
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch02",
+          "music_id": "HO5",
+          "final_score": 0.7065863598861657,
+          "music_score": 0.7235314249992371,
+          "motion_score": 0.6751169532476045,
+          "tempo_score": 0.9949515726556692,
+          "keypoint_score": 0.198137503280047,
+          "activity_score": 0.7219536051450226,
+          "speed_ratio": 0.9722222222222223
+        }
+      ],
+      "query_bpm": 104.16666666666667,
+      "query_tags": [
+        [
+          "Electronic---Techno",
+          0.6362261772155762
+        ],
+        [
+          "Electronic---Minimal Techno",
+          0.30353060364723206
+        ],
+        [
+          "Electronic---Tech Trance",
+          0.17274722456932068
+        ],
+        [
+          "Electronic---Minimal",
+          0.15141499042510986
+        ],
+        [
+          "Electronic---Tech House",
+          0.08186003565788269
+        ]
+      ],
+      "genres": [
+        {
+          "genre": "HO",
+          "score": 1.0,
+          "track_ids": [
+            "HO5",
+            "HO4",
+            "HO3",
+            "HO2",
+            "HO0",
+            "HO1"
+          ]
+        },
+        {
+          "genre": "PO",
+          "score": 0.1797543828478908,
+          "track_ids": [
+            "PO0",
+            "PO4",
+            "PO5",
+            "PO2",
+            "PO3",
+            "PO1"
+          ]
+        },
+        {
+          "genre": "BR",
+          "score": 0.13191209183711,
+          "track_ids": [
+            "BR5",
+            "BR4",
+            "BR3",
+            "BR1",
+            "BR0",
+            "BR2"
+          ]
+        },
+        {
+          "genre": "LH",
+          "score": 0.09190604684412919,
+          "track_ids": [
+            "LH4",
+            "LH3",
+            "LH1",
+            "LH0",
+            "LH2",
+            "LH5"
+          ]
+        },
+        {
+          "genre": "KR",
+          "score": 0.07186427644725381,
+          "track_ids": [
+            "KR1",
+            "KR0",
+            "KR4",
+            "KR5",
+            "KR2",
+            "KR3"
+          ]
+        },
+        {
+          "genre": "JS",
+          "score": 0.04312573865053655,
+          "track_ids": [
+            "JS4",
+            "JS0",
+            "JS3",
+            "JS5",
+            "JS2",
+            "JS1"
+          ]
+        },
+        {
+          "genre": "JB",
+          "score": 0.029499459487177585,
+          "track_ids": [
+            "JB2",
+            "JB5",
+            "JB0",
+            "JB4",
+            "JB1",
+            "JB3"
+          ]
+        },
+        {
+          "genre": "WA",
+          "score": 0.02754297716863454,
+          "track_ids": [
+            "WA4",
+            "WA1",
+            "WA5",
+            "WA2",
+            "WA0",
+            "WA3"
+          ]
+        },
+        {
+          "genre": "MH",
+          "score": 0.01993405516733432,
+          "track_ids": [
+            "MH1",
+            "MH3",
+            "MH2",
+            "MH4",
+            "MH5",
+            "MH0"
+          ]
+        },
+        {
+          "genre": "LO",
+          "score": 0.0015257654931484592,
+          "track_ids": [
+            "LO4",
+            "LO3",
+            "LO5",
+            "LO2",
+            "LO0",
+            "LO1"
+          ]
+        }
+      ],
+      "accepted": true,
+      "confidence": 0.7657567536830903,
+      "rejection_reason": "",
+      "track_margin": 0.0665937066078186,
+      "motion_margin": 0.0023452248046437196,
+      "beat_quality": 0.5741031885147094,
+      "signal_rms": 0.052654588289304666,
+      "dynamic_range_db": 31.34111146450334,
+      "negative_style_score": 0.006867110729217529
+    }
+  },
+  {
+    "end_seconds": 4,
+    "start_seconds": 0,
+    "condition": "production",
+    "embedding_tracks": [
+      {
+        "music_id": "HO5",
+        "score": 0.6724215348561605
+      },
+      {
+        "music_id": "HO4",
+        "score": 0.6391717195510864
+      },
+      {
+        "music_id": "HO3",
+        "score": 0.5830727517604828
+      },
+      {
+        "music_id": "JB5",
+        "score": 0.5798818667729696
+      },
+      {
+        "music_id": "JB2",
+        "score": 0.574776291847229
+      }
+    ],
+    "result": {
+      "tracks": [
+        {
+          "music_id": "HO5",
+          "genre": "HO",
+          "score": 0.725675106048584,
+          "embedding_score": 0.6724215149879456,
+          "rhythm_timbre_score": 0.8193912506103516,
+          "tag_score": 0.911017656326294
+        },
+        {
+          "music_id": "HO4",
+          "genre": "HO",
+          "score": 0.6558970212936401,
+          "embedding_score": 0.6391717195510864,
+          "rhythm_timbre_score": 0.7246189117431641,
+          "tag_score": 0.635530948638916
+        },
+        {
+          "music_id": "HO2",
+          "genre": "HO",
+          "score": 0.6125737428665161,
+          "embedding_score": 0.5583902597427368,
+          "rhythm_timbre_score": 0.8254841566085815,
+          "tag_score": 0.5660372972488403
+        },
+        {
+          "music_id": "HO3",
+          "genre": "HO",
+          "score": 0.6047418117523193,
+          "embedding_score": 0.5830727815628052,
+          "rhythm_timbre_score": 0.7097303867340088,
+          "tag_score": 0.5464483499526978
+        },
+        {
+          "music_id": "PO0",
+          "genre": "PO",
+          "score": 0.6022599935531616,
+          "embedding_score": 0.5374457836151123,
+          "rhythm_timbre_score": 0.8099618554115295,
+          "tag_score": 0.6405557990074158
+        }
+      ],
+      "motions": [
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.7274592925214344,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.7307727816852994,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.6143211629463607,
+          "activity_score": 0.7781012306974391,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.7244655462630518,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.7222192209470637,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.5802998417726642,
+          "activity_score": 0.8004605751811595,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.7244569153406806,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.7221945611688602,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.535061699161272,
+          "activity_score": 0.9058518427530516,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.7231708647197383,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.7185201308233109,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.5051517877345819,
+          "activity_score": 0.9511454337783332,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch03",
+          "music_id": "HO5",
+          "final_score": 0.7168998511226977,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.7006029491174804,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.44532216516355005,
+          "activity_score": 0.9713000084052044,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.7083148232512694,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6760742980562565,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.42905177754340706,
+          "activity_score": 0.8457399057773786,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.7055754754892006,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6682475901646316,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.4650415755879274,
+          "activity_score": 0.7095856577293316,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch02",
+          "music_id": "HO5",
+          "final_score": 0.7042973700348455,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6645958602950454,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.3593063049430637,
+          "activity_score": 0.9319564234367722,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.704205091877799,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6643322084177699,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.425433388193651,
+          "activity_score": 0.7759022166702318,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.7015552914871759,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6567613501588464,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.33314337083254786,
+          "activity_score": 0.9407732021199832,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.701382296701706,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6562670793432184,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.3639342919038863,
+          "activity_score": 0.8656325808493393,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.6980290097293371,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6466862594221645,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.3975259213479647,
+          "activity_score": 0.7233799793394642,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.6974508506730419,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6450343764041783,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.2771271913789535,
+          "activity_score": 0.9932977958139151,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.6935338900659574,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6338430603839368,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.31993678935118647,
+          "activity_score": 0.8187999604104286,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.6929915740003034,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6322935859106397,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.23869886152741338,
+          "activity_score": 0.9980252955105852,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.691235315471992,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6272757044011783,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.24449431622071383,
+          "activity_score": 0.9510500244964746,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d21_mHO5_ch20",
+          "music_id": "HO5",
+          "final_score": 0.689870625078651,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6233765889916326,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.21745527323126448,
+          "activity_score": 0.9881470220748854,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d19_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.6817795251740154,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.6002591606926737,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.18089228009046787,
+          "activity_score": 0.919344484077018,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch01",
+          "music_id": "HO5",
+          "final_score": 0.681008756936641,
+          "music_score": 0.725675106048584,
+          "motion_score": 0.5980569657287467,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.19896791149224485,
+          "activity_score": 0.8624867110466914,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO4_ch02",
+          "music_id": "HO4",
+          "final_score": 0.6786103616533097,
+          "music_score": 0.6558970212936401,
+          "motion_score": 0.7207922794641244,
+          "tempo_score": 1.0,
+          "keypoint_score": 0.2697242420492266,
+          "activity_score": 0.8425919649793008,
+          "speed_ratio": 1.0
+        }
+      ],
+      "query_bpm": 129.31034482758622,
+      "query_tags": [
+        [
+          "Electronic---Techno",
+          0.709194540977478
+        ],
+        [
+          "Electronic---Minimal Techno",
+          0.3552752435207367
+        ],
+        [
+          "Electronic---Deep Techno",
+          0.16274438798427582
+        ],
+        [
+          "Electronic---Tech Trance",
+          0.13321921229362488
+        ],
+        [
+          "Electronic---Minimal",
+          0.12602108716964722
+        ]
+      ],
+      "genres": [
+        {
+          "genre": "HO",
+          "score": 1.0,
+          "track_ids": [
+            "HO5",
+            "HO4",
+            "HO2",
+            "HO3",
+            "HO0",
+            "HO1"
+          ]
+        },
+        {
+          "genre": "PO",
+          "score": 0.19425336401313414,
+          "track_ids": [
+            "PO0",
+            "PO4",
+            "PO5",
+            "PO2",
+            "PO3",
+            "PO1"
+          ]
+        },
+        {
+          "genre": "BR",
+          "score": 0.1400821270461484,
+          "track_ids": [
+            "BR5",
+            "BR4",
+            "BR3",
+            "BR1",
+            "BR2",
+            "BR0"
+          ]
+        },
+        {
+          "genre": "KR",
+          "score": 0.10604377898494234,
+          "track_ids": [
+            "KR1",
+            "KR4",
+            "KR5",
+            "KR0",
+            "KR3",
+            "KR2"
+          ]
+        },
+        {
+          "genre": "LH",
+          "score": 0.06971751138628385,
+          "track_ids": [
+            "LH4",
+            "LH3",
+            "LH0",
+            "LH2",
+            "LH1",
+            "LH5"
+          ]
+        },
+        {
+          "genre": "JS",
+          "score": 0.06399587707253576,
+          "track_ids": [
+            "JS4",
+            "JS5",
+            "JS0",
+            "JS3",
+            "JS2",
+            "JS1"
+          ]
+        },
+        {
+          "genre": "WA",
+          "score": 0.05940950158855854,
+          "track_ids": [
+            "WA4",
+            "WA1",
+            "WA2",
+            "WA5",
+            "WA0",
+            "WA3"
+          ]
+        },
+        {
+          "genre": "MH",
+          "score": 0.008609631694428067,
+          "track_ids": [
+            "MH1",
+            "MH4",
+            "MH3",
+            "MH5",
+            "MH0",
+            "MH2"
+          ]
+        },
+        {
+          "genre": "JB",
+          "score": 0.005859017666556368,
+          "track_ids": [
+            "JB5",
+            "JB4",
+            "JB2",
+            "JB0",
+            "JB3",
+            "JB1"
+          ]
+        },
+        {
+          "genre": "LO",
+          "score": 0.00034964361953545333,
+          "track_ids": [
+            "LO4",
+            "LO5",
+            "LO3",
+            "LO0",
+            "LO2",
+            "LO1"
+          ]
+        }
+      ],
+      "accepted": true,
+      "confidence": 0.9409264098558103,
+      "rejection_reason": "",
+      "track_margin": 0.06977808475494385,
+      "motion_margin": 0.002993746258382557,
+      "beat_quality": 0.8925934724651097,
+      "signal_rms": 0.05022180193972485,
+      "dynamic_range_db": 30.49232275647943,
+      "negative_style_score": 0.00805462896823883
+    }
+  },
+  {
+    "end_seconds": 6,
+    "start_seconds": 0,
+    "condition": "production",
+    "embedding_tracks": [
+      {
+        "music_id": "HO5",
+        "score": 0.6683640877405802
+      },
+      {
+        "music_id": "HO4",
+        "score": 0.631284773349762
+      },
+      {
+        "music_id": "JB2",
+        "score": 0.586373488108317
+      },
+      {
+        "music_id": "JB5",
+        "score": 0.5800835490226746
+      },
+      {
+        "music_id": "BR5",
+        "score": 0.5797369182109833
+      }
+    ],
+    "result": {
+      "tracks": [
+        {
+          "music_id": "HO5",
+          "genre": "HO",
+          "score": 0.720852792263031,
+          "embedding_score": 0.6683641076087952,
+          "rhythm_timbre_score": 0.8128542304039001,
+          "tag_score": 0.9042709469795227
+        },
+        {
+          "music_id": "HO4",
+          "genre": "HO",
+          "score": 0.6462516784667969,
+          "embedding_score": 0.631284773349762,
+          "rhythm_timbre_score": 0.6986069679260254,
+          "tag_score": 0.6463098526000977
+        },
+        {
+          "music_id": "PO0",
+          "genre": "PO",
+          "score": 0.6086685061454773,
+          "embedding_score": 0.547644317150116,
+          "rhythm_timbre_score": 0.8014354705810547,
+          "tag_score": 0.6503040790557861
+        },
+        {
+          "music_id": "HO2",
+          "genre": "HO",
+          "score": 0.607763409614563,
+          "embedding_score": 0.5588028430938721,
+          "rhythm_timbre_score": 0.795089602470398,
+          "tag_score": 0.5758357048034668
+        },
+        {
+          "music_id": "BR5",
+          "genre": "BR",
+          "score": 0.5955814123153687,
+          "embedding_score": 0.5797369480133057,
+          "rhythm_timbre_score": 0.666171669960022,
+          "tag_score": 0.5653122663497925
+        }
+      ],
+      "motions": [
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.7270109501148936,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.7384475289826382,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.62963849282191,
+          "activity_score": 0.7935257763034165,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.7239993220975134,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.7298428775044095,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.595471198105376,
+          "activity_score": 0.8158851207871369,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.7239656044798127,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.729746541453836,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.5500282661443553,
+          "activity_score": 0.921276388359029,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.7226549784119005,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.7260018955455153,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.5199177388240326,
+          "activity_score": 0.9665699793843106,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch03",
+          "music_id": "HO5",
+          "final_score": 0.7162000490474358,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.7075592402184735,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.45858676304954016,
+          "activity_score": 0.9867245540111818,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.7075511842106729,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6828481978277221,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.4417952573450327,
+          "activity_score": 0.861164451383356,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.7049403249893151,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6753886000524143,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.4788339414361736,
+          "activity_score": 0.725010203335309,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.7034266002952458,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6710636723550734,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.43805562275481347,
+          "activity_score": 0.7913267622762092,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch02",
+          "music_id": "HO5",
+          "final_score": 0.70335828416398,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6708684834085998,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.37061756572208615,
+          "activity_score": 0.9473809690427496,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.7006027016382278,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6629953904778789,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.3443443950557931,
+          "activity_score": 0.9561977477259606,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.7004763372986904,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6626343495077721,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.37551597282862126,
+          "activity_score": 0.8810571264553166,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.697316653052599,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6536066802332254,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.4106880326912912,
+          "activity_score": 0.7388045249454416,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.6944718693603114,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.645478726826689,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.28500728356011745,
+          "activity_score": 0.9778732502079377,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.6924422160587506,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6396797173936584,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.3300024326906862,
+          "activity_score": 0.834224506016406,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.6899775719525189,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6326378770901391,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.24629307015711616,
+          "activity_score": 0.9826007499046078,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.6898783710635965,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6323544459789323,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.2523944868974495,
+          "activity_score": 0.966474570102452,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d21_mHO5_ch20",
+          "music_id": "HO5",
+          "final_score": 0.687941875184456,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6268216006099597,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.2237489877503769,
+          "activity_score": 0.9964284323191372,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d19_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.6799499115856087,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6039874188989672,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.1849339268487447,
+          "activity_score": 0.9347690296829954,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch01",
+          "music_id": "HO5",
+          "final_score": 0.6793007378299664,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.6021326367399892,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.20400216626466172,
+          "activity_score": 0.8779112566526688,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch02",
+          "music_id": "HO5",
+          "final_score": 0.6764586131183937,
+          "music_score": 0.720852792263031,
+          "motion_score": 0.5940122804212102,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.23828482657396918,
+          "activity_score": 0.7437826738057587,
+          "speed_ratio": 1.2068965517241381
+        }
+      ],
+      "query_bpm": 129.31034482758622,
+      "query_tags": [
+        [
+          "Electronic---Techno",
+          0.6575554609298706
+        ],
+        [
+          "Electronic---Minimal Techno",
+          0.3344708979129791
+        ],
+        [
+          "Electronic---Minimal",
+          0.20011267066001892
+        ],
+        [
+          "Electronic---Tech Trance",
+          0.13541504740715027
+        ],
+        [
+          "Electronic---Deep Techno",
+          0.1253996342420578
+        ]
+      ],
+      "genres": [
+        {
+          "genre": "HO",
+          "score": 1.0,
+          "track_ids": [
+            "HO5",
+            "HO4",
+            "HO2",
+            "HO3",
+            "HO0",
+            "HO1"
+          ]
+        },
+        {
+          "genre": "PO",
+          "score": 0.26335934320812826,
+          "track_ids": [
+            "PO0",
+            "PO4",
+            "PO5",
+            "PO2",
+            "PO3",
+            "PO1"
+          ]
+        },
+        {
+          "genre": "BR",
+          "score": 0.1961989406282705,
+          "track_ids": [
+            "BR5",
+            "BR4",
+            "BR3",
+            "BR2",
+            "BR1",
+            "BR0"
+          ]
+        },
+        {
+          "genre": "KR",
+          "score": 0.12458440583351518,
+          "track_ids": [
+            "KR1",
+            "KR4",
+            "KR5",
+            "KR0",
+            "KR3",
+            "KR2"
+          ]
+        },
+        {
+          "genre": "JS",
+          "score": 0.10720156962470012,
+          "track_ids": [
+            "JS4",
+            "JS5",
+            "JS0",
+            "JS3",
+            "JS2",
+            "JS1"
+          ]
+        },
+        {
+          "genre": "LH",
+          "score": 0.07165125385607611,
+          "track_ids": [
+            "LH4",
+            "LH3",
+            "LH0",
+            "LH1",
+            "LH2",
+            "LH5"
+          ]
+        },
+        {
+          "genre": "WA",
+          "score": 0.05986802522900339,
+          "track_ids": [
+            "WA4",
+            "WA1",
+            "WA2",
+            "WA5",
+            "WA0",
+            "WA3"
+          ]
+        },
+        {
+          "genre": "JB",
+          "score": 0.05615727815623076,
+          "track_ids": [
+            "JB2",
+            "JB4",
+            "JB5",
+            "JB3",
+            "JB0",
+            "JB1"
+          ]
+        },
+        {
+          "genre": "MH",
+          "score": 0.027604824723420022,
+          "track_ids": [
+            "MH1",
+            "MH4",
+            "MH5",
+            "MH0",
+            "MH3",
+            "MH2"
+          ]
+        },
+        {
+          "genre": "LO",
+          "score": 0.0010128211282899502,
+          "track_ids": [
+            "LO4",
+            "LO5",
+            "LO3",
+            "LO0",
+            "LO2",
+            "LO1"
+          ]
+        }
+      ],
+      "accepted": true,
+      "confidence": 0.9447501873341744,
+      "rejection_reason": "",
+      "track_margin": 0.07460111379623413,
+      "motion_margin": 0.003011628017380197,
+      "beat_quality": 0.8995457951530441,
+      "signal_rms": 0.05510116383399157,
+      "dynamic_range_db": 28.882170238758803,
+      "negative_style_score": 0.011264389380812645
+    }
+  },
+  {
+    "end_seconds": 8,
+    "start_seconds": 0,
+    "condition": "production",
+    "embedding_tracks": [
+      {
+        "music_id": "HO5",
+        "score": 0.6632587512334188
+      },
+      {
+        "music_id": "HO4",
+        "score": 0.6275178492069244
+      },
+      {
+        "music_id": "JB2",
+        "score": 0.5878867904345194
+      },
+      {
+        "music_id": "BR5",
+        "score": 0.5848351120948792
+      },
+      {
+        "music_id": "JB5",
+        "score": 0.584268053372701
+      }
+    ],
+    "result": {
+      "tracks": [
+        {
+          "music_id": "HO5",
+          "genre": "HO",
+          "score": 0.7118473649024963,
+          "embedding_score": 0.6632587313652039,
+          "rhythm_timbre_score": 0.7901091575622559,
+          "tag_score": 0.8954439163208008
+        },
+        {
+          "music_id": "HO4",
+          "genre": "HO",
+          "score": 0.6411250233650208,
+          "embedding_score": 0.627517819404602,
+          "rhythm_timbre_score": 0.6846606731414795,
+          "tag_score": 0.6493041515350342
+        },
+        {
+          "music_id": "HO2",
+          "genre": "HO",
+          "score": 0.6051974296569824,
+          "embedding_score": 0.5579496622085571,
+          "rhythm_timbre_score": 0.7833079099655151,
+          "tag_score": 0.579711377620697
+        },
+        {
+          "music_id": "PO0",
+          "genre": "PO",
+          "score": 0.6020340919494629,
+          "embedding_score": 0.544506847858429,
+          "rhythm_timbre_score": 0.7823387980461121,
+          "tag_score": 0.644115149974823
+        },
+        {
+          "music_id": "BR5",
+          "genre": "BR",
+          "score": 0.6019272804260254,
+          "embedding_score": 0.5848351120948792,
+          "rhythm_timbre_score": 0.6801726818084717,
+          "tag_score": 0.5650819540023804
+        }
+      ],
+      "motions": [
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.7192940614210735,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.7331236406698598,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.6219345568609771,
+          "activity_score": 0.7760090381270708,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.7162905833618272,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.7245422747862986,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.5878337924149222,
+          "activity_score": 0.7983683826107912,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch10",
+          "music_id": "HO5",
+          "final_score": 0.716268819172559,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.7244800913883896,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.542488439461514,
+          "activity_score": 0.9037596501826833,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.7149700858732633,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.7207694248189735,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.512474995966633,
+          "activity_score": 0.9490532412079649,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch03",
+          "music_id": "HO5",
+          "final_score": 0.7086058104407322,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.7025857807260274,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.45188405228955647,
+          "activity_score": 0.9692078158348361,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.6999887002741404,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6779654659643365,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.4353517683823647,
+          "activity_score": 0.8436477132070103,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+          "music_id": "HO5",
+          "final_score": 0.6973140351588527,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.670323565634943,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.47186958803326084,
+          "activity_score": 0.7074934651589633,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch02",
+          "music_id": "HO5",
+          "final_score": 0.6958834399923133,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6662361508734019,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.36488950341138304,
+          "activity_score": 0.9298642308664039,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.695871516669935,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6662020842380352,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.4316725444959953,
+          "activity_score": 0.7738100240998635,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch04",
+          "music_id": "HO5",
+          "final_score": 0.693134620188214,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6583823800045471,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.33867153863613597,
+          "activity_score": 0.9386810095496149,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.6929849127315878,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6579546444141864,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.3696525603510957,
+          "activity_score": 0.863540388278971,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch09",
+          "music_id": "HO5",
+          "final_score": 0.6897286521795676,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6486510428369855,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.40403624220618234,
+          "activity_score": 0.7212877867690959,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.6890475732515672,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6467051030426989,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.28100404210171187,
+          "activity_score": 0.9953899883842834,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d20_mHO5_ch08",
+          "music_id": "HO5",
+          "final_score": 0.6850438989748886,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6352660336807598,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.3248990813008385,
+          "activity_score": 0.8167077678400603,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch07",
+          "music_id": "HO5",
+          "final_score": 0.6845586067327029,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6338794844173723,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.24243405022873749,
+          "activity_score": 0.9998825119190465,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.6826135769478066,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6283222564605258,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.248381118920436,
+          "activity_score": 0.9489578319261063,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d21_mHO5_ch20",
+          "music_id": "HO5",
+          "final_score": 0.6811514762136233,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6241448257914305,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.22054688947513063,
+          "activity_score": 0.9860548295045171,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sFM_cAll_d19_mHO5_ch06",
+          "music_id": "HO5",
+          "final_score": 0.6729242501957962,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.6006384657404958,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.1828726627572604,
+          "activity_score": 0.9172522915066497,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO5_ch01",
+          "music_id": "HO5",
+          "final_score": 0.6722134174322277,
+          "music_score": 0.7118473649024963,
+          "motion_score": 0.5986075149874432,
+          "tempo_score": 0.7980903800989145,
+          "keypoint_score": 0.20143756333296448,
+          "activity_score": 0.8603945184763231,
+          "speed_ratio": 1.2068965517241381
+        },
+        {
+          "motion_id": "gHO_sBM_cAll_d21_mHO4_ch02",
+          "music_id": "HO4",
+          "final_score": 0.6693806300403093,
+          "music_score": 0.6411250233650208,
+          "motion_score": 0.7218553281515596,
+          "tempo_score": 1.0,
+          "keypoint_score": 0.27365817797205627,
+          "activity_score": 0.8404997724089325,
+          "speed_ratio": 1.0
+        }
+      ],
+      "query_bpm": 129.31034482758622,
+      "query_tags": [
+        [
+          "Electronic---Techno",
+          0.5961440205574036
+        ],
+        [
+          "Electronic---Minimal Techno",
+          0.33297184109687805
+        ],
+        [
+          "Electronic---Minimal",
+          0.1940932720899582
+        ],
+        [
+          "Electronic---Deep Techno",
+          0.13845336437225342
+        ],
+        [
+          "Electronic---Psy-Trance",
+          0.12989942729473114
+        ]
+      ],
+      "genres": [
+        {
+          "genre": "HO",
+          "score": 1.0,
+          "track_ids": [
+            "HO5",
+            "HO4",
+            "HO2",
+            "HO3",
+            "HO0",
+            "HO1"
+          ]
+        },
+        {
+          "genre": "PO",
+          "score": 0.24623504404087132,
+          "track_ids": [
+            "PO0",
+            "PO4",
+            "PO5",
+            "PO2",
+            "PO3",
+            "PO1"
+          ]
+        },
+        {
+          "genre": "BR",
+          "score": 0.20161019417831372,
+          "track_ids": [
+            "BR5",
+            "BR4",
+            "BR3",
+            "BR2",
+            "BR1",
+            "BR0"
+          ]
+        },
+        {
+          "genre": "KR",
+          "score": 0.1206995305646597,
+          "track_ids": [
+            "KR4",
+            "KR1",
+            "KR5",
+            "KR0",
+            "KR3",
+            "KR2"
+          ]
+        },
+        {
+          "genre": "JS",
+          "score": 0.11004872882561656,
+          "track_ids": [
+            "JS4",
+            "JS5",
+            "JS0",
+            "JS3",
+            "JS2",
+            "JS1"
+          ]
+        },
+        {
+          "genre": "JB",
+          "score": 0.0750548565191479,
+          "track_ids": [
+            "JB2",
+            "JB5",
+            "JB4",
+            "JB3",
+            "JB0",
+            "JB1"
+          ]
+        },
+        {
+          "genre": "LH",
+          "score": 0.06806824386564228,
+          "track_ids": [
+            "LH4",
+            "LH3",
+            "LH0",
+            "LH2",
+            "LH1",
+            "LH5"
+          ]
+        },
+        {
+          "genre": "WA",
+          "score": 0.050491006791491634,
+          "track_ids": [
+            "WA4",
+            "WA1",
+            "WA2",
+            "WA5",
+            "WA0",
+            "WA3"
+          ]
+        },
+        {
+          "genre": "MH",
+          "score": 0.029509598251933826,
+          "track_ids": [
+            "MH1",
+            "MH4",
+            "MH5",
+            "MH0",
+            "MH3",
+            "MH2"
+          ]
+        },
+        {
+          "genre": "LO",
+          "score": 0.0011695403661916642,
+          "track_ids": [
+            "LO4",
+            "LO5",
+            "LO3",
+            "LO0",
+            "LO2",
+            "LO1"
+          ]
+        }
+      ],
+      "accepted": true,
+      "confidence": 0.9592482364112502,
+      "rejection_reason": "",
+      "track_margin": 0.07072234153747559,
+      "motion_margin": 0.0030034780592463894,
+      "beat_quality": 0.925905884384091,
+      "signal_rms": 0.058694212356078364,
+      "dynamic_range_db": 27.80894421315707,
+      "negative_style_score": 0.019563790410757065
+    }
+  }
+]

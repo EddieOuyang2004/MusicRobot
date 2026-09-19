@@ -195,8 +195,11 @@ def load_g1_artifact(path: Path) -> dict[str, object]:
     missing = required - set(payload)
     if missing:
         raise ValueError(f"GMR artifact is missing fields {sorted(missing)}: {path}")
-    if payload.get("format_version") != 1 or payload.get("pipeline_version") != 4:
+    if payload.get("format_version") != 1 or payload.get("pipeline_version") not in (4, 5):
         raise ValueError(f"Non-canonical GMR artifact: {path}")
+    if payload.get("pipeline_version") == 5:
+        from gmr_collision_projection import validate_v2_metadata
+        validate_v2_metadata(payload)
     if payload.get("source_format") != "aistpp_smpl_direct":
         raise ValueError(f"Non-SMPL-direct GMR artifact: {path}")
     if payload.get("root_rot_order") != "wxyz" or payload.get("retargeter") != "GMR":
@@ -439,7 +442,7 @@ def audit_motion(
         "fps": float(args.fps),
         "frames": len(poses),
         "source_sha256": sha256(motion_path),
-        "pipeline_version": 4,
+        "pipeline_version": artifact.get("pipeline_version"),
         "source_format": "aistpp_smpl_direct",
         "bvh_diagnostic": {
             "available": bvh_available,

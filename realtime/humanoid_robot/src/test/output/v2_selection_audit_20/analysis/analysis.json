@@ -1,0 +1,732 @@
+{
+  "integrity": "All 20 completion markers, raw artifact hashes, prepared audio hashes and frozen inputs verified.",
+  "total_retrievals": 1140,
+  "accepted_with_motions": 994,
+  "completed_plays": 83,
+  "actual_recommended_motion_genre_shares": {
+    "PO": 0.34347333772688876,
+    "HO": 0.159741458910434,
+    "BR": 0.14265927977839335,
+    "WA": 0.1421975992613112,
+    "JB": 0.07017543859649124,
+    "JS": 0.06234383678834672,
+    "LO": 0.05170821791320406,
+    "MH": 0.027700831024930747
+  },
+  "actual_played_motion_genre_shares": {
+    "PO": 0.4378151260504202,
+    "HO": 0.1680672268907563,
+    "WA": 0.11764705882352941,
+    "BR": 0.11764705882352941,
+    "JS": 0.07058823529411765,
+    "JB": 0.058823529411764705,
+    "LO": 0.029411764705882353
+  },
+  "songs_with_recommendations": 19,
+  "songs_with_plays": 17,
+  "songs": [
+    {
+      "title": "Backbeat",
+      "group": "cc0_music",
+      "style": "electronic / regular beat",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/01_electronic_backbeat.mp3",
+      "id": "song_01",
+      "source_seconds": 46.210625,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        46.210625
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_01.wav",
+      "prepared_sha256": "c3653b26784025e7e8446834f76dc7a0655784c7aca843344974a2ea6edcc55d",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gHO_sBM_cAll_d20_mHO5_ch10": 57
+      },
+      "top1_tracks": {
+        "HO5": 57
+      },
+      "completed_plays": {
+        "gHO_sBM_cAll_d20_mHO5_ch10": 1,
+        "gHO_sBM_cAll_d20_mHO5_ch04": 3,
+        "gHO_sBM_cAll_d20_mHO5_ch05": 2,
+        "gHO_sBM_cAll_d20_mHO5_ch06": 2
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "Hippety Hop",
+      "group": "cc0_music",
+      "style": "hip-hop / electronic",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/02_hiphop_hippety_hop.mp3",
+      "id": "song_02",
+      "source_seconds": 116.662875,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_02.wav",
+      "prepared_sha256": "fe3b8a97f621d8b615a2bbabdc01ba4d696372373e5f692eab94c8e62146e179",
+      "retrievals": 57,
+      "accepted": 47,
+      "rejections": {
+        "non_dance_or_ambient": 10
+      },
+      "top1_recommendations": {
+        "gJS_sBM_cAll_d02_mJS0_ch02": 3,
+        "gJS_sBM_cAll_d01_mJS3_ch04": 2,
+        "gPO_sBM_cAll_d12_mPO4_ch02": 42
+      },
+      "top1_tracks": {
+        "JB1": 39,
+        "JB5": 4,
+        "JB2": 14
+      },
+      "completed_plays": {
+        "gJS_sBM_cAll_d02_mJS5_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO5_ch01": 2,
+        "gPO_sBM_cAll_d12_mPO4_ch01": 1,
+        "gPO_sBM_cAll_d11_mPO4_ch01": 1
+      },
+      "terminal_hold_seconds": 14.783999999999999,
+      "bridge_failures": [
+        "Bridge preparation did not finish before the terminal state"
+      ],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 25
+    },
+    {
+      "title": "BeBop for Joey",
+      "group": "cc0_music",
+      "style": "jazz / bebop",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/03_jazz_bebop_for_joey.mp3",
+      "id": "song_03",
+      "source_seconds": 139.3894375,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_03.wav",
+      "prepared_sha256": "4fb998a6d0a24bc15991ed13a40d9dc4a263d68f025a81b1394f879b0f89a2ed",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gJB_sBM_cAll_d07_mJB2_ch01": 1,
+        "gJB_sBM_cAll_d08_mJB0_ch02": 56
+      },
+      "top1_tracks": {
+        "JB2": 1,
+        "JB5": 34,
+        "JB3": 22
+      },
+      "completed_plays": {
+        "gJB_sBM_cAll_d07_mJB0_ch02": 2,
+        "gJB_sBM_cAll_d07_mJB2_ch01": 2,
+        "gJB_sBM_cAll_d09_mJB3_ch01": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "Bollywood Groove",
+      "group": "cc0_music",
+      "style": "South Asian-inspired / world",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/04_world_bollywood_groove.mp3",
+      "id": "song_04",
+      "source_seconds": 150.0735,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_04.wav",
+      "prepared_sha256": "0d807990af2f4eae70100b99453b081e4e2c2e61b372c33f53c2fe720db72d8c",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gPO_sFM_cAll_d12_mPO1_ch16": 1,
+        "gWA_sBM_cAll_d26_mWA0_ch02": 2,
+        "gWA_sBM_cAll_d26_mWA5_ch02": 34,
+        "gJB_sBM_cAll_d08_mJB5_ch03": 18,
+        "gBR_sBM_cAll_d04_mBR0_ch03": 2
+      },
+      "top1_tracks": {
+        "JB2": 1,
+        "JB3": 56
+      },
+      "completed_plays": {},
+      "terminal_hold_seconds": 46.528,
+      "bridge_failures": [
+        "Bridge preparation did not finish before the terminal state"
+      ],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "Cumbish",
+      "group": "cc0_music",
+      "style": "Latin / cumbia-inspired",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/05_latin_cumbish.mp3",
+      "id": "song_05",
+      "source_seconds": 192.05225,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_05.wav",
+      "prepared_sha256": "a98347699a26dee6c21de1740a5453d722ccb8cb6d78d344e0cfe8d6a7b781ad",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gWA_sBM_cAll_d26_mWA5_ch02": 10,
+        "gWA_sBM_cAll_d25_mWA3_ch02": 35,
+        "gWA_sBM_cAll_d26_mWA4_ch02": 12
+      },
+      "top1_tracks": {
+        "JB0": 57
+      },
+      "completed_plays": {
+        "gWA_sBM_cAll_d26_mWA5_ch01": 1,
+        "gWA_sBM_cAll_d26_mWA4_ch01": 1,
+        "gWA_sBM_cAll_d26_mWA4_ch02": 2,
+        "gWA_sBM_cAll_d27_mWA3_ch02": 1,
+        "gWA_sBM_cAll_d27_mWA5_ch02": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "Bar Brawl",
+      "group": "cc0_music",
+      "style": "upbeat rock",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/06_upbeat_bar_brawl.mp3",
+      "id": "song_06",
+      "source_seconds": 122.592,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_06.wav",
+      "prepared_sha256": "21f6327e61405d0442aca2b01c06b223716abbadd6a12f2ad7e6dbd49f298e6b",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gWA_sBM_cAll_d26_mWA5_ch02": 38,
+        "gWA_sBM_cAll_d25_mWA1_ch02": 19
+      },
+      "top1_tracks": {
+        "JB5": 1,
+        "JB1": 56
+      },
+      "completed_plays": {
+        "gWA_sBM_cAll_d26_mWA5_ch01": 1,
+        "gWA_sBM_cAll_d26_mWA4_ch01": 1,
+        "gWA_sBM_cAll_d26_mWA4_ch02": 1,
+        "gWA_sBM_cAll_d27_mWA3_ch02": 2,
+        "gWA_sBM_cAll_d27_mWA5_ch02": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "Battle Ready",
+      "group": "cc0_music",
+      "style": "cinematic orchestral",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/07_orchestral_battle_ready.mp3",
+      "id": "song_07",
+      "source_seconds": 77.712,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_07.wav",
+      "prepared_sha256": "7aa6c56c8ec4006e30c12bef574bcd6b0aa86b11074ea7078a29f00876d5dea4",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gJS_sBM_cAll_d01_mJS3_ch04": 1,
+        "gJB_sBM_cAll_d08_mJB5_ch03": 1,
+        "gPO_sBM_cAll_d10_mPO0_ch01": 3,
+        "gPO_sBM_cAll_d10_mPO2_ch02": 5,
+        "gPO_sFM_cAll_d12_mPO1_ch16": 3,
+        "gBR_sBM_cAll_d05_mBR1_ch01": 40,
+        "gWA_sBM_cAll_d25_mWA1_ch02": 2,
+        "gWA_sBM_cAll_d26_mWA0_ch02": 2
+      },
+      "top1_tracks": {
+        "JB2": 1,
+        "JB5": 56
+      },
+      "completed_plays": {},
+      "terminal_hold_seconds": 50.72,
+      "bridge_failures": [
+        "Bridge preparation did not finish before the terminal state"
+      ],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "Isolation Waltz",
+      "group": "cc0_music",
+      "style": "waltz",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/08_waltz_isolation_waltz.mp3",
+      "id": "song_08",
+      "source_seconds": 205.32,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_08.wav",
+      "prepared_sha256": "6a4cd1a0e87a28394b2f4d5ec2511060e5e7d22766260d46898023bc053be0d6",
+      "retrievals": 57,
+      "accepted": 33,
+      "rejections": {
+        "non_dance_or_ambient": 24
+      },
+      "top1_recommendations": {
+        "gPO_sBM_cAll_d12_mPO4_ch02": 31,
+        "gJS_sBM_cAll_d02_mJS4_ch01": 1,
+        "gJS_sBM_cAll_d01_mJS3_ch04": 1
+      },
+      "top1_tracks": {
+        "JB2": 3,
+        "JB5": 54
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d12_mPO4_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO4_ch02": 1,
+        "gPO_sBM_cAll_d12_mPO4_ch01": 2,
+        "gPO_sBM_cAll_d11_mPO4_ch01": 1
+      },
+      "terminal_hold_seconds": 11.328000000000003,
+      "bridge_failures": [
+        "Candidates and replay infeasible: motion=gPO_sBM_cAll_d12_mPO4_ch01 exit_frame=396 entry_frame=0: No feasible Hermite duration in the search interval; duration=9.80473s joint_index=0 constraint=position range=[-72.5592,0.445975] limits=[-0.87267,0.5236]; joint_order=left_ankle_pitch,left_ankle_roll,left_elbow,left_hip_pitch,left_hip_roll,left_hip_yaw,left_knee,left_shoulder_pitch,left_shoulder_roll,left_shoulder_yaw,left_wrist_pitch,left_wrist_roll,left_wrist_yaw,right_ankle_pitch,right_ankle_roll,right_elbow,right_hip_pitch,right_hip_roll,right_hip_yaw,right_knee,right_shoulder_pitch,right_shoulder_roll,right_shoulder_yaw,right_wrist_pitch,right_wrist_roll,right_wrist_yaw,waist_pitch,waist_roll,waist_yaw"
+      ],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 18
+    },
+    {
+      "title": "Funky Energy Loop",
+      "group": "cc0_music",
+      "style": "funk",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/09_funk_funky_energy_loop.mp3",
+      "id": "song_09",
+      "source_seconds": 202.50125,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_09.wav",
+      "prepared_sha256": "e4f054600e6445e9536f5478d10edab84fe68b044e5a0fdda8b78ae0eda21c89",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gBR_sBM_cAll_d06_mBR3_ch01": 33,
+        "gBR_sBM_cAll_d04_mBR0_ch03": 24
+      },
+      "top1_tracks": {
+        "BR4": 1,
+        "BR3": 37,
+        "JB0": 19
+      },
+      "completed_plays": {
+        "gBR_sBM_cAll_d06_mBR3_ch02": 1,
+        "gBR_sBM_cAll_d04_mBR3_ch01": 2,
+        "gBR_sBM_cAll_d06_mBR3_ch01": 2,
+        "gBR_sBM_cAll_d05_mBR0_ch03": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "Alien Spaceship Atmosphere",
+      "group": "cc0_ambient",
+      "style": "ambient / soundscape",
+      "music_id": null,
+      "source": "realtime/humanoid_robot/data/test_audio/cc0_matcher_set/10_ambient_alien_spaceship.mp3",
+      "id": "song_10",
+      "source_seconds": 124.0555625,
+      "looped": false,
+      "loop_boundaries_seconds": [],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_10.wav",
+      "prepared_sha256": "78265052de9f44db82f4f911ea1614c824a9ba64c0b313a87a4b86688b1016b4",
+      "retrievals": 57,
+      "accepted": 0,
+      "rejections": {
+        "non_dance_or_ambient": 57
+      },
+      "top1_recommendations": {},
+      "top1_tracks": {
+        "JB5": 57
+      },
+      "completed_plays": {},
+      "terminal_hold_seconds": 50.72,
+      "bridge_failures": [
+        "Candidates and replay infeasible: motion=gLO_sBM_cAll_d13_mLO1_ch01 exit_frame=519 entry_frame=0: No feasible Hermite duration in the search interval; duration=9.80473s joint_index=0 constraint=position range=[-167.392,-0.0365053] limits=[-0.87267,0.5236]; joint_order=left_ankle_pitch,left_ankle_roll,left_elbow,left_hip_pitch,left_hip_roll,left_hip_yaw,left_knee,left_shoulder_pitch,left_shoulder_roll,left_shoulder_yaw,left_wrist_pitch,left_wrist_roll,left_wrist_yaw,right_ankle_pitch,right_ankle_roll,right_elbow,right_hip_pitch,right_hip_roll,right_hip_yaw,right_knee,right_shoulder_pitch,right_shoulder_roll,right_shoulder_yaw,right_wrist_pitch,right_wrist_roll,right_wrist_yaw,waist_pitch,waist_roll,waist_yaw"
+      ],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 1
+    },
+    {
+      "title": "AIST++ BR0",
+      "group": "aist_catalog",
+      "style": "BR",
+      "music_id": "BR0",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gBR_sFM_cAll_d04_mBR0_ch01.wav",
+      "id": "song_11",
+      "source_seconds": 47.9666875,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        47.9666875
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_11.wav",
+      "prepared_sha256": "f89689af46506d4cd1c98ea78f2620f3771cbd2e30bd6554186e047711ab444a",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gBR_sBM_cAll_d04_mBR0_ch03": 27,
+        "gMH_sBM_cAll_d22_mMH3_ch08": 2,
+        "gMH_sBM_cAll_d24_mMH3_ch08": 28
+      },
+      "top1_tracks": {
+        "BR0": 57
+      },
+      "completed_plays": {
+        "gBR_sBM_cAll_d05_mBR0_ch03": 2,
+        "gBR_sBM_cAll_d05_mBR0_ch04": 1,
+        "gBR_sBM_cAll_d04_mBR0_ch04": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ HO5",
+      "group": "aist_catalog",
+      "style": "HO",
+      "music_id": "HO5",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gHO_sFM_cAll_d19_mHO5_ch06.wav",
+      "id": "song_12",
+      "source_seconds": 28.433375,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        28.433375,
+        56.86675
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_12.wav",
+      "prepared_sha256": "7164d3a67cf1de49f3ed7aeae3b52999fd0b1e50611acad9b5420d6d597b861b",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gHO_sBM_cAll_d21_mHO5_ch10": 2,
+        "gHO_sBM_cAll_d20_mHO5_ch10": 55
+      },
+      "top1_tracks": {
+        "HO5": 57
+      },
+      "completed_plays": {
+        "gHO_sBM_cAll_d21_mHO5_ch09": 1,
+        "gHO_sBM_cAll_d20_mHO5_ch10": 1,
+        "gHO_sBM_cAll_d20_mHO5_ch04": 1,
+        "gHO_sBM_cAll_d20_mHO5_ch05": 1,
+        "gHO_sBM_cAll_d20_mHO5_ch06": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ JB5",
+      "group": "aist_catalog",
+      "style": "JB",
+      "music_id": "JB5",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gJB_sFM_cAll_d07_mJB5_ch06.wav",
+      "id": "song_13",
+      "source_seconds": 29.5166875,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        29.5166875,
+        59.033375
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_13.wav",
+      "prepared_sha256": "4370413d6a004d570029e495cc4b6bec71c65d6cf9c0d45bbfe95cc0f06a8201",
+      "retrievals": 57,
+      "accepted": 2,
+      "rejections": {
+        "non_dance_or_ambient": 55
+      },
+      "top1_recommendations": {
+        "gPO_sBM_cAll_d12_mPO4_ch02": 1,
+        "gBR_sBM_cAll_d04_mBR0_ch03": 1
+      },
+      "top1_tracks": {
+        "JB5": 57
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d12_mPO4_ch02": 1
+      },
+      "terminal_hold_seconds": 41.984,
+      "bridge_failures": [
+        "Candidates and replay infeasible: motion=gPO_sBM_cAll_d12_mPO4_ch02 exit_frame=406 entry_frame=0: No feasible Hermite duration in the search interval; duration=9.80473s joint_index=0 constraint=position range=[-0.0455169,70.4861] limits=[-0.87267,0.5236]; joint_order=left_ankle_pitch,left_ankle_roll,left_elbow,left_hip_pitch,left_hip_roll,left_hip_yaw,left_knee,left_shoulder_pitch,left_shoulder_roll,left_shoulder_yaw,left_wrist_pitch,left_wrist_roll,left_wrist_yaw,right_ankle_pitch,right_ankle_roll,right_elbow,right_hip_pitch,right_hip_roll,right_hip_yaw,right_knee,right_shoulder_pitch,right_shoulder_roll,right_shoulder_yaw,right_wrist_pitch,right_wrist_roll,right_wrist_yaw,waist_pitch,waist_roll,waist_yaw"
+      ],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 2
+    },
+    {
+      "title": "AIST++ JS3",
+      "group": "aist_catalog",
+      "style": "JS",
+      "music_id": "JS3",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gJS_sFM_cAll_d01_mJS3_ch04.wav",
+      "id": "song_14",
+      "source_seconds": 34.883375,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        34.883375
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_14.wav",
+      "prepared_sha256": "f9c806101b78ff9c2659266fe15f9b5d35ffbeb0c25ad320fe040f11f08baabf",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gJS_sBM_cAll_d01_mJS3_ch04": 56,
+        "gJS_sBM_cAll_d01_mJS3_ch08": 1
+      },
+      "top1_tracks": {
+        "JS3": 57
+      },
+      "completed_plays": {
+        "gJS_sBM_cAll_d03_mJS3_ch09": 1,
+        "gJS_sBM_cAll_d03_mJS3_ch04": 3,
+        "gJS_sBM_cAll_d01_mJS3_ch04": 2
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ KR2",
+      "group": "aist_catalog",
+      "style": "KR",
+      "music_id": "KR2",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gKR_sFM_cAll_d28_mKR2_ch03.wav",
+      "id": "song_15",
+      "source_seconds": 38.3666875,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        38.3666875
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_15.wav",
+      "prepared_sha256": "b76c7dee61f8075b5c2d842c6d9dfffd882b86a8e3298edfd6dca74302ca81eb",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gPO_sFM_cAll_d12_mPO1_ch16": 57
+      },
+      "top1_tracks": {
+        "KR2": 57
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d10_mPO1_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO1_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO1_ch09": 1,
+        "gPO_sFM_cAll_d11_mPO1_ch09": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ LH4",
+      "group": "aist_catalog",
+      "style": "LH",
+      "music_id": "LH4",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gLH_sFM_cAll_d16_mLH4_ch05.wav",
+      "id": "song_16",
+      "source_seconds": 31.983375,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        31.983375
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_16.wav",
+      "prepared_sha256": "75631c7ea5863ca048d6334e17691b9ad326d08560f5dbfd947683a6904e3fb5",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gPO_sBM_cAll_d12_mPO5_ch02": 1,
+        "gHO_sBM_cAll_d20_mHO5_ch10": 43,
+        "gHO_sBM_cAll_d21_mHO3_ch01": 1,
+        "gHO_sBM_cAll_d19_mHO2_ch02": 12
+      },
+      "top1_tracks": {
+        "LH4": 57
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d12_mPO4_ch02": 1,
+        "gHO_sBM_cAll_d21_mHO2_ch02": 3,
+        "gHO_sBM_cAll_d21_mHO3_ch02": 1,
+        "gHO_sBM_cAll_d19_mHO2_ch02": 2
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ LO2",
+      "group": "aist_catalog",
+      "style": "LO",
+      "music_id": "LO2",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gLO_sFM_cAll_d13_mLO2_ch03.wav",
+      "id": "song_17",
+      "source_seconds": 38.3666875,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        38.3666875
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_17.wav",
+      "prepared_sha256": "529df20ab2fb51ff6fc04d24731ea4a486f69e8a34995f1be9310a2864271476",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gPO_sBM_cAll_d12_mPO3_ch02": 1,
+        "gLO_sBM_cAll_d13_mLO2_ch05": 56
+      },
+      "top1_tracks": {
+        "LO2": 57
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d10_mPO2_ch02": 1,
+        "gLO_sFM_cAll_d13_mLO2_ch03": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ MH3",
+      "group": "aist_catalog",
+      "style": "MH",
+      "music_id": "MH3",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gMH_sFM_cAll_d22_mMH3_ch04.wav",
+      "id": "song_18",
+      "source_seconds": 34.883375,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        34.883375
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_18.wav",
+      "prepared_sha256": "fd509f106016a48313ded1313854ab29e6d14da8d78e6ff87c6328c0d67847ae",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gPO_sBM_cAll_d10_mPO0_ch01": 2,
+        "gHO_sBM_cAll_d20_mHO1_ch02": 3,
+        "gPO_sBM_cAll_d12_mPO4_ch02": 52
+      },
+      "top1_tracks": {
+        "MH3": 57
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d10_mPO0_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO4_ch02": 2,
+        "gPO_sBM_cAll_d11_mPO0_ch02": 1,
+        "gPO_sBM_cAll_d10_mPO0_ch01": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ PO1",
+      "group": "aist_catalog",
+      "style": "PO",
+      "music_id": "PO1",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gPO_sFM_cAll_d10_mPO1_ch02.wav",
+      "id": "song_19",
+      "source_seconds": 42.633375,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        42.633375
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_19.wav",
+      "prepared_sha256": "c1a39968310b2c6d977fc1f9dc261b1941467acf152fb28c34782be0efb304b1",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gPO_sFM_cAll_d12_mPO1_ch16": 57
+      },
+      "top1_tracks": {
+        "PO1": 57
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d10_mPO1_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO1_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO1_ch09": 1,
+        "gPO_sFM_cAll_d11_mPO1_ch09": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    },
+    {
+      "title": "AIST++ WA0",
+      "group": "aist_catalog",
+      "style": "WA",
+      "music_id": "WA0",
+      "source": "realtime/humanoid_robot/data/aistpp/audio/gWA_sFM_cAll_d25_mWA0_ch01.wav",
+      "id": "song_20",
+      "source_seconds": 47.9666875,
+      "looped": true,
+      "loop_boundaries_seconds": [
+        47.9666875
+      ],
+      "prepared_audio": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\src\\test\\output\\v2_selection_audit_20\\audio\\song_20.wav",
+      "prepared_sha256": "f493d1f603f6bbc70ac9db04c9d05c71ecabc7d4cf13bb844110f624efcb2581",
+      "retrievals": 57,
+      "accepted": 57,
+      "rejections": {},
+      "top1_recommendations": {
+        "gPO_sFM_cAll_d12_mPO1_ch16": 57
+      },
+      "top1_tracks": {
+        "WA0": 57
+      },
+      "completed_plays": {
+        "gPO_sBM_cAll_d10_mPO1_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO1_ch02": 1,
+        "gPO_sBM_cAll_d11_mPO1_ch09": 1,
+        "gPO_sFM_cAll_d11_mPO1_ch09": 1
+      },
+      "terminal_hold_seconds": 0,
+      "bridge_failures": [],
+      "trace_end_seconds": 59.96,
+      "diagnostic_accepted": 30
+    }
+  ]
+}

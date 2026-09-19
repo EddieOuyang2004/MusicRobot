@@ -1,0 +1,12 @@
+{
+  "pages": 5,
+  "format": "IEEEtran conference; 10pt; two columns; US Letter",
+  "citations": 13,
+  "unresolved_references": 0,
+  "overfull_boxes": 0,
+  "font_substitution_warnings": 0,
+  "visual_review": "All five pages inspected; final-page balance inspected after final rebuild.",
+  "remaining_latex_warnings": "Underfull hbox warnings only; reviewed visually.",
+  "experiments": "Placeholders; no empirical results imported.",
+  "pdf_sha256": "c36897f9d8894bf0d8068c1918bde6e5881563d05b689eb01666258a30683848"
+}

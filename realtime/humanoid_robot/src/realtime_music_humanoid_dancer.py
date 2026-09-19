@@ -691,10 +691,13 @@ class GmrUnitreeG1MotionSampler:
         self.collision_avoidance = motion.get("collision_avoidance")
         self.mink_limits_api = motion.get("mink_limits_api")
 
-        if self.format_version != 1 or self.pipeline_version != 4:
+        if self.format_version != 1 or self.pipeline_version not in (4, 5):
             raise ValueError(
-                "GMR motion must use canonical format_version=1 and pipeline_version=4."
+                "GMR motion must use canonical format_version=1 and pipeline_version=4 or 5."
             )
+        if self.pipeline_version == 5:
+            from gmr_collision_projection import validate_v2_metadata
+            validate_v2_metadata(motion)
         if self.source_format != "aistpp_smpl_direct":
             raise ValueError(
                 "GMR motion must set source_format='aistpp_smpl_direct'; legacy BVH artifacts are refused."
@@ -725,7 +728,7 @@ class GmrUnitreeG1MotionSampler:
         ):
             raise ValueError("GMR motion has missing or unsupported collision-avoidance metadata.")
 
-        dof_pos = np.asarray(motion.get("dof_pos"), dtype=np.float32)
+        dof_pos = np.asarray(motion.get("dof_pos"), dtype=np.float64 if self.pipeline_version == 5 else np.float32)
         if dof_pos.ndim != 2:
             raise ValueError(f"Expected GMR dof_pos with shape (N, D), got {dof_pos.shape}.")
         if len(dof_pos) < 2:
@@ -804,6 +807,13 @@ class GmrUnitreeG1MotionSampler:
             raise ValueError(f"GMR fps must be finite and positive, got {fps}.")
         self.fps = fps
         self.duration = len(self.frames) / self.fps
+        self.authored_trajectory = None
+        if self.pipeline_version == 5:
+            from motion_bridges import AuthoredTrajectory
+            if not math.isclose(self.fps, float(motion["fps"]), rel_tol=0., abs_tol=1e-10):
+                raise ValueError("Changing FPS invalidates GMR v2 state-trajectory limits; regenerate instead.")
+            self.authored_trajectory = AuthoredTrajectory(
+                self.frames, self.fps, velocities=motion["dof_vel"], accelerations=motion["dof_acc"])
 
     def sample(self, phase: float, amplitude: float, accent: float, features: FeatureState) -> dict[str, float]:
         return self.sample_frame(phase, amplitude, accent, features).joint_positions
@@ -821,7 +831,9 @@ class GmrUnitreeG1MotionSampler:
         frame_a = int(math.floor(frame_pos)) % len(self.frames)
         frame_b = (frame_a + 1) % len(self.frames)
         blend = frame_pos - math.floor(frame_pos)
-        frame = (1.0 - blend) * self.frames[frame_a] + blend * self.frames[frame_b]
+        frame = (self.authored_trajectory.at_time(min(frame_pos, len(self.frames)-1)/self.fps).position
+                 if self.authored_trajectory is not None else
+                 (1.0-blend)*self.frames[frame_a] + blend*self.frames[frame_b])
 
         pose = {}
         for index, name in enumerate(self.dof_names):

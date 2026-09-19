@@ -538,7 +538,7 @@ def limit_qpos_velocity_collision_aware(
     return result, counts
 
 
-def retarget(args: argparse.Namespace) -> dict[str, object]:
+def retarget(args: argparse.Namespace, *, trajectory_filter=None) -> dict[str, object]:
     gmr_root = args.gmr_root.resolve()
     motion_path = args.motion.resolve()
     model_path = args.smpl_model_path.resolve()
@@ -609,7 +609,9 @@ def retarget(args: argparse.Namespace) -> dict[str, object]:
                 f"Collision-validation MuJoCo model not found: {validation_model_path}"
             )
         validation_model = mujoco.MjModel.from_xml_path(str(validation_model_path))
-        qpos, limited_counts = limit_qpos_velocity_collision_aware(
+        # Batch v2 supplies a validated projection; default generation stays v4.
+        final_filter = trajectory_filter or limit_qpos_velocity_collision_aware
+        qpos, limited_counts = final_filter(
             (retargeter.model, validation_model),
             qpos,
             float(args.motion_fps),

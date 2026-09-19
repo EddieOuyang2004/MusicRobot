@@ -1,0 +1,432 @@
+{
+  "limit_rad_s": 9.42477796076938,
+  "tolerance_rad_s": 1e-05,
+  "measurement": "Absolute backward finite difference of saved GMR joint positions; not acceleration or angle limits.",
+  "intervals": [
+    {
+      "start_seconds": 0.0,
+      "end_seconds": 0.016666666666666666,
+      "ending_frame": 1,
+      "joints": [
+        "right_shoulder_pitch",
+        "right_shoulder_roll",
+        "right_wrist_roll",
+        "right_wrist_pitch",
+        "right_wrist_yaw"
+      ]
+    },
+    {
+      "start_seconds": 0.016666666666666666,
+      "end_seconds": 0.03333333333333333,
+      "ending_frame": 2,
+      "joints": [
+        "right_shoulder_pitch",
+        "right_shoulder_roll",
+        "right_shoulder_yaw",
+        "right_elbow",
+        "right_wrist_roll",
+        "right_wrist_pitch",
+        "right_wrist_yaw"
+      ]
+    },
+    {
+      "start_seconds": 0.03333333333333333,
+      "end_seconds": 0.05,
+      "ending_frame": 3,
+      "joints": [
+        "right_shoulder_roll",
+        "right_shoulder_yaw",
+        "right_elbow",
+        "right_wrist_roll",
+        "right_wrist_pitch",
+        "right_wrist_yaw"
+      ]
+    },
+    {
+      "start_seconds": 0.05,
+      "end_seconds": 0.06666666666666667,
+      "ending_frame": 4,
+      "joints": [
+        "right_shoulder_roll",
+        "right_elbow",
+        "right_wrist_roll",
+        "right_wrist_pitch",
+        "right_wrist_yaw"
+      ]
+    },
+    {
+      "start_seconds": 0.06666666666666667,
+      "end_seconds": 0.08333333333333333,
+      "ending_frame": 5,
+      "joints": [
+        "right_shoulder_roll",
+        "right_elbow",
+        "right_wrist_roll",
+        "right_wrist_pitch",
+        "right_wrist_yaw"
+      ]
+    },
+    {
+      "start_seconds": 0.08333333333333333,
+      "end_seconds": 0.1,
+      "ending_frame": 6,
+      "joints": [
+        "right_shoulder_roll",
+        "right_elbow",
+        "right_wrist_roll",
+        "right_wrist_yaw"
+      ]
+    },
+    {
+      "start_seconds": 0.1,
+      "end_seconds": 0.11666666666666667,
+      "ending_frame": 7,
+      "joints": [
+        "right_shoulder_roll",
+        "right_elbow",
+        "right_wrist_roll",
+        "right_wrist_yaw"
+      ]
+    },
+    {
+      "start_seconds": 0.11666666666666667,
+      "end_seconds": 0.13333333333333333,
+      "ending_frame": 8,
+      "joints": [
+        "right_shoulder_roll",
+        "right_elbow",
+        "right_wrist_roll"
+      ]
+    },
+    {
+      "start_seconds": 0.13333333333333333,
+      "end_seconds": 0.15,
+      "ending_frame": 9,
+      "joints": [
+        "right_wrist_roll"
+      ]
+    },
+    {
+      "start_seconds": 2.1166666666666667,
+      "end_seconds": 2.1333333333333333,
+      "ending_frame": 128,
+      "joints": [
+        "waist_yaw",
+        "waist_roll",
+        "left_shoulder_pitch",
+        "left_elbow",
+        "left_wrist_pitch",
+        "right_shoulder_pitch",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 2.1333333333333333,
+      "end_seconds": 2.15,
+      "ending_frame": 129,
+      "joints": [
+        "waist_roll",
+        "left_elbow",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 2.15,
+      "end_seconds": 2.1666666666666665,
+      "ending_frame": 130,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 2.1666666666666665,
+      "end_seconds": 2.183333333333333,
+      "ending_frame": 131,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 2.183333333333333,
+      "end_seconds": 2.2,
+      "ending_frame": 132,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 2.2,
+      "end_seconds": 2.216666666666667,
+      "ending_frame": 133,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 2.216666666666667,
+      "end_seconds": 2.2333333333333334,
+      "ending_frame": 134,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 2.2333333333333334,
+      "end_seconds": 2.25,
+      "ending_frame": 135,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 2.25,
+      "end_seconds": 2.2666666666666666,
+      "ending_frame": 136,
+      "joints": [
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.566666666666666,
+      "end_seconds": 4.583333333333333,
+      "ending_frame": 275,
+      "joints": [
+        "left_knee",
+        "waist_roll",
+        "waist_pitch",
+        "left_shoulder_roll",
+        "left_shoulder_yaw",
+        "left_elbow",
+        "left_wrist_roll",
+        "left_wrist_yaw",
+        "right_shoulder_pitch",
+        "right_shoulder_yaw",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 4.683333333333334,
+      "end_seconds": 4.7,
+      "ending_frame": 282,
+      "joints": [
+        "waist_roll",
+        "waist_pitch",
+        "left_shoulder_pitch",
+        "left_shoulder_roll",
+        "left_elbow",
+        "left_wrist_roll",
+        "left_wrist_yaw",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 4.7,
+      "end_seconds": 4.716666666666667,
+      "ending_frame": 283,
+      "joints": [
+        "left_shoulder_pitch",
+        "left_shoulder_roll",
+        "left_elbow",
+        "left_wrist_roll",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.716666666666667,
+      "end_seconds": 4.733333333333333,
+      "ending_frame": 284,
+      "joints": [
+        "left_shoulder_roll",
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.733333333333333,
+      "end_seconds": 4.75,
+      "ending_frame": 285,
+      "joints": [
+        "left_shoulder_roll",
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.75,
+      "end_seconds": 4.766666666666667,
+      "ending_frame": 286,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.766666666666667,
+      "end_seconds": 4.783333333333333,
+      "ending_frame": 287,
+      "joints": [
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.783333333333333,
+      "end_seconds": 4.8,
+      "ending_frame": 288,
+      "joints": [
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.8,
+      "end_seconds": 4.816666666666666,
+      "ending_frame": 289,
+      "joints": [
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 4.816666666666666,
+      "end_seconds": 4.833333333333333,
+      "ending_frame": 290,
+      "joints": [
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 6.933333333333334,
+      "end_seconds": 6.95,
+      "ending_frame": 417,
+      "joints": [
+        "left_knee",
+        "waist_roll",
+        "waist_pitch",
+        "left_shoulder_pitch",
+        "left_elbow",
+        "right_shoulder_pitch",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 6.95,
+      "end_seconds": 6.966666666666667,
+      "ending_frame": 418,
+      "joints": [
+        "waist_roll",
+        "left_shoulder_pitch",
+        "left_elbow",
+        "right_shoulder_pitch",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 6.966666666666667,
+      "end_seconds": 6.983333333333333,
+      "ending_frame": 419,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 6.983333333333333,
+      "end_seconds": 7.0,
+      "ending_frame": 420,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll",
+        "right_elbow"
+      ]
+    },
+    {
+      "start_seconds": 7.0,
+      "end_seconds": 7.016666666666667,
+      "ending_frame": 421,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 7.016666666666667,
+      "end_seconds": 7.033333333333333,
+      "ending_frame": 422,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 7.033333333333333,
+      "end_seconds": 7.05,
+      "ending_frame": 423,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 7.05,
+      "end_seconds": 7.066666666666666,
+      "ending_frame": 424,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 7.066666666666666,
+      "end_seconds": 7.083333333333333,
+      "ending_frame": 425,
+      "joints": [
+        "left_elbow",
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 7.083333333333333,
+      "end_seconds": 7.1,
+      "ending_frame": 426,
+      "joints": [
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 7.1,
+      "end_seconds": 7.116666666666666,
+      "ending_frame": 427,
+      "joints": [
+        "right_shoulder_roll"
+      ]
+    },
+    {
+      "start_seconds": 7.5,
+      "end_seconds": 7.516666666666667,
+      "ending_frame": 451,
+      "joints": [
+        "left_knee",
+        "waist_pitch",
+        "left_shoulder_roll",
+        "left_shoulder_yaw",
+        "left_elbow",
+        "left_wrist_roll",
+        "right_shoulder_yaw",
+        "right_elbow"
+      ]
+    }
+  ]
+}

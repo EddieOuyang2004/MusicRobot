@@ -136,6 +136,7 @@ def validate_gmr_artifact(
     model_hash: str | None = None,
     retargeter_version: str | None = None,
     expected_fps: float | None = None,
+    expected_pipeline_version: int = PIPELINE_VERSION,
     expected_collision_avoidance: bool | None = None,
     expected_collision_min_distance: float | None = None,
     expected_collision_detection_distance: float | None = None,
@@ -164,7 +165,7 @@ def validate_gmr_artifact(
         raise ValueError(f"GMR artifact is missing fields {sorted(missing)}: {path}")
     if int(payload.get("format_version", -1)) != 1:
         raise ValueError(f"Unsupported or missing GMR artifact format_version: {path}")
-    if int(payload.get("pipeline_version", -1)) != PIPELINE_VERSION:
+    if int(payload.get("pipeline_version", -1)) != expected_pipeline_version:
         raise ValueError(f"Unsupported or missing GMR artifact pipeline_version: {path}")
     if payload.get("source_format") != SOURCE_FORMAT:
         raise ValueError(f"Unsupported or missing GMR artifact source_format: {path}")

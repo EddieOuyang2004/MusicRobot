@@ -674,6 +674,20 @@ def build_motion_entry_features(
         [candidates[int(index)] for index in candidate_indices],
         dtype=np.float64,
     )
+    stored = getattr(sampler, "authored_trajectory", None)
+    if stored is not None:
+        mapping = getattr(adapter, "name_map", {name: name for name in sampler.dof_names})
+        reverse = {resolved: logical for logical, resolved in mapping.items()}
+        try:
+            columns = [sampler.dof_names.index(reverse[name]) for name in joint_names]
+        except (KeyError, ValueError) as exc:
+            raise ValueError("Cannot map validated Hermite states to playback joints.") from exc
+        positions = stored.positions[:, columns].copy()
+        authored = AuthoredTrajectory(positions, fps, velocities=stored.velocities[:, columns],
+                                      accelerations=stored.accelerations[:, columns])
+        velocities = authored.velocities.copy()
+    else:
+        authored = AuthoredTrajectory(positions, fps)
     return MotionEntryFeatures(
         joint_names=joint_names,
         joint_positions=positions,
@@ -688,7 +702,7 @@ def build_motion_entry_features(
         candidate_salience=candidate_salience,
         fps=fps,
         duration=float(sampler.duration),
-        authored=AuthoredTrajectory(positions, fps),
+        authored=authored,
     )
 
 

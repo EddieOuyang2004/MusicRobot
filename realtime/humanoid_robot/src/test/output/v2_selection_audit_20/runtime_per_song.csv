@@ -1,0 +1,21 @@
+﻿song,title,group,completed_plays_excluding_startup,motion_changes,same_motion_replays,observed_seconds_after_first_switch,top_motion,top_motion_share
+song_01,Backbeat,cc0_music,8,8,0,47.93599999999999,gHO_sBM_cAll_d20_mHO5_ch04,0.375
+song_02,Hippety Hop,cc0_music,5,5,0,46.303999999999995,gPO_sBM_cAll_d11_mPO5_ch01,0.4
+song_03,BeBop for Joey,cc0_music,5,5,0,48.0,gJB_sBM_cAll_d07_mJB0_ch02,0.4
+song_04,Bollywood Groove,cc0_music,0,0,0,0,,
+song_05,Cumbish,cc0_music,6,6,0,47.968,gWA_sBM_cAll_d26_mWA4_ch02,0.3333333333333333
+song_06,Bar Brawl,cc0_music,6,6,0,48.864000000000004,gWA_sBM_cAll_d27_mWA3_ch02,0.3333333333333333
+song_07,Battle Ready,cc0_music,0,0,0,0,,
+song_08,Isolation Waltz,cc0_music,5,5,0,47.552,gPO_sBM_cAll_d12_mPO4_ch01,0.4
+song_09,Funky Energy Loop,cc0_music,6,6,0,49.792,gBR_sBM_cAll_d04_mBR3_ch01,0.3333333333333333
+song_10,Alien Spaceship Atmosphere,cc0_ambient,0,0,0,0,,
+song_11,AIST++ BR0,aist_catalog,4,4,0,48.096000000000004,gBR_sBM_cAll_d05_mBR0_ch03,0.5
+song_12,AIST++ HO5,aist_catalog,5,5,0,47.232,gHO_sBM_cAll_d21_mHO5_ch09,0.2
+song_13,AIST++ JB5,aist_catalog,1,1,0,50.752,gPO_sBM_cAll_d12_mPO4_ch02,1.0
+song_14,AIST++ JS3,aist_catalog,6,6,0,47.264,gJS_sBM_cAll_d03_mJS3_ch04,0.5
+song_15,AIST++ KR2,aist_catalog,4,4,0,48.160000000000004,gPO_sBM_cAll_d10_mPO1_ch02,0.25
+song_16,AIST++ LH4,aist_catalog,7,7,0,48.064,gHO_sBM_cAll_d21_mHO2_ch02,0.42857142857142855
+song_17,AIST++ LO2,aist_catalog,2,2,0,46.784,gPO_sBM_cAll_d10_mPO2_ch02,0.5
+song_18,AIST++ MH3,aist_catalog,5,5,0,47.936,gPO_sBM_cAll_d11_mPO4_ch02,0.4
+song_19,AIST++ PO1,aist_catalog,4,4,0,46.848,gPO_sBM_cAll_d10_mPO1_ch02,0.25
+song_20,AIST++ WA0,aist_catalog,4,4,0,46.912,gPO_sBM_cAll_d10_mPO1_ch02,0.25

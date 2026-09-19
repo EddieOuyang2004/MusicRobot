@@ -99,14 +99,22 @@ class HermiteBridge:
 class AuthoredTrajectory:
     """C2 interpolation through cached samples, with derivatives in authored time."""
 
-    def __init__(self, positions: np.ndarray, fps: float):
+    def __init__(self, positions: np.ndarray, fps: float, *, velocities=None, accelerations=None):
         q = np.asarray(positions, dtype=float)
         if q.ndim != 2 or not len(q) or not np.all(np.isfinite(q)) or not math.isfinite(fps) or fps <= 0:
             raise ValueError("Authored samples must be finite, nonempty and have positive fps.")
         self.positions = q.copy()
         self.fps = float(fps)
         self.duration = max(len(q) - 1, 1) / self.fps
-        if len(q) == 1:
+        if (velocities is None) != (accelerations is None):
+            raise ValueError("Provide both authored velocities and accelerations.")
+        if velocities is not None:
+            self.velocities = np.asarray(velocities, dtype=float).copy()
+            self.accelerations = np.asarray(accelerations, dtype=float).copy()
+            if any(x.shape != q.shape or not np.all(np.isfinite(x))
+                   for x in (self.velocities, self.accelerations)):
+                raise ValueError("Authored derivatives must be finite and match the position array.")
+        elif len(q) == 1:
             self.velocities = np.zeros_like(q)
             self.accelerations = np.zeros_like(q)
         else:

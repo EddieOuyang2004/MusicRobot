@@ -1,0 +1,246 @@
+{
+  "frames": 3636,
+  "capture_duration_s": 60.70804599999974,
+  "verification": {
+    "completed_transitions": 8,
+    "replay_fallbacks": 0
+  },
+  "clip_frames": 292,
+  "clipped_joint_samples": 578,
+  "clip_joints": {
+    "left_knee": 6,
+    "right_wrist_roll": 286,
+    "right_wrist_yaw": 286
+  },
+  "max_clip_correction_rad": 0.034063964170790495,
+  "interval_ms": {
+    "50": 16.664499999023974,
+    "95": 18.11398000099871,
+    "99": 19.260695997800212,
+    "100": 61.5172000034363
+  },
+  "large_gaps": [
+    [
+      6.507838100002118,
+      56.89360000178567
+    ],
+    [
+      31.457856100001663,
+      43.27259999990929
+    ],
+    [
+      47.75543640000251,
+      61.5172000034363
+    ]
+  ],
+  "max_joint_step_rad": 0.1898015875312709,
+  "max_speed_rad_s": 12.6411013147905,
+  "max_acceleration_rad_s2": 578.9399138721908,
+  "peaks": [
+    {
+      "capture_seconds": 54.7247606000019,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "ready",
+      "joint": "right_knee",
+      "acceleration": -578.9399138721908,
+      "dt_ms": 16.959300002781674,
+      "source_frame": 115,
+      "source_samples": [
+        1.0137262827145377,
+        1.1185635459819436,
+        1.1879513823762098,
+        1.2159215212029078,
+        1.2009782261688433
+      ]
+    },
+    {
+      "capture_seconds": 36.37648909999916,
+      "motion_id": "gHO_sBM_cAll_d19_mHO2_ch02",
+      "status": "ready",
+      "joint": "right_knee",
+      "acceleration": -447.2994960028753,
+      "dt_ms": 5.61799999923096,
+      "source_frame": 131,
+      "source_samples": [
+        0.7785865742826485,
+        0.7199976705914428,
+        0.6442187534858703,
+        0.5566367131697724,
+        0.4644318242399715
+      ]
+    },
+    {
+      "capture_seconds": 36.39428570000018,
+      "motion_id": "gHO_sBM_cAll_d19_mHO2_ch02",
+      "status": "ready",
+      "joint": "right_knee",
+      "acceleration": 411.55440535437003,
+      "dt_ms": 17.796600001020124,
+      "source_frame": 132,
+      "source_samples": [
+        0.7199976705914428,
+        0.6442187534858703,
+        0.5566367131697724,
+        0.4644318242399715,
+        0.3761554258400225
+      ]
+    },
+    {
+      "capture_seconds": 43.70953390000068,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "ready",
+      "joint": "left_hip_pitch",
+      "acceleration": -371.4122547626922,
+      "dt_ms": 16.361400001187576,
+      "source_frame": 154,
+      "source_samples": [
+        -0.3659333741289116,
+        -0.33790951502922373,
+        -0.3150499743098246,
+        -0.29496659227068645,
+        -0.2759203112537921
+      ]
+    },
+    {
+      "capture_seconds": 54.70780129999912,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "ready",
+      "joint": "right_elbow",
+      "acceleration": -363.42712333891444,
+      "dt_ms": 8.41759999821079,
+      "source_frame": 114,
+      "source_samples": [
+        1.3295952679978564,
+        1.2373493984966855,
+        1.1499644204409114,
+        1.073603591282808,
+        1.010763224590437
+      ]
+    },
+    {
+      "capture_seconds": 31.56049410000196,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "preparing",
+      "joint": "right_knee",
+      "acceleration": 360.4331489382399,
+      "dt_ms": 17.310499999439344,
+      "source_frame": 124,
+      "source_samples": [
+        0.7043996400614525,
+        0.5925323426664857,
+        0.49809834398953956,
+        0.42494661280362855,
+        0.37373290579664653
+      ]
+    },
+    {
+      "capture_seconds": 31.54318360000252,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "preparing",
+      "joint": "right_knee",
+      "acceleration": -334.6586192836233,
+      "dt_ms": 10.73990000077174,
+      "source_frame": 123,
+      "source_samples": [
+        0.8263543352873756,
+        0.7043996400614525,
+        0.5925323426664857,
+        0.49809834398953956,
+        0.42494661280362855
+      ]
+    },
+    {
+      "capture_seconds": 31.694040000002133,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "ready",
+      "joint": "right_hip_pitch",
+      "acceleration": -333.3162326105285,
+      "dt_ms": 17.383300000801682,
+      "source_frame": 132,
+      "source_samples": [
+        -0.2627025557386267,
+        -0.24763057812085476,
+        -0.23665225452066657,
+        -0.22914754247358662,
+        -0.22328920821606466
+      ]
+    },
+    {
+      "capture_seconds": 47.62647740000102,
+      "motion_id": "gHO_sBM_cAll_d19_mHO2_ch02",
+      "status": "preparing",
+      "joint": "left_elbow",
+      "acceleration": 310.6320388894254,
+      "dt_ms": 12.238700001034886,
+      "source_frame": 107,
+      "source_samples": [
+        0.7035745156588786,
+        0.8594410141082593,
+        1.0147074719401745,
+        1.1652977884695854,
+        1.303541585868539
+      ]
+    },
+    {
+      "capture_seconds": 44.792760300002556,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "ready",
+      "joint": "right_knee",
+      "acceleration": 296.0376739257773,
+      "dt_ms": 12.81090000338736,
+      "source_frame": 219,
+      "source_samples": [
+        0.5376242652866698,
+        0.6846358523800737,
+        0.8367941491109521,
+        0.9822158169004195,
+        1.1089555554244424
+      ]
+    },
+    {
+      "capture_seconds": 43.7269555999992,
+      "motion_id": "gHO_sBM_cAll_d20_mHO5_ch05",
+      "status": "ready",
+      "joint": "left_knee",
+      "acceleration": 269.4182764591765,
+      "dt_ms": 17.421699998521945,
+      "source_frame": 155,
+      "source_samples": [
+        0.3853557869344851,
+        0.3343159011533825,
+        0.3140790191918578,
+        0.31819293574188967,
+        0.33779180163094974
+      ]
+    },
+    {
+      "capture_seconds": 47.64370290000079,
+      "motion_id": "gHO_sBM_cAll_d19_mHO2_ch02",
+      "status": "preparing",
+      "joint": "left_elbow",
+      "acceleration": -252.30707529468634,
+      "dt_ms": 17.225499999767635,
+      "source_frame": 108,
+      "source_samples": [
+        0.8594410141082593,
+        1.0147074719401745,
+        1.1652977884695854,
+        1.303541585868539,
+        1.4205720710855891
+      ]
+    }
+  ],
+  "bridge_clipped_frames": 0,
+  "bridge_max_acceleration_rad_s2": 140.6939679213495,
+  "trace_events": {
+    "switch_start": 8,
+    "switch_complete": 8,
+    "bridge_hold": 0
+  }
+}
+SOURCE_SUMMARY
+gLO_sBM_cAll_d13_mLO2_ch02 {"raw_step_rad": 0.15500229317737912, "v2_acceleration_rad_s2": 181.9631971662672, "v2_position_excess_rad": 4.142304277365838e-10, "fast_reversal_frames": 0} []
+gPO_sBM_cAll_d10_mPO0_ch02 {"raw_step_rad": 0.11770745938853944, "v2_acceleration_rad_s2": 168.63364581351973, "v2_position_excess_rad": 0.0, "fast_reversal_frames": 0} []
+gPO_sBM_cAll_d11_mPO0_ch02 {"raw_step_rad": 0.1105982758872982, "v2_acceleration_rad_s2": 156.4278968975757, "v2_position_excess_rad": 0.0, "fast_reversal_frames": 0} []
+gHO_sBM_cAll_d20_mHO5_ch05 {"raw_step_rad": 0.15514125939319268, "v2_acceleration_rad_s2": 164.72189979708776, "v2_position_excess_rad": 0.0, "fast_reversal_frames": 0} []
+gHO_sBM_cAll_d19_mHO2_ch02 {"raw_step_rad": 0.15586649844938072, "v2_acceleration_rad_s2": 159.74585386279537, "v2_position_excess_rad": 0.0, "fast_reversal_frames": 0} []

@@ -1,0 +1,95 @@
+"""Regression tests for collision planning with non-rest boundary states."""
+from pathlib import Path
+import sys
+import unittest
+import importlib.util
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"realtime/humanoid_robot/src"))
+from motion_bridges import AuthoredTrajectory, HermiteBridge, JointState
+from gmr_collision_projection import projection_settings
+from gmr_state_trajectory import solve_horizon, plan_state_trajectory
+
+
+class StoredStateTests(unittest.TestCase):
+    def test_explicit_states_preserved_at_both_ends(self):
+        q = np.array([[0.], [.4], [.8]])
+        v = np.array([[.7], [1.1], [.6]])
+        a = np.array([[.3], [-.2], [.1]])
+        curve = AuthoredTrajectory(q, 2., velocities=v, accelerations=a)
+        for i in range(3):
+            state = curve.at_time(i/2)
+            for actual, expected in zip((state.position,state.velocity,state.acceleration), (q[i],v[i],a[i])):
+                np.testing.assert_allclose(actual, expected, atol=1e-12)
+        self.assertNotEqual(float(curve.velocities[0,0]), float(np.gradient(q, .5,axis=0)[0,0]))
+
+    def test_rejects_partial_or_malformed_states(self):
+        for kwargs in ({'velocities': [[1.],[1.]]},
+                       {'velocities': [[1.]], 'accelerations': [[0.],[0.]]},
+                       {'velocities': [[1.],[np.nan]], 'accelerations': [[0.],[0.]]}):
+            with self.assertRaises(ValueError):
+                AuthoredTrajectory([[0.],[1.]], 60., **kwargs)
+
+
+@unittest.skipUnless(importlib.util.find_spec('qpsolvers'), 'Requires generation environment')
+class PlannerStateTests(unittest.TestCase):
+    def test_feasible_turnaround_is_not_rejected_by_global_control_bounds(self):
+        # q(t)=t-t^2 stays below .25, but its global degree-5 Bernstein
+        # control points reach .3. The old fixed-row check rejects high=.26.
+        start = JointState(np.array([0.]), np.array([1.]), np.array([-2.]))
+        refs = [JointState(np.array([t-t*t]), np.array([1-2*t]), np.array([-2.]))
+                for t in np.linspace(.1, 1., 10)]
+        bridge = solve_horizon(start, refs, 1., np.array([-2.]), np.array([.26]), (),
+                               np.r_[np.zeros(3),1.,np.zeros(3),0.], projection_settings())
+        self.assertIsNotNone(bridge)
+        self.assertTrue(bridge.within_limits(0, np.array([-2.]), np.array([.26])))
+        for field in ('position', 'velocity', 'acceleration'):
+            np.testing.assert_allclose(getattr(bridge.at_time(0), field), getattr(start, field), atol=1e-12)
+
+    def test_subinterval_controls_reconstruct_the_same_polynomial(self):
+        from gmr_state_trajectory import subdivided_bernstein_matrix
+        from math import comb
+        for degree in range(3, 6):
+            power = np.arange(degree+1, dtype=float) * (-1.)**np.arange(degree+1)
+            controls = (subdivided_bernstein_matrix(degree) @ power).reshape(4, degree+1)
+            for segment in range(4):
+                for u in np.linspace(0., 1., 11):
+                    value = sum(controls[segment,k]*comb(degree,k)*u**k*(1-u)**(degree-k)
+                                for k in range(degree+1))
+                    expected = np.polynomial.polynomial.polyval((segment+u)/4, power)
+                    self.assertAlmostEqual(value, expected, places=12)
+
+    def test_solver_keeps_nonzero_initial_velocity_and_acceleration(self):
+        start = JointState(np.array([0.]), np.array([.5]), np.array([.2]))
+        refs = [JointState(np.array([.5*t+.1*t*t]), np.array([.5+.2*t]), np.array([.2]))
+                for t in np.linspace(.02,.2,10)]
+        bridge = solve_horizon(start, refs, .2, np.array([-2.]), np.array([2.]), (),
+                               np.r_[np.zeros(3),1.,np.zeros(3),0.], projection_settings())
+        self.assertIsNotNone(bridge)
+        for field in ('position','velocity','acceleration'):
+            np.testing.assert_allclose(getattr(bridge.at_time(0),field),getattr(start,field),atol=1e-12)
+        self.assertGreater(float(bridge.at_time(.2).velocity[0]),.1)
+
+    def test_receding_horizon_has_c2_joins(self):
+        fps=60.; t=np.arange(20)/fps
+        guide=np.zeros((20,8));guide[:,3]=1.;guide[:,7]=.5*t+.1*t*t
+        initial=JointState(guide[0,7:],np.array([.5]),np.array([.2]))
+        q,v,a,_=plan_state_trajectory(guide,fps,(),np.array([-2.]),np.array([2.]),
+                                      projection_settings(),initial_state=initial)
+        curve=AuthoredTrajectory(q[:,7:],fps,velocities=v,accelerations=a)
+        for k in range(len(q)-2):
+            left=HermiteBridge(1/fps,curve.segments[:,k]).at_time(1/fps)
+            right=HermiteBridge(1/fps,curve.segments[:,k+1]).at_time(0.)
+            for field in ('position','velocity','acceleration'):
+                np.testing.assert_allclose(getattr(left,field),getattr(right,field),atol=1e-8)
+
+    def test_infeasible_incoming_state_is_rejected_not_zeroed(self):
+        guide=np.zeros((3,8));guide[:,3]=1.
+        initial=JointState(np.array([0.]),np.array([100.]),np.array([0.]))
+        with self.assertRaisesRegex(ValueError, 'not published'):
+            plan_state_trajectory(guide,60.,(),np.array([-2.]),np.array([2.]),
+                                   projection_settings(),initial_state=initial)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,1 @@
+Report integration check using only the eight-second smoke data. Not a formal experiment result.

@@ -1,0 +1,10 @@
+{
+  "sha256": {
+    "diagnostic.json": "bd6ffc5c629a93bdac5dddbb343c2a2f86bd823b916903d02b09f150cc6c6cd3",
+    "command.json": "93a98b4c88c4e601bdaf3b044558a1110fec7dca1e48b1078b6c26fc346787c3",
+    "runtime.log": "49de54c1f2033c7e4e378a86c3b685f3159f5a753ca7834ab5074d5013da7eb8",
+    "trace.csv": "44887751485a1244657fda6a1d358948f378660993ea77ce8987f5dad48d5dfd",
+    "timing.json": "ce18821d335898fe761591b7c8cb40914be40e165eadbae792cde673b0e3fa4e",
+    "retrieval.jsonl": "83f1ecdf1983fe6c6e6771651217385dbbed90449d858dc564928c212e558e47"
+  }
+}

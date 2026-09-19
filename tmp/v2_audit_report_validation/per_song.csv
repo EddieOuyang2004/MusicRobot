@@ -1,0 +1,4 @@
+﻿song,title,group,condition,observations,accepted_with_motion,rejected_or_no_motion,top_motion,top_motion_share
+song_01,Backbeat,cc0_music,live,6,6,0,gHO_sBM_cAll_d20_mHO5_ch10,1.0
+song_01,Backbeat,cc0_music,diagnostic,4,4,0,gHO_sBM_cAll_d20_mHO5_ch10,1.0
+song_01,Backbeat,cc0_music,diagnostic_first_pass,4,4,0,gHO_sBM_cAll_d20_mHO5_ch10,1.0

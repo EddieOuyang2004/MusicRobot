@@ -1,0 +1,10 @@
+{
+  "root_position": 0,
+  "root_rotation": 0,
+  "joints": 2896,
+  "collision_frames_adjusted": 259,
+  "collision_line_search_evaluations": 3626,
+  "initial_frame_penetrating": 0,
+  "initial_frame_adjusted": 0,
+  "collision_filter_passes": 2
+}

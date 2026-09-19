@@ -1,0 +1,544 @@
+BeatWeaver: Music-Conditioned Humanoid Motion
+with State-Continuous Smoothing and Transitions
+Chengjun Ouyang
+University College London
+London, United Kingdom
+Abstract—Music-responsive humanoid animation requires
+both relevant motion selection and continuous trajectories. Re-
+trieving a suitable dance does not ensure that its retargeted joint
+motion is smooth, or that it can be connected to the motion cur-
+rently being played. We present BeatWeaver, a causal retrieval-
+and-synthesis system for the 29-joint Unitree G1 representation.
+Streaming audio is compared with a paired music–motion cat-
+alogue using learned music embeddings and explicit rhythm,
+tempo, and activity descriptors. Ofﬂine, retargeted motions are
+regenerated from their human sources and reﬁned by a collision-
+aware, receding-horizon quintic planner that preserves accepted
+position, velocity, and acceleration. Online, a transition planner
+searches compatible exit–entry frame pairs within a musically
+relevant shortlist and constructs joint-state bridges subject to
+continuous polynomial bounds. Boundary-aware time scaling and
+modulation connect authored trajectories to these bridges without
+predicting future audio. A shared Hermite representation links
+ofﬂine validation, online planning, and playback. The system pro-
+duces inspectable kinematic motion references; physical tracking
+and comparative performance remain subjects for evaluation.
+Index Terms—music-driven motion, humanoid animation, mo-
+tion retrieval, motion retargeting, trajectory smoothing, transi-
+tion planning
+I. I NTRODUCTION
+Musical rhythm provides timing cues for movement, while
+timbre, style, and activity inﬂuence its expressive character.
+These complementary signals make music an appealing input
+for interactive humanoid performance. A useful system must
+respond to observed audio while maintaining coherent move-
+ment as the music and selected choreography change. For a
+humanoid representation, this also requires attention to joint
+ranges, derivative limits, and geometry.
+Music-conditioned dance generation has advanced through
+paired datasets and transformer models, learned choreographic
+codes, and diffusion-based synthesis [ 1]–[3]. Recent work
+addresses causal streaming and direct audio-conditioned hu-
+manoid motion [ 4], [ 5]. These approaches motivate increas-
+ingly responsive interfaces, but generation is not the only use-
+ful design choice. When a ﬁnite collection of choreographies
+is available, retrieval permits ofﬂine inspection and preparation
+of each motion, explicit selection rules, and traceable relation-
+ships between source data and output.
+Retrieval alone leaves two continuity problems unresolved.
+Within a clip, retargeting and collision correction can intro-
+duce abrupt stops or derivative changes. Across clips, similar
+poses can still have incompatible velocities and accelerations.
+A blend that interpolates positions does not automatically
+preserve the states of the trajectories it joins. Moreover, a
+trajectory validated with one interpolation rule may violate
+constraints when a different rule is used for playback. These
+issues motivate treating motion as a sequence of joint states,
+rather than a sequence of poses.
+We present BeatWeaver, a music-conditioned retrieval and
+kinematic synthesis system that addresses both continuity
+problems through a shared trajectory representation. Music
+retrieval identiﬁes a relevant motion neighbourhood. Ofﬂine
+state-aware smoothing prepares its clips; online state-to-state
+planning connects them. The transition method is the current
+humanoid matcher v2 , replacing the moving-clip blending
+method in the earlier system. Its paired exit–entry search also
+allows a short terminal portion of a source clip to be trimmed
+when an earlier boundary is more compatible.
+The paper describes three contributions:
+• A causal music-to-motion pipeline combining semantic
+retrieval with explicit temporal and activity compatibility.
+• An ofﬂine, collision-aware smoothing procedure that
+carries joint position, velocity, and acceleration through
+replanning and stores the same states used by playback.
+• An online transition method combining nonlinear exit–
+entry scoring, checked Hermite bridges, and boundary-
+aware music adaptation.
+The scope is kinematic reference synthesis. Empirical evalu-
+ation is reserved for Sections IV and V; physical execution
+requires a separate tracking controller.
+II. R ELATED WORK
+A. Music-Conditioned Motion
+AI Choreographer introduces AIST++ and FACT, pairing
+3D dance with music and learning cross-modal temporal rela-
+tionships [1]. Bailando represents dance using a learned chore-
+ographic memory and composes motion units with an actor–
+critic transformer [ 2]. EDGE uses diffusion for editable music-
+conditioned dance and incorporates contact-related physical
+plausibility considerations [ 3]. These methods generate human
+motion; a humanoid application additionally needs an embod-
+iment mapping and an execution strategy.
+DiscoForcing explicitly addresses causal, bounded-latency
+audio-driven character control [ 4]. RoboPerform investigates
+expressive humanoid motion driven by music and speech [ 5].
+BeatWeaver occupies a complementary point in this design
+space: it selects and connects existing robot-space references
+
+Paired source data
+AIST++ music and
+SMPL motion
+Ofﬂine preparation
+Audio descriptors; GMR
+state-aware smoothing
+Ofﬂine validation
+Polynomial bounds and
+sampled collision checks
+V ersioned catalogue
+Music / motion proﬁles
+Hermite joint states
+Streaming audio
+Causal history; local
+beat and activity events
+Hierarchical retrieval
+Music similarity and
+motion compatibility
+Matcher v2
+Exit–entry pair search
+Checked joint-
+state bridge
+Kinematic playback
+Boundary-aware timing
+Output conditioning
+Local music events adjust timing and modulation
+OFFLINE
+ONLINE
+Fig. 1. BeatWeaver overview. Both ofﬂine smoothing and online transitions use joint position, velocity, and acceleration. Ofﬂine geometric validation does
+not certify newly synthesized transitions or physical tracking.
+instead of training an online choreography generator. Its ex-
+pressive coverage is consequently limited by the catalogue,
+while its selection and transition constraints remain explicit.
+B. Music Representation and Motion Retrieval
+Music embeddings learned from Discogs metadata capture
+relationships that complement engineered acoustic descriptors
+[6]. Signal-processing libraries such as librosa provide tempo,
+onset, and spectral features [ 7]. BeatWeaver combines these
+feature families because stylistic similarity does not by itself
+imply a usable motion speed or matching event density.
+Motion graphs assemble captured motion through transi-
+tions between compatible states [ 8]. Learned motion matching
+develops a compact learned alternative to database-based mo-
+tion matching [ 9]. BeatWeaver shares the use of reusable mo-
+tion data, but separates musical relevance from instantaneous
+boundary compatibility. It retrieves a music-conditioned short-
+list and plans joint-state bridges online rather than constructing
+a ﬁxed all-pairs motion graph.
+C. Retargeting and Constrained Trajectories
+SMPL supplies a common human-motion representation
+[10], while General Motion Retargeting (GMR) maps human
+motion to humanoid embodiments. The GMR study shows that
+reference-motion quality affects downstream tracking [ 11].
+BeatWeaver uses GMR as its retargeter and adds its own state-
+aware collision correction and motion-ﬁle representation. This
+postprocessing is distinct from the published GMR method.
+Position, velocity, and acceleration are also central to con-
+strained trajectory generation. Ruckig constructs synchronized
+trajectories under derivative constraints for arbitrary target
+states [ 12]. BeatWeaver provides an optional Ruckig back-
+end; its default method uses quintic Hermite curves with an
+explicit duration search. The focus here is the integration
+of state-preserving clip preparation, musical retrieval, and
+online boundary selection, rather than a new general-purpose
+trajectory solver.
+III. M ETHOD
+A. Problem F ormulation and System Overview
+Let A≤t denote audio observed by wall time t. The cata-
+logue contains music descriptors, motion proﬁles, and robot
+trajectories:
+D = {(xi, mi, Mi)}N
+i=1. (1)
+Each trajectory has a ﬂoating-base pose and joint states
+si,k = (qi,k, vi,k, ai,k), where qi,k ∈ R29 and derivatives are
+deﬁned in authored time. The system chooses a motion index,
+its playback time, and, when needed, a transition to another
+motion using only A≤t and stored state.
+Fig. 1 separates ofﬂine preparation from online execution.
+Ofﬂine, paired AIST++ music and SMPL motion are converted
+into audio descriptors and G1 reference trajectories. Online,
+audio retrieval, candidate loading, and transition search run
+outside the foreground playback path. The foreground con-
+sumes completed plans and emits kinematic poses to MuJoCo
+[13]. The default matcher v2 update rate is 60 Hz; this is a
+conﬁguration, not a hard real-time guarantee.
+B. Music Descriptors and Hierarchical Retrieval
+Catalogue audio is converted to mono at 16 kHz and
+analysed in six-second windows with a two-second hop. Me-
+dian removal and percentile amplitude normalization reduce
+sensitivity to recording gain. The learned backend produces a
+1,280-dimensional Discogs EffNet embedding e and 400 style
+activations g. A 24-dimensional rhythm–timbre vector r com-
+bines tempo, onset and beat statistics, spectral ﬂux, percussive
+and band energy ratios, MFCCs, and spectral contrast.
+Matcher v2 maintains a causal history of up to 30 s,
+beginning analysis after 2 s. It requests retrieval at one-
+second intervals when the worker is free. Unlike the six-second
+catalogue segmentation, the query descriptor summarizes the
+currently available history; learned patch outputs are averaged.
+Thus longer history offers more context but can retain evidence
+from earlier musical passages. No future waveform is used,
+and busy workers do not receive an accumulating queue of
+queries.
+
+Embedding and rhythm vectors are standardized using ﬁxed
+catalogue statistics and normalized to unit length. Style vectors
+are unit-normalized without standardization. For normalized
+vectors, deﬁne sf (q, n) = (1 + ¯f
+⊤
+q ¯f n)/2. Segment similarity
+is
+Sn = 0.70se(q, n) + 0.20sr(q, n) + 0.10sg(q, n). (2)
+If style vectors are unavailable, the remaining weights are
+renormalized. Track evidence is the mean of its three highest
+segment scores, or all scores when fewer than three exist. The
+default style-ﬁrst policy combines track-based genre evidence
+with broad style-label priors and restricts retrieval to the
+leading genre, admitting the runner-up when their scores
+are close. Weak beat evidence or persistent non-dance style
+evidence causes abstention from new music-driven selection.
+Motion proﬁles add source tempo bi, velocity-derived
+activity, and the density and regularity of salient poses.
+These poses are detected as prominent valleys in whole-
+body source-motion velocity. For query tempo bq, consider
+{bq/bi, bq/(2bi), 2bq/bi} to accommodate half/double-time
+ambiguity. Choose the ratio ri closest to one in log space
+within the conﬁgured speed interval, default [0.55, 1.60]. If no
+ratio is admissible, exclude the motion. Tempo compatibility
+is
+Stempo,i = exp
+
+− 1
+2 (log ri/0.28)2
+. (3)
+Key-pose compatibility compares playback-scaled key-pose
+density with a weighted combination of beat and onset rates,
+together with an interval regularity term. Activity compatibility
+is one minus the absolute difference between normalized audio
+and motion activity. The ﬁnal score is
+Smotion,i = 0.50Stempo,i + 0.35Skey,i + 0.15Sactivity,i, (4)
+Si = 0.65Strack,i + 0.35Smotion,i. (5)
+These are ﬁxed engineering weights, not learned or experi-
+mentally optimized parameters in this draft.
+C. State-Preserving Ofﬂine Motion Smoothing
+GMR transfers each SMPL sequence to the target humanoid.
+BeatWeaver’s updated motion preparation, called GMR v2
+within this project, regenerates the reference from the original
+human motion. Filtering an older saved trajectory cannot
+reconstruct movement already removed by collision-induced
+holds. The revised pipeline ﬁrst constructs a collision-aware
+positional guide using joint displacement optimization, range
+and speed bounds, and linearized distance constraints. Nonlin-
+ear geometry checks restrict unsafe steps.
+The guide is not the ﬁnal playback trajectory. Starting from
+an accepted state s0, a receding-horizon planner ﬁts a quintic
+joint curve over up to 12 source frames. For horizon duration
+T and normalized time u ∈ [0, 1], write
+Q(u) =
+5X
+k=0
+ckuk, z = [q⊤
+T , T v⊤
+T , T 2a⊤
+T ]⊤. (6)
+The initial position, velocity, and acceleration are ﬁxed; co-
+efﬁcients are afﬁne in the optimized terminal state z. Future
+guide states are tracking objectives rather than hard endpoint
+constraints. With Q(d) denoting the dth derivative with respect
+to u, the implemented objective has the form
+min
+z
+X
+ℓ
+2X
+d=0
+ωd
+Q(d)(uℓ) − T dˆs(d)
+ℓ
+
+2
++ λj
+5
+4X
+r=0
+T −3Q(3)(r/4)
+
+2
+,
+(7)
+where ˆs(0,1,2)
+ℓ denotes guide position, velocity, and accelera-
+tion, ω = (1, 0.1, 0.005), and λj sets a soft physical-time jerk
+cost. The jerk term is sampled regularization, not a hard jerk
+bound.
+Bernstein control-point bounds constrain position, speed,
+and acceleration throughout the curve. Bounds are ap-
+plied on four equal subintervals to reduce conservatism.
+Signed-distance constraints are relinearized during sequen-
+tial quadratic optimization, and a short terminal continua-
+tion reserves room for motion beyond the planning horizon.
+Candidate curves undergo nonlinear collision sampling and
+continuous joint-extrema checks before acceptance.
+Only one source-frame interval is committed before replan-
+ning. Its ending position, velocity, and acceleration become the
+next ﬁxed initial state. Shorter horizons are tried when nec-
+essary. If replanning fails, the remaining previously validated
+curve may be consumed; an instantaneous zero-velocity hold
+is not inserted into the generated trajectory. When no validated
+continuation exists, generation fails. At clip initialization only,
+estimated derivatives may be reduced if no incoming state was
+supplied, and the adjustment is recorded.
+The resulting ﬁles retain source frame count and timing
+and store ﬂoat64 position, velocity, and acceleration arrays.
+A checksum binds these arrays to the frame rate. Playback
+and transition planning reuse the saved states after joint-name
+mapping rather than re-estimating derivatives from poses. The
+serialized piecewise Hermite curves are checked again for joint
+bounds and dense sampled clearance in both conﬁgured robot
+models. This aligns validation with the interpolation actually
+used at authored speed. It does not establish continuous
+collision avoidance or validate later time warping.
+D. Musical Shortlists and Exit–Entry Search
+Matcher v2 retrieves up to 20 motions and retains at
+most ten alternatives whose ﬁnal and music scores lie within
+0.05 and 0.08 of the leading motion, respectively. The active
+motion is excluded from this normal shortlist. The shortlist
+is frozen for preparation, and a successful plan is retained.
+This policy avoids replacing an imminent transition with every
+new ranking; it does not use the earlier matcher’s consecutive-
+winner and bar-triggered switching rule.
+For each shortlisted motion j, eligible entries include every
+authored frame with phase k/(Nj − 1) ≤ 0.2. Source exits
+include reachable frames in the ﬁnal two authored seconds of
+the current clip. Invalid joint boundary states are ﬁltered ﬁrst.
+An early exit must still allow the boundary fade to begin before
+
+that exit and before the original terminal fade. Retaining the
+original phase denominator while storing a separate stop time
+prevents trimming from rescaling the source motion.
+Each exit–entry pair is compared using joint pose, joint
+velocity, binary foot-contact state, and root features. For a
+nonnegative discrepancy d with soft tolerance τ , deﬁne
+P (d; τ ) = r2 + κ max(r − 1, 0)2, r = d/τ. (8)
+We use κ = 4 . This penalty is sensitive below the tolerance
+and grows more strongly above it; the tolerance is not a hard
+rejection threshold. Pose and velocity penalties are averaged
+across joints, using tolerances of 5% of joint range and 10%
+of joint speed limit. The contact term uses the number of
+mismatched feet with tolerance one. Root height, tilt, linear
+velocity, and angular speed discrepancies use tolerances of
+0.025 m, 0.075 rad, 0.25 m/s, and 0.5 rad/s, respectively. Their
+penalties are averaged to form Cr. The total cost is
+Cpair = 0.45Cq + 0.20Cv + 0.20Cc + 0.10Cr
+0.95 . (9)
+Acceleration enters bridge feasibility, not this ranking cost.
+Music determines the shortlist and resolves ties; it is not an
+additional geometric penalty. Further ties prefer later exits,
+earlier entries, and a deterministic motion identiﬁer order.
+Contact agreement is a heuristic, not a contact-force constraint.
+Candidate rows are vectorized per exit and merged in sorted
+order, avoiding a full exit-by-entry-by-joint tensor. Bridge
+construction is attempted in this order until a feasible pair
+is found. The resulting choice is the ﬁrst successful ranked
+pair encountered within the preparation deadline, rather than
+a globally optimal trajectory.
+E. Checked State-to-State Bridges
+Given an exit state (q0, v0, a0) and an entry state
+(q1, v1, a1), a quintic Hermite bridge of duration T satisﬁes
+all six endpoint conditions. With derivatives speciﬁed in phys-
+ical time, its normalized-time coefﬁcients are
+c0 = q0, c1 = T v0, c2 = 1
+2 T 2a0,
+d = q1 − c0 − c1 − c2,
+h = T v1 − c1 − 2c2,
+g = T 2a1 − 2c2,
+c3 = 10d − 4h + 1
+2 g,
+c4 = −15d + 7h − g,
+c5 = 6d − 3h + 1
+2 g. (10)
+For each joint, the planner checks
+qmin ≤ q(t) ≤ qmax, | ˙q(t)| ≤ vmax, |¨q(t)| ≤ amax (11)
+throughout [0, T ]. A jerk bound is also checked when explicitly
+conﬁgured; the default Hermite conﬁguration has no ﬁnite jerk
+limit.
+Duration search starts with a displacement-based estimate
+and coarse geometric steps. If those fail, a reﬁned grid with
+spacing no greater than 2% covers the interval from the
+minimum duration, default 0.35 s, to 10 s. Nonzero endpoint
+derivatives make feasibility nonmonotonic in duration, so the
+displacement estimate is not treated as a lower bound. Failure
+of this ﬁnite search does not prove that every possible duration
+is infeasible.
+Polynomial checks use sampled rejection followed by Bern-
+stein convex-hull bounds and bounded subdivision. Uncertain
+cases fall back to evaluating endpoints and real stationary
+points in the interval. Sampled tests can reject a curve but
+cannot alone authorize it. The optional Ruckig backend instead
+constructs a synchronized jerk-limited trajectory and checks its
+position extrema; it requires ﬁnite jerk limits for every joint.
+Preparation checks cancellation and a conservative
+remaining-playback deadline between score rows, bridge
+attempts, and duration trials. Native solver calls are not
+preemptible. If no shortlisted transition is found, a checked
+replay to frame zero of the current motion is attempted. One
+expanded-shortlist retry may then use new candidates and
+wider musical margins while time remains. If no plan is ready
+at the terminal state, playback holds that pose and records the
+failure. This terminal hold lies outside the smooth-transition
+contract; its onset need not preserve a nonzero terminal
+velocity.
+F . Boundary-Aware Music Adaptation and Playback
+An authored joint curve is Q(s), where s is clip time. Music-
+dependent time scaling changes its physical derivatives:
+˙q = Q′(s) ˙s, ¨q = Q′′(s) ˙s2 + Q′(s)¨s. (12)
+Thus a bridge planned from authored derivatives cannot simply
+meet a clip at an arbitrary music-dependent rate. BeatWeaver
+fades the rate toward authored speed and fades pose modula-
+tion toward zero near both boundaries.
+Let sa and sb be the entry and selected exit times and h the
+boundary window, default 0.5 s and reduced for short intervals.
+Deﬁne
+H(u) = 10 u3 − 15u4 + 6u5, u ∈ [0, 1], (13)
+w(s) = min
+n
+H
+
+clip[0,1]
+s−sa
+h
+
+, H
+
+clip[0,1]
+sb−s
+h
+o
+. (14)
+Playback integrates
+˙s = 1 + w(s)(rmusic − 1),
+qtarget = Q(s) + w(s)∆qmusic. (15)
+The beat controller updates the bounded music rate and timing
+error without teleporting the sampler to a new phase. Near
+boundaries, accumulated phase correction is cleared. Because
+the window and its ﬁrst two derivatives vanish at each join,
+playback approaches the authored state under regular bounded
+music modulation. The bridge then advances in wall time
+while the target clip’s entry time remains ﬁxed. On completion,
+the target resumes from that entry with wall-time overshoot
+carried forward.
+This construction gives matching joint position, velocity,
+and acceleration at successful ideal joins before downstream
+conditioning. Root position and orientation are aligned and
+blended separately; they do not inherit the joint derivative
+
+guarantee. Stateful output limits and optional runtime collision
+handling can further modify emitted poses, so ﬁnal-output
+continuity and constraint satisfaction require their own mea-
+surements.
+G. Implementation Scope
+The prototype uses named-joint G1 trajectories, NumPy-
+based scoring, ONNX audio inference, and MuJoCo kine-
+matic playback. Retrieval and motion loading support separate
+worker processes; pair search uses a background scoring
+worker. Generation identiﬁers reject stale plans, and early-
+exit plans arriving after their fade deadline are discarded.
+Asynchronous execution avoids deliberately waiting for plan-
+ning in the playback loop, but does not establish a worst-case
+execution-time bound.
+The terms matcher v2 and GMR v2 refer to independent
+components. The corrected dataset must be selected explicitly;
+choosing matcher v2 alone does not regenerate or select
+corrected clips. Motion provenance and saved state checks
+prevent stale interpolation revisions from being treated as
+validated data. Ofﬂine joint-curve bounds concern authored
+speed. Sampled self-collision checks do not certify inter-clip
+bridges, root dynamics, balance, ground-contact forces, or
+hardware tracking.
+IV. E XPERIMENTS
+Reserved for the experimental design. Datasets, baselines,
+metrics, operating conditions, and evaluation protocol will be
+added after the experiments are selected.
+V. R ESULTS AND DISCUSSION
+Reserved for quantitative results, qualitative comparisons,
+ablations, and analysis of failure cases. No empirical claims
+are made in this section at the draft stage.
+VI. C ONCLUSION
+BeatWeaver combines causal music retrieval with state-
+aware humanoid motion synthesis. Its central design choice
+is to use a consistent joint-state representation across ofﬂine
+smoothing, transition planning, and playback. The revised
+ofﬂine pipeline carries accepted derivatives through collision-
+aware replanning, while matcher v2 searches musically rel-
+evant exit–entry pairs and joins them with checked trajecto-
+ries. Boundary-aware adaptation reconciles music-dependent
+playback with authored bridge states. Evaluation of musical
+relevance, delivered smoothness, transition availability, and
+runtime performance remains to be completed. Physical de-
+ployment further requires a dynamically validated tracking
+controller.
+REFERENCES
+[1] R. Li, S. Y ang, D. A. Ross, and A. Kanazawa, “AI Choreographer:
+Music conditioned 3D dance generation with AIST++,” in Proc.
+IEEE/CVF International Conference on Computer Vision (ICCV) , 2021,
+pp. 13 401–13 412. [Online]. Available: https://arxiv.org/abs/2101.08779
+[2] L. Siyao, W. Y u, T. Gu, C. Lin, Q. Wang, C. Qian, C. C. Loy,
+and Z. Liu, “Bailando: 3D dance generation by actor-critic GPT with
+choreographic memory,” in Proc. IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR) , 2022, pp. 11 050–11 059.
+[Online]. Available: https://arxiv.org/abs/2203.13055
+[3] J. Tseng, R. Castellon, and K. Liu, “EDGE: Editable dance generation
+from music,” in Proc. IEEE/CVF Conference on Computer Vision and
+Pattern Recognition (CVPR) , 2023, pp. 448–458. [Online]. Available:
+https://arxiv.org/abs/2211.10658
+[4] K. Ji, B. Qian, B. Wu, K. Chen, Y . Shi, and J. Wang, “DiscoForcing:
+A uniﬁed framework for real-time audio-driven character control with
+diffusion forcing,” arXiv preprint arXiv:2605.28491 , 2026. [Online].
+Available: https://arxiv.org/abs/2605.28491
+[5] Z. Li, C. Chi, Y . Wei, B. Zhu, T. Huang, Z. Sun, Y . Peng,
+P . Wang, Z. Wang, F. Liu, C. Xu, and S. Zhang, “Do you
+have freestyle? expressive humanoid locomotion via audio control,”
+arXiv preprint arXiv:2512.23650 , 2025. [Online]. Available: https:
+//arxiv.org/abs/2512.23650
+[6] P . Alonso-Jiménez, X. Serra, and D. Bogdanov, “Music representation
+learning based on editorial metadata from Discogs,” in Proc.
+International Society for Music Information Retrieval Conference
+(ISMIR), 2022, pp. 825–833. [Online]. Available: https://archives.ismir.
+net/ismir2022/paper/000099.pdf
+[7] B. McFee, C. Raffel, D. Liang, D. P . W. Ellis, M. McVicar, E. Batten-
+berg, and O. Nieto, “librosa: Audio and music signal analysis in Python,”
+in Proc. Python in Science Conference , 2015, pp. 18–24.
+[8] L. Kovar, M. Gleicher, and F. Pighin, “Motion graphs,” ACM Transac-
+tions on Graphics , vol. 21, no. 3, pp. 473–482, 2002.
+[9] D. Holden, O. Kanoun, M. Perepichka, and T. Popa, “Learned motion
+matching,” ACM Transactions on Graphics , vol. 39, no. 4, 2020.
+[10] M. Loper, N. Mahmood, J. Romero, G. Pons-Moll, and M. J. Black,
+“SMPL: A skinned multi-person linear model,” ACM Transactions on
+Graphics, vol. 34, no. 6, pp. 248:1–248:16, 2015.
+[11] J. P . Araujo, Y . Ze, P . Xu, J. Wu, and C. K. Liu, “Retargeting
+matters: General motion retargeting for humanoid motion tracking,”
+arXiv preprint arXiv:2510.02252 , 2025. [Online]. Available: https:
+//arxiv.org/abs/2510.02252
+[12] L. Berscheid and T. Kröger, “Jerk-limited real-time trajectory generation
+with arbitrary target states,” in Proc. Robotics: Science and Systems ,
+2021.
+[13] E. Todorov, T. Erez, and Y . Tassa, “MuJoCo: A physics engine for
+model-based control,” in Proc. IEEE/RSJ International Conference on
+Intelligent Robots and Systems (IROS) , 2012, pp. 5026–5033.

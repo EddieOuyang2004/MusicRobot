@@ -1534,10 +1534,10 @@ class MotionPreflightValidator:
             sampler = GmrUnitreeG1MotionSampler(artifact_path, None, 1.0, 0.0, False)
             if (
                 sampler.format_version != 1
-                or sampler.pipeline_version != 4
+                or sampler.pipeline_version not in (4, 5)
                 or sampler.source_format != "aistpp_smpl_direct"
             ):
-                return False, "GMR artifact is not canonical SMPL-direct pipeline version 4"
+                return False, "GMR artifact is not canonical SMPL-direct pipeline version 4 or 5"
             if sampler.retargeter != "GMR":
                 return False, f"unexpected retargeter: {sampler.retargeter!r}"
             if sampler.collision_avoidance.get("enabled") is not True:

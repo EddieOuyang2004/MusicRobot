@@ -1,0 +1,7 @@
+{
+  "mujoco_version": "3.10.0",
+  "model": "open_humanoid_dancer.xml",
+  "samples_per_interval_including_endpoints": 42,
+  "clearance_m": 0.005,
+  "violating_samples": 0
+}

@@ -136,8 +136,12 @@ def audit(path, ranges):
     counts = lim.get('limited_values', {})
     for key in ('joints', 'joint_limits', 'collision_frames_adjusted'):
         row['gmr_limited_'+key] = int(counts.get(key, 0))
-    # V2 loads the artifact joint positions as float32 before interpolation.
-    trajectory = AuthoredTrajectory(q.astype(np.float32).astype(float), fps)
+    if d.get("pipeline_version") == 5:
+        from gmr_collision_projection import validate_v2_metadata
+        validate_v2_metadata(d)
+        trajectory = AuthoredTrajectory(q, fps, velocities=d["dof_vel"], accelerations=d["dof_acc"])
+    else:
+        trajectory = AuthoredTrajectory(q.astype(np.float32).astype(float), fps)
     c = trajectory.segments
     peaks = exact_peaks(c, fps)
     for key, (values, _) in peaks.items():

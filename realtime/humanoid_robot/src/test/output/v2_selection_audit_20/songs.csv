@@ -1,0 +1,21 @@
+﻿id,title,group,style,music_id,source,source_seconds,looped
+song_01,Backbeat,cc0_music,electronic / regular beat,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/01_electronic_backbeat.mp3,46.210625,True
+song_02,Hippety Hop,cc0_music,hip-hop / electronic,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/02_hiphop_hippety_hop.mp3,116.662875,False
+song_03,BeBop for Joey,cc0_music,jazz / bebop,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/03_jazz_bebop_for_joey.mp3,139.3894375,False
+song_04,Bollywood Groove,cc0_music,South Asian-inspired / world,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/04_world_bollywood_groove.mp3,150.0735,False
+song_05,Cumbish,cc0_music,Latin / cumbia-inspired,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/05_latin_cumbish.mp3,192.05225,False
+song_06,Bar Brawl,cc0_music,upbeat rock,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/06_upbeat_bar_brawl.mp3,122.592,False
+song_07,Battle Ready,cc0_music,cinematic orchestral,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/07_orchestral_battle_ready.mp3,77.712,False
+song_08,Isolation Waltz,cc0_music,waltz,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/08_waltz_isolation_waltz.mp3,205.32,False
+song_09,Funky Energy Loop,cc0_music,funk,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/09_funk_funky_energy_loop.mp3,202.50125,False
+song_10,Alien Spaceship Atmosphere,cc0_ambient,ambient / soundscape,,realtime/humanoid_robot/data/test_audio/cc0_matcher_set/10_ambient_alien_spaceship.mp3,124.0555625,False
+song_11,AIST++ BR0,aist_catalog,BR,BR0,realtime/humanoid_robot/data/aistpp/audio/gBR_sFM_cAll_d04_mBR0_ch01.wav,47.9666875,True
+song_12,AIST++ HO5,aist_catalog,HO,HO5,realtime/humanoid_robot/data/aistpp/audio/gHO_sFM_cAll_d19_mHO5_ch06.wav,28.433375,True
+song_13,AIST++ JB5,aist_catalog,JB,JB5,realtime/humanoid_robot/data/aistpp/audio/gJB_sFM_cAll_d07_mJB5_ch06.wav,29.5166875,True
+song_14,AIST++ JS3,aist_catalog,JS,JS3,realtime/humanoid_robot/data/aistpp/audio/gJS_sFM_cAll_d01_mJS3_ch04.wav,34.883375,True
+song_15,AIST++ KR2,aist_catalog,KR,KR2,realtime/humanoid_robot/data/aistpp/audio/gKR_sFM_cAll_d28_mKR2_ch03.wav,38.3666875,True
+song_16,AIST++ LH4,aist_catalog,LH,LH4,realtime/humanoid_robot/data/aistpp/audio/gLH_sFM_cAll_d16_mLH4_ch05.wav,31.983375,True
+song_17,AIST++ LO2,aist_catalog,LO,LO2,realtime/humanoid_robot/data/aistpp/audio/gLO_sFM_cAll_d13_mLO2_ch03.wav,38.3666875,True
+song_18,AIST++ MH3,aist_catalog,MH,MH3,realtime/humanoid_robot/data/aistpp/audio/gMH_sFM_cAll_d22_mMH3_ch04.wav,34.883375,True
+song_19,AIST++ PO1,aist_catalog,PO,PO1,realtime/humanoid_robot/data/aistpp/audio/gPO_sFM_cAll_d10_mPO1_ch02.wav,42.633375,True
+song_20,AIST++ WA0,aist_catalog,WA,WA0,realtime/humanoid_robot/data/aistpp/audio/gWA_sFM_cAll_d25_mWA0_ch01.wav,47.9666875,True

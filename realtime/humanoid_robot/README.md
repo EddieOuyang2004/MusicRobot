@@ -8,6 +8,12 @@ The default motion is the checked-in AIST++ pickle at
 It plays on the included G1 MJCF scene in `assets/open_humanoid_dancer.xml`,
 with robot meshes under `assets/meshes/`.
 
+## Generate GMR v2 motions
+
+The separate collision-projection batch builder regenerates existing GMR clips from
+SMPL into `data/aistpp_gmr_v2`, with resume support and per-clip validation.
+See [batch generation and playback instructions](../../docs/gmr_v2_batch.md).
+
 ## Run
 
 From the repository root:

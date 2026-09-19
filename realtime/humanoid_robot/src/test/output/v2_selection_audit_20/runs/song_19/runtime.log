@@ -1,0 +1,142 @@
+Initial retarget source: GMR artifact
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gLO_sBM_cAll_d13_mLO1_ch01.pkl with constant root Z offset +0.839023 m.
+Using realtime virtual microphone: C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\src\test\output\v2_selection_audit_20\audio\song_19.wav (audio starts after 1.00s denoiser reset time; speaker output=off).
+Initial motion: gLO_sBM_cAll_d13_mLO1_ch01
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=-- | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+demo | bpm=-- | speed=1.00x | amp=0.00 | rms/gate=0.0000/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.00 | bands=0.00/0.00/0.00 | rhythm=0.00 | offbeat=0.00
+music | bpm=-- | speed=1.00x | amp=0.76 | rms/gate=0.1998/0.0020 | beat=0 accepted=0 conf=0.00 contrast=0.00 result=none | bright=0.25 | bands=0.83/0.09/0.03 | rhythm=0.12 | offbeat=0.00
+match | accepted | confidence=0.81 | genre=PO:1.00 | bpm=91.5 | tracks=[PO1:0.85, WA0:0.66, MH2:0.61] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.79 | tags=[Electronic---Drum n Bass, Electronic---Dubstep, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.61 | rms/gate=0.3871/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=too-early | bright=0.30 | bands=0.56/0.35/0.08 | rhythm=0.13 | offbeat=0.00
+match | accepted | confidence=0.91 | genre=PO:1.00 | bpm=91.5 | tracks=[PO1:0.93, WA0:0.66, WA1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.85 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.81 | rms/gate=0.2011/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.20 | bands=0.88/0.05/0.01 | rhythm=0.15 | offbeat=0.00
+music | bpm=89.3 | speed=0.55x | amp=0.60 | rms/gate=0.4287/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.24 | bands=0.45/0.50/0.04 | rhythm=0.16 | offbeat=0.33
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=91.5 | tracks=[PO1:0.98, WA0:0.70, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Drum n Bass, Electronic---Dubstep, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.79 | rms/gate=0.2059/0.0020 | beat=1 accepted=1 conf=0.25 contrast=0.25 result=low-confidence | bright=0.24 | bands=0.85/0.09/0.03 | rhythm=0.15 | offbeat=0.19
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.70, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.89 | tags=[Electronic---Drum n Bass, Electronic---Dubstep, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.75 | rms/gate=0.3711/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.24 | bands=0.76/0.20/0.03 | rhythm=0.15 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.70, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.89 | tags=[Electronic---Drum n Bass, Electronic---Dubstep, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.76 | rms/gate=0.1019/0.0020 | beat=1 accepted=1 conf=0.72 contrast=0.72 result=accepted | bright=0.22 | bands=0.88/0.03/0.01 | rhythm=0.16 | offbeat=0.00
+match | accepted | confidence=0.95 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Drum n Bass, Electronic---Dubstep, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.80 | rms/gate=0.5286/0.0020 | beat=1 accepted=1 conf=0.55 contrast=0.55 result=accepted | bright=0.21 | bands=0.87/0.11/0.01 | rhythm=0.22 | offbeat=0.38
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.69, JS1:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.89 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.71 | rms/gate=0.0790/0.0020 | beat=1 accepted=1 conf=0.58 contrast=0.58 result=accepted | bright=0.25 | bands=0.86/0.06/0.02 | rhythm=0.39 | offbeat=0.41
+match | accepted | confidence=0.96 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.68, JS1:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.76 | rms/gate=0.1639/0.0020 | beat=1 accepted=0 conf=0.07 contrast=0.07 result=low-confidence | bright=0.27 | bands=0.65/0.28/0.05 | rhythm=0.40 | offbeat=0.35
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.69, JS1:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.74 | rms/gate=0.1427/0.0020 | beat=1 accepted=1 conf=0.60 contrast=0.60 result=accepted | bright=0.27 | bands=0.86/0.06/0.04 | rhythm=0.40 | offbeat=0.21
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.70, JS1:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.91 | rms/gate=0.5927/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.71 result=accepted | bright=0.23 | bands=0.87/0.10/0.03 | rhythm=0.36 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.70, JS1:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+Switching (selected_exit, hermite): gLO_sBM_cAll_d13_mLO1_ch01 -> gPO_sBM_cAll_d10_mPO1_ch02 entry=0.1408 blend=0.350s
+Motion switch complete: gPO_sBM_cAll_d10_mPO1_ch02
+music | bpm=89.3 | speed=0.93x | amp=0.65 | rms/gate=0.1573/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.47 result=none | bright=0.25 | bands=0.87/0.08/0.03 | rhythm=0.34 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.30x | amp=0.84 | rms/gate=0.4469/0.0020 | beat=1 accepted=1 conf=0.35 contrast=0.35 result=accepted | bright=0.27 | bands=0.78/0.17/0.04 | rhythm=0.38 | offbeat=0.20
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.66] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.30x | amp=0.66 | rms/gate=0.0239/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.62 result=accepted | bright=0.29 | bands=0.67/0.21/0.09 | rhythm=0.39 | offbeat=0.02
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.93x | amp=0.89 | rms/gate=0.2628/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.68 result=accepted | bright=0.21 | bands=0.94/0.05/0.01 | rhythm=0.36 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.60 | rms/gate=0.0529/0.0020 | beat=1 accepted=0 conf=0.32 contrast=0.32 result=low-confidence | bright=0.33 | bands=0.68/0.20/0.11 | rhythm=0.33 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.74 | rms/gate=0.1565/0.0020 | beat=1 accepted=1 conf=0.24 contrast=0.24 result=low-confidence | bright=0.27 | bands=0.77/0.13/0.04 | rhythm=0.32 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.60 | rms/gate=0.2371/0.0020 | beat=1 accepted=1 conf=0.59 contrast=0.59 result=accepted | bright=0.24 | bands=0.62/0.32/0.04 | rhythm=0.35 | offbeat=0.18
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.89 | rms/gate=0.3134/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.47 result=accepted | bright=0.19 | bands=0.87/0.06/0.01 | rhythm=0.38 | offbeat=0.14
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.66 | rms/gate=0.1588/0.0020 | beat=1 accepted=0 conf=0.18 contrast=0.18 result=low-confidence | bright=0.24 | bands=0.91/0.06/0.02 | rhythm=0.44 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.83 | rms/gate=0.2536/0.0020 | beat=1 accepted=1 conf=0.24 contrast=0.24 result=low-confidence | bright=0.24 | bands=0.85/0.07/0.03 | rhythm=0.41 | offbeat=0.00
+match | accepted | confidence=0.97 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.60 | rms/gate=0.3980/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.47 result=too-early | bright=0.28 | bands=0.62/0.32/0.05 | rhythm=0.39 | offbeat=0.19
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.65x | amp=0.80 | rms/gate=0.3419/0.0020 | beat=1 accepted=1 conf=0.74 contrast=0.74 result=accepted | bright=0.20 | bands=0.90/0.04/0.01 | rhythm=0.41 | offbeat=0.25
+Switching (selected_exit, hermite): gPO_sBM_cAll_d10_mPO1_ch02 -> gPO_sBM_cAll_d11_mPO1_ch02 entry=0.1847 blend=0.350s
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+Motion switch complete: gPO_sBM_cAll_d11_mPO1_ch02
+music | bpm=89.3 | speed=0.68x | amp=0.51 | rms/gate=0.2088/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.62 result=none | bright=0.26 | bands=0.30/0.61/0.08 | rhythm=0.43 | offbeat=0.15
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.95x | amp=0.79 | rms/gate=0.2973/0.0020 | beat=1 accepted=1 conf=0.06 contrast=0.06 result=low-confidence | bright=0.21 | bands=0.85/0.07/0.02 | rhythm=0.30 | offbeat=0.18
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.68x | amp=0.72 | rms/gate=0.4410/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.47 result=accepted | bright=0.22 | bands=0.79/0.17/0.03 | rhythm=0.31 | offbeat=0.07
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.30x | amp=0.78 | rms/gate=0.1874/0.0020 | beat=1 accepted=1 conf=0.88 contrast=0.88 result=accepted | bright=0.23 | bands=0.88/0.04/0.02 | rhythm=0.30 | offbeat=0.00
+match | accepted | confidence=0.99 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.94x | amp=0.77 | rms/gate=0.4454/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.47 result=accepted | bright=0.24 | bands=0.82/0.15/0.02 | rhythm=0.33 | offbeat=0.24
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.72 | rms/gate=0.0669/0.0020 | beat=1 accepted=1 conf=0.53 contrast=0.53 result=accepted | bright=0.25 | bands=0.83/0.07/0.02 | rhythm=0.38 | offbeat=0.14
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.71x | amp=0.79 | rms/gate=0.3132/0.0020 | beat=1 accepted=1 conf=0.12 contrast=0.12 result=low-confidence | bright=0.27 | bands=0.73/0.23/0.04 | rhythm=0.39 | offbeat=0.15
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.76 | rms/gate=0.1382/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.71 result=accepted | bright=0.27 | bands=0.89/0.05/0.03 | rhythm=0.40 | offbeat=0.22
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.92 | rms/gate=0.5000/0.0020 | beat=1 accepted=1 conf=0.62 contrast=0.62 result=accepted | bright=0.24 | bands=0.84/0.10/0.04 | rhythm=0.36 | offbeat=0.00
+match | accepted | confidence=0.97 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.55x | amp=0.66 | rms/gate=0.1458/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.25 | bands=0.87/0.08/0.03 | rhythm=0.34 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.87x | amp=0.80 | rms/gate=0.4183/0.0020 | beat=1 accepted=1 conf=0.41 contrast=0.41 result=too-early | bright=0.28 | bands=0.80/0.15/0.04 | rhythm=0.39 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+Switching (selected_exit, hermite): gPO_sBM_cAll_d11_mPO1_ch02 -> gPO_sBM_cAll_d11_mPO1_ch09 entry=0.0407 blend=0.350s
+music | bpm=89.3 | speed=0.90x | amp=0.79 | rms/gate=0.0215/0.0020 | beat=1 accepted=0 conf=0.74 contrast=0.74 result=too-early | bright=0.29 | bands=0.68/0.20/0.08 | rhythm=0.40 | offbeat=0.00
+Motion switch complete: gPO_sBM_cAll_d11_mPO1_ch09
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.69, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.92x | amp=0.89 | rms/gate=0.2829/0.0020 | beat=1 accepted=1 conf=0.68 contrast=0.68 result=accepted | bright=0.22 | bands=0.91/0.07/0.02 | rhythm=0.38 | offbeat=0.15
+match | accepted | confidence=0.97 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.56x | amp=0.62 | rms/gate=0.0794/0.0020 | beat=1 accepted=0 conf=0.32 contrast=0.32 result=low-confidence | bright=0.30 | bands=0.66/0.25/0.07 | rhythm=0.36 | offbeat=0.17
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.65x | amp=0.78 | rms/gate=0.2237/0.0020 | beat=1 accepted=1 conf=0.29 contrast=0.29 result=low-confidence | bright=0.27 | bands=0.79/0.13/0.04 | rhythm=0.35 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.67, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.69x | amp=0.59 | rms/gate=0.1038/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.56 result=accepted | bright=0.28 | bands=0.50/0.40/0.07 | rhythm=0.38 | offbeat=0.18
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.67, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.73x | amp=0.87 | rms/gate=0.3625/0.0020 | beat=1 accepted=1 conf=0.38 contrast=0.38 result=accepted | bright=0.21 | bands=0.86/0.08/0.02 | rhythm=0.40 | offbeat=0.17
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.67, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.68x | amp=0.65 | rms/gate=0.0691/0.0020 | beat=1 accepted=0 conf=0.09 contrast=0.09 result=low-confidence | bright=0.24 | bands=0.82/0.13/0.02 | rhythm=0.38 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.67, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.70x | amp=0.77 | rms/gate=0.2121/0.0020 | beat=1 accepted=1 conf=0.38 contrast=0.38 result=accepted | bright=0.25 | bands=0.86/0.08/0.03 | rhythm=0.35 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.30x | amp=0.60 | rms/gate=0.3325/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.76 result=accepted | bright=0.28 | bands=0.57/0.36/0.05 | rhythm=0.34 | offbeat=0.26
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=1.30x | amp=0.80 | rms/gate=0.2762/0.0020 | beat=1 accepted=1 conf=0.65 contrast=0.65 result=accepted | bright=0.19 | bands=0.89/0.05/0.01 | rhythm=0.40 | offbeat=0.22
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=1.08x | amp=0.59 | rms/gate=0.5055/0.0020 | beat=1 accepted=1 conf=0.79 contrast=0.79 result=accepted | bright=0.24 | bands=0.46/0.48/0.04 | rhythm=0.39 | offbeat=0.30
+match | accepted | confidence=0.97 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.63x | amp=0.80 | rms/gate=0.2418/0.0020 | beat=1 accepted=0 conf=0.12 contrast=0.12 result=low-confidence | bright=0.25 | bands=0.83/0.09/0.03 | rhythm=0.31 | offbeat=0.29
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.65x | amp=0.72 | rms/gate=0.4010/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.56 result=too-early | bright=0.25 | bands=0.72/0.24/0.03 | rhythm=0.32 | offbeat=0.14
+Switching (selected_exit, hermite): gPO_sBM_cAll_d11_mPO1_ch09 -> gPO_sFM_cAll_d11_mPO1_ch09 entry=0.1091 blend=0.350s
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+Motion switch complete: gPO_sFM_cAll_d11_mPO1_ch09
+music | bpm=89.3 | speed=0.65x | amp=0.67 | rms/gate=0.1278/0.0020 | beat=1 accepted=0 conf=0.79 contrast=0.79 result=none | bright=0.23 | bands=0.88/0.04/0.03 | rhythm=0.31 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.78x | amp=0.80 | rms/gate=0.5040/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.56 result=accepted | bright=0.23 | bands=0.81/0.17/0.02 | rhythm=0.34 | offbeat=0.23
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.30x | amp=0.76 | rms/gate=0.0848/0.0020 | beat=1 accepted=1 conf=0.47 contrast=0.47 result=accepted | bright=0.27 | bands=0.84/0.06/0.03 | rhythm=0.39 | offbeat=0.15
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.96x | amp=0.80 | rms/gate=0.3671/0.0020 | beat=1 accepted=0 conf=0.09 contrast=0.09 result=low-confidence | bright=0.26 | bands=0.71/0.24/0.04 | rhythm=0.40 | offbeat=0.14
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=0.65x | amp=0.77 | rms/gate=0.1441/0.0020 | beat=1 accepted=1 conf=0.56 contrast=0.56 result=accepted | bright=0.27 | bands=0.87/0.06/0.04 | rhythm=0.40 | offbeat=0.21
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.67, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.09x | amp=0.89 | rms/gate=0.6378/0.0020 | beat=1 accepted=1 conf=0.71 contrast=0.71 result=accepted | bright=0.24 | bands=0.84/0.11/0.04 | rhythm=0.36 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.67, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.29x | amp=0.67 | rms/gate=0.1382/0.0020 | beat=1 accepted=1 conf=0.50 contrast=0.50 result=accepted | bright=0.26 | bands=0.85/0.09/0.03 | rhythm=0.36 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.67, JS1:0.65] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.30x | amp=0.80 | rms/gate=0.3302/0.0020 | beat=1 accepted=1 conf=0.38 contrast=0.38 result=accepted | bright=0.27 | bands=0.78/0.17/0.04 | rhythm=0.37 | offbeat=0.20
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.98, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Glitch, Electronic---Drum n Bass]
+music | bpm=89.3 | speed=1.09x | amp=0.65 | rms/gate=0.0270/0.0020 | beat=1 accepted=0 conf=0.79 contrast=0.79 result=too-early | bright=0.30 | bands=0.69/0.16/0.11 | rhythm=0.43 | offbeat=0.02
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.88 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.68x | amp=0.89 | rms/gate=0.2385/0.0020 | beat=1 accepted=1 conf=0.76 contrast=0.76 result=accepted | bright=0.21 | bands=0.89/0.08/0.01 | rhythm=0.40 | offbeat=0.00
+match | accepted | confidence=0.98 | genre=PO:1.00 | bpm=89.3 | tracks=[PO1:0.99, WA0:0.68, JS1:0.64] | motion=gPO_sFM_cAll_d12_mPO1_ch16:0.89 | tags=[Electronic---Dubstep, Electronic---Drum n Bass, Electronic---Glitch]
+music | bpm=89.3 | speed=0.55x | amp=0.61 | rms/gate=0.0411/0.0020 | beat=1 accepted=0 conf=0.26 contrast=0.26 result=low-confidence | bright=0.32 | bands=0.69/0.20/0.10 | rhythm=0.36 | offbeat=0.00
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d12_mPO1_ch16.pkl with constant root Z offset +0.871332 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO1_ch02.pkl with constant root Z offset +0.844758 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO1_ch09.pkl with constant root Z offset +0.866059 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO1_ch07.pkl with constant root Z offset +0.877862 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d11_mPO1_ch09.pkl with constant root Z offset +0.918100 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO1_ch08.pkl with constant root Z offset +1.003431 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d10_mPO1_ch02.pkl with constant root Z offset +0.905501 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d10_mPO1_ch08.pkl with constant root Z offset +0.929404 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO1_ch01.pkl with constant root Z offset +0.821525 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sBM_cAll_d11_mPO1_ch03.pkl with constant root Z offset +0.966621 m.
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\aistpp_gmr\gPO_sFM_cAll_d10_mPO1_ch02.pkl with constant root Z offset +0.977930 m.

@@ -1,0 +1,8 @@
+{
+  "body_temporal_rms_median_deg": 19.612434600088783,
+  "under5_neighbor_body_temporal_rms_range_deg": [
+    3.0283570943197478,
+    25.329277382700536
+  ],
+  "under10_neighbor_different_existing_cluster": 63
+}

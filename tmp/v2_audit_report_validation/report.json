@@ -1,0 +1,978 @@
+{
+  "complete": false,
+  "completed_songs": 1,
+  "groups": {
+    "all": {
+      "live.combined_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "live.motion_top1_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "live.genre_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "live.motion_top5_slots": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 5,
+        "top1_share": 0.2,
+        "top5_share": 1.0,
+        "effective_ids": 4.999999999999999,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch06",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch03",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch09",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.embedding_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.combined_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.motion_top1_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.genre_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.motion_top5_slots": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 5,
+        "top1_share": 0.2,
+        "top5_share": 1.0,
+        "effective_ids": 4.999999999999999,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch06",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch03",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch09",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.embedding_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.combined_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.motion_top1_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.genre_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.motion_top5_slots": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 5,
+        "top1_share": 0.2,
+        "top5_share": 1.0,
+        "effective_ids": 4.999999999999999,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch06",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch03",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch09",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "runtime.completed_plays_excluding_startup": {
+        "songs_total": 1,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "runtime.dwell_after_first_switch": {
+        "songs_total": 1,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      }
+    },
+    "cc0_music": {
+      "live.combined_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "live.motion_top1_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "live.genre_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "live.motion_top5_slots": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 5,
+        "top1_share": 0.2,
+        "top5_share": 1.0,
+        "effective_ids": 4.999999999999999,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch06",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch03",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch09",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.embedding_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.combined_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.motion_top1_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.genre_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic.motion_top5_slots": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 5,
+        "top1_share": 0.2,
+        "top5_share": 1.0,
+        "effective_ids": 4.999999999999999,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch06",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch03",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch09",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.embedding_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.combined_track_all": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO5",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.motion_top1_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.genre_accepted": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 1,
+        "top1_share": 1.0,
+        "top5_share": 1.0,
+        "effective_ids": 1.0,
+        "rankings": [
+          {
+            "id": "HO",
+            "song_balanced_share": 1.0,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "diagnostic_first_pass.motion_top5_slots": {
+        "songs_total": 1,
+        "songs_with_observations": 1,
+        "unique_ids": 5,
+        "top1_share": 0.2,
+        "top5_share": 1.0,
+        "effective_ids": 4.999999999999999,
+        "rankings": [
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch06",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d20_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch03",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch09",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          },
+          {
+            "id": "gHO_sBM_cAll_d21_mHO5_ch10",
+            "song_balanced_share": 0.2,
+            "songs_present": 1,
+            "review_flag": true
+          }
+        ]
+      },
+      "runtime.completed_plays_excluding_startup": {
+        "songs_total": 1,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "runtime.dwell_after_first_switch": {
+        "songs_total": 1,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      }
+    },
+    "cc0_ambient": {
+      "live.combined_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "live.motion_top1_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "live.genre_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "live.motion_top5_slots": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.embedding_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.combined_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.motion_top1_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.genre_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.motion_top5_slots": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.embedding_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.combined_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.motion_top1_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.genre_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.motion_top5_slots": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "runtime.completed_plays_excluding_startup": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "runtime.dwell_after_first_switch": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      }
+    },
+    "aist_catalog": {
+      "live.combined_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "live.motion_top1_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "live.genre_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "live.motion_top5_slots": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.embedding_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.combined_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.motion_top1_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.genre_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic.motion_top5_slots": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.embedding_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.combined_track_all": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.motion_top1_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.genre_accepted": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "diagnostic_first_pass.motion_top5_slots": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "runtime.completed_plays_excluding_startup": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      },
+      "runtime.dwell_after_first_switch": {
+        "songs_total": 0,
+        "songs_with_observations": 0,
+        "unique_ids": 0,
+        "top1_share": null,
+        "top5_share": null,
+        "effective_ids": null,
+        "rankings": []
+      }
+    }
+  },
+  "per_song": [
+    {
+      "song": "song_01",
+      "title": "Backbeat",
+      "group": "cc0_music",
+      "condition": "live",
+      "observations": 6,
+      "accepted_with_motion": 6,
+      "rejected_or_no_motion": 0,
+      "top_motion": "gHO_sBM_cAll_d20_mHO5_ch10",
+      "top_motion_share": 1.0
+    },
+    {
+      "song": "song_01",
+      "title": "Backbeat",
+      "group": "cc0_music",
+      "condition": "diagnostic",
+      "observations": 4,
+      "accepted_with_motion": 4,
+      "rejected_or_no_motion": 0,
+      "top_motion": "gHO_sBM_cAll_d20_mHO5_ch10",
+      "top_motion_share": 1.0
+    },
+    {
+      "song": "song_01",
+      "title": "Backbeat",
+      "group": "cc0_music",
+      "condition": "diagnostic_first_pass",
+      "observations": 4,
+      "accepted_with_motion": 4,
+      "rejected_or_no_motion": 0,
+      "top_motion": "gHO_sBM_cAll_d20_mHO5_ch10",
+      "top_motion_share": 1.0
+    }
+  ],
+  "runtime": [
+    {
+      "song": "song_01",
+      "title": "Backbeat",
+      "group": "cc0_music",
+      "completed_plays_excluding_startup": 0,
+      "motion_changes": 0,
+      "same_motion_replays": 0,
+      "observed_seconds_after_first_switch": 0,
+      "top_motion": "",
+      "top_motion_share": null
+    }
+  ]
+}

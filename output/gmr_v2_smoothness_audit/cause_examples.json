@@ -1,0 +1,59 @@
+{
+  "translation": {
+    "motion": "gJB_sFM_cAll_d09_mJB5_ch20",
+    "center_frame": 1502,
+    "time_s": 25.033333333333335,
+    "acceleration": 359.65391238552957,
+    "velocity_before": [
+      2.9513398625971767,
+      -0.4790910126512755,
+      0.24508124579752266
+    ],
+    "velocity_after": [
+      -2.9588436489090797,
+      0.4949169164974855,
+      0.017363959082463687
+    ],
+    "speed_before": 3.000000000000002,
+    "speed_after": 2.9999999999999987,
+    "direction_cosine": -0.9961564304663301,
+    "source_root_speed_before": 0.5028134358604466,
+    "source_root_speed_after": 0.8092781066038195,
+    "source_root_acceleration_same_time": 58.648975646006285
+  },
+  "rotation": {
+    "motion": "gJB_sFM_cAll_d07_mJB5_ch06",
+    "center_frame": 614,
+    "time_s": 10.233333333333333,
+    "acceleration": 1507.8270668951145,
+    "velocity_before": [
+      0.4570837058791154,
+      -0.8730884335119237,
+      -12.527667839247547
+    ],
+    "velocity_after": [
+      -0.7911129669650809,
+      0.9288183158047222,
+      12.50700232778242
+    ],
+    "speed_before": 12.566370614359174,
+    "speed_after": 12.566370614359164,
+    "direction_cosine": -0.9996355336745013,
+    "source_root_speed_before": 140.8403865962703,
+    "source_root_speed_after": 90.53830055712598,
+    "source_root_acceleration_same_time": 3021.095501777781
+  },
+  "jerk_boundary": {
+    "motion": "gBR_sBM_cAll_d05_mBR0_ch09",
+    "joint": "left_knee",
+    "frame": 528,
+    "time_s": 8.8,
+    "jerk_before": -190.87244306227308,
+    "jerk_after": -82363.5856519444,
+    "jump": -82172.71320888214,
+    "shared_velocity": -2.842943023608234,
+    "shared_acceleration": -28.15836160000919,
+    "joint_speed_limit": 9.42477796076938,
+    "joint_acceleration_limit": 1600.0
+  }
+}

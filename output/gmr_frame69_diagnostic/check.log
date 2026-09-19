@@ -1,0 +1,202 @@
+FRAME 0
+horizon failed: fixed boundary duration 0.2
+FRAME 1
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 2
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 3
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 4
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 5
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 6
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 7
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 8
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 9
+horizon failed: fixed boundary duration 0.2
+FRAME 10
+horizon failed: fixed boundary duration 0.2
+FRAME 11
+horizon failed: fixed boundary duration 0.2
+FRAME 12
+horizon failed: fixed boundary duration 0.2
+FRAME 13
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 14
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 15
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 16
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 17
+horizon failed: fixed boundary duration 0.2
+FRAME 18
+horizon failed: fixed boundary duration 0.2
+FRAME 19
+horizon failed: fixed boundary duration 0.2
+FRAME 20
+horizon failed: fixed boundary duration 0.2
+FRAME 21
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 22
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 23
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 24
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 25
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 26
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 27
+horizon failed: fixed boundary duration 0.2
+FRAME 28
+horizon failed: fixed boundary duration 0.2
+FRAME 29
+horizon failed: fixed boundary duration 0.2
+FRAME 30
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 31
+horizon failed: fixed boundary duration 0.2
+FRAME 32
+horizon failed: fixed boundary duration 0.2
+FRAME 33
+horizon failed: fixed boundary duration 0.2
+FRAME 34
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 35
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 36
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 37
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 38
+horizon failed: fixed boundary duration 0.2
+FRAME 39
+horizon failed: fixed boundary duration 0.2
+FRAME 40
+horizon failed: fixed boundary duration 0.2
+FRAME 41
+horizon failed: fixed boundary duration 0.2
+FRAME 42
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 43
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 44
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 45
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 46
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 47
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 48
+horizon failed: fixed boundary duration 0.2
+FRAME 49
+horizon failed: fixed boundary duration 0.2
+FRAME 50
+horizon failed: fixed boundary duration 0.2
+FRAME 51
+horizon failed: fixed boundary duration 0.2
+FRAME 52
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 53
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 54
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 55
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 56
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+JOINT VIOLATION 1.4029822015260152e-07 -0.01327249116565321
+FINAL CHECK clearance True bounds [(0, False), (1, True), (2, True)]
+horizon failed: nonlinear check or exact bound duration 0.05
+FRAME 57
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 58
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 59
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 60
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+FRAME 61
+horizon failed: fixed boundary duration 0.2
+FRAME 62
+horizon failed: fixed boundary duration 0.2
+FRAME 63
+horizon failed: fixed boundary duration 0.2
+FRAME 64
+horizon failed: fixed boundary duration 0.2
+FRAME 65
+horizon failed: fixed boundary duration 0.2
+FRAME 66
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 67
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+FRAME 68
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+JOINT VIOLATION 1.7256962847600477e-07 -0.0185274740682988
+FINAL CHECK clearance True bounds [(0, False), (1, True), (2, True)]
+horizon failed: nonlinear check or exact bound duration 0.05
+FRAME 69
+horizon failed: fixed boundary duration 0.2
+horizon failed: fixed boundary duration 0.1
+horizon failed: fixed boundary duration 0.05
+JOINT VIOLATION 1.1365152807751855e-07 -0.020619206807547474
+FINAL CHECK clearance True bounds [(0, False), (1, True), (2, True)]
+horizon failed: nonlinear check or exact bound duration 0.016666666666666666
+No feasible state-continuous collision trajectory at frame 69; clip not published.

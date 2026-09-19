@@ -1,0 +1,7 @@
+{
+  "raw.npz": "effe438e307a5383934ced7c60fb6b5ee322fc9c77443f74d16741f003f42e43",
+  "baseline.npz": "3d9d91cd294aa578187f9f90c91b673e530fd0cdaa06c7440a276b68f77c9fe5",
+  "projected_w2_m8.npz": "3108c5d8f9bf5aeea7382c17a10af81f2ccca748a55f74f84a1877b01f87a141",
+  "projected_motion.pkl": "a65e4499e67730dd98450fe01ac4d193f98ff993eb7b30ce706d46de20a951e8",
+  "comparison.mp4": "0af587c3f525848b50d0e6346e518212ed1bd4ec0158a14652d96c1fe81ce127"
+}
