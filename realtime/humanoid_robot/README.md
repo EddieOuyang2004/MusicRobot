@@ -8,6 +8,11 @@ The default motion is the checked-in AIST++ pickle at
 It plays on the included G1 MJCF scene in `assets/open_humanoid_dancer.xml`,
 with robot meshes under `assets/meshes/`.
 
+## FineDance segmentation
+
+Prepare FineDance as 8–12 second, 60-FPS motion/audio clips for the AIST++
+body-motion loader: [segmentation and compatibility](../../docs/finedance_segmentation.md).
+
 ## Generate GMR v2 motions
 
 The separate collision-projection batch builder regenerates existing GMR clips from
@@ -374,6 +379,16 @@ of forcing a dance. `--match-policy legacy` is available for A/B diagnosis, and
 include the decision state, confidence, rejection reason, genre ranking, motion
 ranking, audio evidence, and visual motion-cluster IDs.
 
+Both matcher v1 and v2 rank genres by the mean similarity of each genre's
+three highest-scoring tracks (or all tracks when fewer than three exist).
+There is no hand-written tag-to-genre preference or tag-prior reweighting.
+The leading genre is eligible, together with the runner-up when its score is
+within `0.025`. Tags still contribute 10% of the combined track-similarity score
+and remain available for ambient/non-music rejection and diagnostic output.
+Existing catalogs remain compatible; no model or catalog rebuild is required.
+Prepare a new experiment output directory after this change, since previous
+experiment manifests fingerprint the old matcher code.
+
 The matcher separates relevance-driven changes from diversity rotation. A
 clearly better motion still wins after the configured consecutive retrievals;
 when music remains stable, the default policy changes after four held bars to a
@@ -551,3 +566,10 @@ New backend checks and reproduction commands are in
   feature-to-pose layer if actuator names are mapped.
 - Add balance control by moving from fixed-torso dancing to foot contacts and
   root motion.
+
+## FineDance GMR conversion
+
+Use `src/build_finedance_gmr_dataset.py` to convert the completed separated
+FineDance export directly to GMR v2 with the existing AIST++ collision constraints
+and Hermite smoothness fix. Pilot, full-batch, resume and audit commands are in
+[FineDance GMR conversion](../../docs/finedance_gmr_conversion.md).

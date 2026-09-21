@@ -857,66 +857,6 @@ class MusicMotionMatcher:
             self._weak_music_streak = 0
         return self._weak_music_streak >= self.weak_music_consecutive_windows
 
-    @staticmethod
-    def _tag_genre_priors(
-        labels: Sequence[str],
-        probabilities: np.ndarray,
-    ) -> dict[str, float]:
-        """Map broad audio tags onto the ten motion genres in AIST++."""
-
-        scores = defaultdict(float)
-        for label, raw_score in zip(labels, probabilities, strict=False):
-            score = max(float(raw_score), 0.0)
-            parent, _, style = label.partition("---")
-            style_lower = style.lower()
-            if parent == "Hip Hop" or "hip hop" in style_lower:
-                scores["MH"] += score
-                scores["LH"] += 0.85 * score
-            if parent == "Funk / Soul" or any(
-                token in style_lower for token in ("funk", "boogie", "disco")
-            ):
-                scores["LO"] += score
-                scores["PO"] += 0.45 * score
-                scores["WA"] += 0.35 * score
-            if parent == "Jazz":
-                scores["JS"] += score
-                scores["JB"] += 0.70 * score
-            if parent in {"Classical", "Stage & Screen"}:
-                scores["JB"] += score
-                scores["JS"] += 0.35 * score
-            if parent in {"Latin", "Folk, World, & Country", "Reggae"}:
-                scores["WA"] += score
-                scores["LO"] += 0.30 * score
-            if parent == "Rock":
-                scores["BR"] += score
-                if any(
-                    token in style_lower
-                    for token in ("hardcore", "metal", "industrial", "punk")
-                ):
-                    scores["KR"] += 0.80 * score
-            if parent == "Pop":
-                scores["PO"] += score
-                scores["JS"] += 0.25 * score
-            if parent == "Electronic":
-                if any(
-                    token in style_lower
-                    for token in ("house", "techno", "trance", "garage")
-                ):
-                    scores["HO"] += score
-                elif any(
-                    token in style_lower
-                    for token in ("break", "drum n bass", "jungle", "electro")
-                ):
-                    scores["BR"] += score
-                elif any(
-                    token in style_lower
-                    for token in ("experimental", "glitch", "idm", "downtempo")
-                ):
-                    scores["JS"] += score
-                else:
-                    scores["PO"] += 0.60 * score
-        return dict(scores)
-
     def match(
         self,
         descriptor: AudioDescriptor,
@@ -988,30 +928,6 @@ class MusicMotionMatcher:
         tag_metadata = self.catalog.metadata.get("extractor", {}).get("tag_model")
         if tags_available and tag_metadata:
             labels = tuple(str(label) for label in tag_metadata.get("labels", ()))
-        tag_genre_priors = (
-            self._tag_genre_priors(labels, descriptor.tag_probabilities)
-            if len(labels) == descriptor.tag_probabilities.size
-            else {}
-        )
-        if genre_matches and tag_genre_priors:
-            base_values = np.asarray([item.score for item in genre_matches], dtype=float)
-            base_min = float(np.min(base_values))
-            base_span = max(float(np.max(base_values) - base_min), 1e-9)
-            prior_max = max(tag_genre_priors.values(), default=0.0)
-            if prior_max >= 0.08:
-                genre_matches = [
-                    GenreMatch(
-                        genre=item.genre,
-                        score=float(
-                            0.35 * ((item.score - base_min) / base_span)
-                            + 0.65
-                            * (tag_genre_priors.get(item.genre, 0.0) / prior_max)
-                        ),
-                        track_ids=item.track_ids,
-                    )
-                    for item in genre_matches
-                ]
-                genre_matches.sort(key=lambda item: item.score, reverse=True)
         negative_style_score = 0.0
         if len(labels) == descriptor.tag_probabilities.size:
             weak_markers = (

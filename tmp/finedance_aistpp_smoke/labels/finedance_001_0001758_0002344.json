@@ -1,0 +1,21 @@
+{
+  "clip_id": "finedance_001_0001758_0002344",
+  "source_id": "001",
+  "split": "train",
+  "start_frame": 1758,
+  "end_frame_exclusive": 2344,
+  "frames": 586,
+  "start_seconds": 29.3,
+  "end_seconds": 39.06666666666667,
+  "duration_seconds": 9.766666666666667,
+  "authored_duration_seconds": 9.75,
+  "motion_path": "motions/finedance_001_0001758_0002344.pkl",
+  "audio_path": "audio/finedance_001_0001758_0002344.wav",
+  "audio_samples": 430710,
+  "label": {
+    "name": "feedback",
+    "style1": "Street",
+    "style2": "Jazz",
+    "frames": 2927
+  }
+}

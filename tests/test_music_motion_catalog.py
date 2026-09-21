@@ -100,6 +100,32 @@ def match_result(*motions: MotionMatch) -> MatchResult:
     )
 
 
+def similarity_catalog(genre_scores, labels=("Electronic---Techno", "Rock---Hard Rock")):
+    """Small catalog with controlled embedding similarities and equal other features."""
+    metadata = {"segments": [], "tracks": {}, "motions": {},
+                "motion_stats": {"velocity_median": 1.0, "velocity_scale": 0.2},
+                "extractor": {"tag_model": {"labels": list(labels)}}}
+    embeddings = []
+    for genre, scores in genre_scores.items():
+        for index, similarity in enumerate(scores):
+            music_id = f"{genre}{index}"
+            motion_id = f"{music_id}_motion"
+            metadata["segments"].append({"music_id": music_id, "genre": genre})
+            metadata["tracks"][music_id] = {"music_id": music_id, "genre": genre,
+                                            "motion_ids": [motion_id]}
+            metadata["motions"][motion_id] = replace(
+                motion_profile(motion_id, True), music_id=music_id, genre=genre).to_dict()
+            cosine = 2 * similarity - 1
+            embeddings.append([cosine, np.sqrt(max(0.0, 1 - cosine * cosine))])
+    count = len(embeddings)
+    arrays = {"embeddings": np.asarray(embeddings, dtype=np.float32),
+              "rhythm_timbre": np.tile([1.0, 0.0], (count, 1)),
+              "tags": np.tile([1.0, 0.0], (count, 1)),
+              "embedding_mean": np.zeros(2), "embedding_std": np.ones(2),
+              "rhythm_mean": np.zeros(2), "rhythm_std": np.ones(2)}
+    return MusicCatalog(Path("catalog.json"), metadata, arrays)
+
+
 class MusicMotionCatalogTests(unittest.TestCase):
     def test_effnet_frontend_uses_power_spectrum(self) -> None:
         audio = np.ones(8_000, dtype=np.float32)
@@ -118,20 +144,56 @@ class MusicMotionCatalogTests(unittest.TestCase):
         np.testing.assert_allclose(patches[0, :33], expected, rtol=1e-6)
         np.testing.assert_allclose(patches[0, 33:], 0.0)
 
-    def test_discogs_tags_produce_aist_style_priors(self) -> None:
-        labels = (
-            "Jazz---Bebop",
-            "Latin---Cumbia",
-            "Electronic---Techno",
-        )
-        priors = MusicMotionMatcher._tag_genre_priors(
-            labels,
-            np.asarray([0.9, 0.8, 0.7], dtype=np.float32),
-        )
+    def test_nonambient_tag_labels_do_not_override_genre_similarity(self) -> None:
+        scores = {"BR": [1.0, 0.98, 0.96, 0.1], "HO": [0.6, 0.58, 0.56, 0.1]}
+        query = replace(descriptor((1.0, 0.0), (1.0, 0.0)),
+                        tag_probabilities=np.asarray([1.0, 0.0], dtype=np.float32))
+        original = MusicMotionMatcher(similarity_catalog(scores)).match(query, top_k_tracks=8)
+        renamed = MusicMotionMatcher(similarity_catalog(
+            scores, labels=("Rock---Hard Rock", "Electronic---Techno"))).match(query, top_k_tracks=8)
+        self.assertTrue(original.accepted)
+        self.assertEqual(original.tracks, renamed.tracks)
+        self.assertEqual(original.genres, renamed.genres)
+        self.assertEqual(original.motions, renamed.motions)
+        self.assertEqual("BR", original.genres[0].genre)
+        self.assertTrue(original.motions)
+        self.assertTrue(all(m.music_id.startswith("BR") for m in original.motions))
+        self.assertNotEqual(original.query_tags, renamed.query_tags)
+        for genre in original.genres:
+            scores = sorted([t.score for t in original.tracks if t.genre == genre.genre], reverse=True)
+            self.assertAlmostEqual(genre.score, float(np.mean(scores[:3])), places=6)
 
-        self.assertGreater(priors["JS"], priors.get("PO", 0.0))
-        self.assertGreater(priors["WA"], priors.get("LO", 0.0))
-        self.assertAlmostEqual(0.7, priors["HO"], places=6)
+    def test_similarity_genre_filter_retains_only_near_tied_second_genre(self) -> None:
+        query = replace(descriptor((1.0, 0.0), (1.0, 0.0)),
+                        tag_probabilities=np.asarray([1.0, 0.0], dtype=np.float32))
+        for score_gap, expected in ((0.024, {"BR", "HO"}), (0.026, {"BR"})):
+            with self.subTest(score_gap=score_gap):
+                catalog = similarity_catalog({"BR": [0.9], "HO": [0.9 - score_gap / 0.7], "PO": [0.1]})
+                result = MusicMotionMatcher(catalog).match(query)
+                self.assertAlmostEqual(result.genres[0].score - result.genres[1].score, score_gap, places=6)
+                self.assertEqual(expected, {catalog.motions[m.motion_id].genre for m in result.motions})
+
+    def test_tag_similarity_still_contributes_to_track_score(self) -> None:
+        catalog = similarity_catalog({"BR": [0.8]})
+        query = descriptor((1.0, 0.0), (1.0, 0.0))
+        aligned = MusicMotionMatcher(catalog).match(replace(
+            query, tag_probabilities=np.asarray([1.0, 0.0], dtype=np.float32))).tracks[0]
+        orthogonal = MusicMotionMatcher(catalog).match(replace(
+            query, tag_probabilities=np.asarray([0.0, 1.0], dtype=np.float32))).tracks[0]
+        self.assertAlmostEqual(aligned.score - orthogonal.score, 0.05, places=6)
+        self.assertAlmostEqual(aligned.score, 0.7 * aligned.embedding_score +
+                               0.2 * aligned.rhythm_timbre_score + 0.1 * aligned.tag_score, places=6)
+
+    def test_missing_query_tags_preserve_renormalized_similarity(self) -> None:
+        result = MusicMotionMatcher(similarity_catalog({"BR": [0.8]})).match(
+            descriptor((1.0, 0.0), (1.0, 0.0)))
+        track = result.tracks[0]
+        self.assertTrue(result.accepted)
+        self.assertIsNone(track.tag_score)
+        self.assertEqual((), result.query_tags)
+        self.assertAlmostEqual(track.score, (0.7 * track.embedding_score +
+                               0.2 * track.rhythm_timbre_score) / 0.9, places=6)
+        self.assertAlmostEqual(result.genres[0].score, track.score, places=6)
 
     def test_effnet_extraction_skips_dsp_and_hpss_feature_work(self) -> None:
         class FakeEffnetBackend:

@@ -1,0 +1,305 @@
+{
+  "format_version": 1,
+  "dry_run": false,
+  "input_root": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance",
+  "fps": 60,
+  "source_fps": 30.0,
+  "audio_rate": 44100,
+  "min_seconds": 8.0,
+  "max_seconds": 12.0,
+  "target_seconds": 10.0,
+  "root_y_offset_m": 1.3,
+  "max_duration_mismatch_seconds": 0.1,
+  "allow_duration_mismatch": false,
+  "split_policy": "FineDance cross_genre, ignore precedence",
+  "sources_selected": 1,
+  "sources_accepted": 1,
+  "clip_count": 10,
+  "excluded": [],
+  "compatibility": {
+    "motion_schema": "smpl_poses[N,72] radians; smpl_trans[N,3] metres; smpl_scaling[1]=1",
+    "coordinates": "Y-up; original heading and horizontal translation retained",
+    "skeleton": "SMPL-H body joints 0..21 copied; SMPL joints 22..23 neutral; fingers omitted",
+    "geometry": "Body-pose transfer, not a mesh/shape refit; floor contact is not guaranteed",
+    "timing": "N/fps nominal duration; SLERP, linear translation, endpoint hold; common audio interval",
+    "sync": "Paired recordings assumed aligned at t=0; duration checks cannot verify semantic synchronization",
+    "catalog": "AIST++-specific name/genre parser needs adaptation; names remain finedance_*",
+    "features": "Source music_npy/contact features are not exported; recompute from clips"
+  },
+  "sources": [
+    {
+      "source_id": "001",
+      "split": "train",
+      "source_frames": 2928,
+      "source_audio_rate": 48000,
+      "source_audio_channels": 2,
+      "source_audio_seconds": 97.61466666666666,
+      "source_motion_seconds": 97.6,
+      "audio_minus_motion_seconds": 0.01466666666667038,
+      "duration_mismatch_allowed": false,
+      "dropped_motion_seconds": 0.0,
+      "dropped_audio_seconds": 0.01466666666667038,
+      "bounds": [
+        [
+          0,
+          586
+        ],
+        [
+          586,
+          1172
+        ],
+        [
+          1172,
+          1758
+        ],
+        [
+          1758,
+          2344
+        ],
+        [
+          2344,
+          2930
+        ],
+        [
+          2930,
+          3516
+        ],
+        [
+          3516,
+          4101
+        ],
+        [
+          4101,
+          4686
+        ],
+        [
+          4686,
+          5271
+        ],
+        [
+          5271,
+          5856
+        ]
+      ],
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    }
+  ],
+  "clips": [
+    {
+      "clip_id": "finedance_001_0000000_0000586",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 0,
+      "end_frame_exclusive": 586,
+      "frames": 586,
+      "start_seconds": 0.0,
+      "end_seconds": 9.766666666666667,
+      "duration_seconds": 9.766666666666667,
+      "authored_duration_seconds": 9.75,
+      "motion_path": "motions/finedance_001_0000000_0000586.pkl",
+      "audio_path": "audio/finedance_001_0000000_0000586.wav",
+      "audio_samples": 430710,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0000586_0001172",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 586,
+      "end_frame_exclusive": 1172,
+      "frames": 586,
+      "start_seconds": 9.766666666666667,
+      "end_seconds": 19.533333333333335,
+      "duration_seconds": 9.766666666666667,
+      "authored_duration_seconds": 9.75,
+      "motion_path": "motions/finedance_001_0000586_0001172.pkl",
+      "audio_path": "audio/finedance_001_0000586_0001172.wav",
+      "audio_samples": 430710,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0001172_0001758",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 1172,
+      "end_frame_exclusive": 1758,
+      "frames": 586,
+      "start_seconds": 19.533333333333335,
+      "end_seconds": 29.3,
+      "duration_seconds": 9.766666666666667,
+      "authored_duration_seconds": 9.75,
+      "motion_path": "motions/finedance_001_0001172_0001758.pkl",
+      "audio_path": "audio/finedance_001_0001172_0001758.wav",
+      "audio_samples": 430710,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0001758_0002344",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 1758,
+      "end_frame_exclusive": 2344,
+      "frames": 586,
+      "start_seconds": 29.3,
+      "end_seconds": 39.06666666666667,
+      "duration_seconds": 9.766666666666667,
+      "authored_duration_seconds": 9.75,
+      "motion_path": "motions/finedance_001_0001758_0002344.pkl",
+      "audio_path": "audio/finedance_001_0001758_0002344.wav",
+      "audio_samples": 430710,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0002344_0002930",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 2344,
+      "end_frame_exclusive": 2930,
+      "frames": 586,
+      "start_seconds": 39.06666666666667,
+      "end_seconds": 48.833333333333336,
+      "duration_seconds": 9.766666666666667,
+      "authored_duration_seconds": 9.75,
+      "motion_path": "motions/finedance_001_0002344_0002930.pkl",
+      "audio_path": "audio/finedance_001_0002344_0002930.wav",
+      "audio_samples": 430710,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0002930_0003516",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 2930,
+      "end_frame_exclusive": 3516,
+      "frames": 586,
+      "start_seconds": 48.833333333333336,
+      "end_seconds": 58.6,
+      "duration_seconds": 9.766666666666667,
+      "authored_duration_seconds": 9.75,
+      "motion_path": "motions/finedance_001_0002930_0003516.pkl",
+      "audio_path": "audio/finedance_001_0002930_0003516.wav",
+      "audio_samples": 430710,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0003516_0004101",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 3516,
+      "end_frame_exclusive": 4101,
+      "frames": 585,
+      "start_seconds": 58.6,
+      "end_seconds": 68.35,
+      "duration_seconds": 9.75,
+      "authored_duration_seconds": 9.733333333333333,
+      "motion_path": "motions/finedance_001_0003516_0004101.pkl",
+      "audio_path": "audio/finedance_001_0003516_0004101.wav",
+      "audio_samples": 429975,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0004101_0004686",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 4101,
+      "end_frame_exclusive": 4686,
+      "frames": 585,
+      "start_seconds": 68.35,
+      "end_seconds": 78.1,
+      "duration_seconds": 9.75,
+      "authored_duration_seconds": 9.733333333333333,
+      "motion_path": "motions/finedance_001_0004101_0004686.pkl",
+      "audio_path": "audio/finedance_001_0004101_0004686.wav",
+      "audio_samples": 429975,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0004686_0005271",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 4686,
+      "end_frame_exclusive": 5271,
+      "frames": 585,
+      "start_seconds": 78.1,
+      "end_seconds": 87.85,
+      "duration_seconds": 9.75,
+      "authored_duration_seconds": 9.733333333333333,
+      "motion_path": "motions/finedance_001_0004686_0005271.pkl",
+      "audio_path": "audio/finedance_001_0004686_0005271.wav",
+      "audio_samples": 429975,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    },
+    {
+      "clip_id": "finedance_001_0005271_0005856",
+      "source_id": "001",
+      "split": "train",
+      "start_frame": 5271,
+      "end_frame_exclusive": 5856,
+      "frames": 585,
+      "start_seconds": 87.85,
+      "end_seconds": 97.6,
+      "duration_seconds": 9.75,
+      "authored_duration_seconds": 9.733333333333333,
+      "motion_path": "motions/finedance_001_0005271_0005856.pkl",
+      "audio_path": "audio/finedance_001_0005271_0005856.wav",
+      "audio_samples": 429975,
+      "label": {
+        "name": "feedback",
+        "style1": "Street",
+        "style2": "Jazz",
+        "frames": 2927
+      }
+    }
+  ],
+  "export_complete": true
+}

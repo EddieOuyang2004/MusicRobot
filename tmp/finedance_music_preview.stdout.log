@@ -1,0 +1,31 @@
+Loaded GMR Unitree G1 motion: finedance_037_0000000_0000596.pkl (596 frames, 9.93s, 29 DoF).
+Using GMR Unitree G1 joint adapter (29 actuator names resolved).
+Grounded C:\Users\Eddie\Desktop\MusicRobot\realtime\humanoid_robot\data\finedance_gmr_v2\finedance_037_0000000_0000596.pkl with constant root Z offset +0.911135 m.
+Playing synchronized music: finedance_037_0000000_0000596.wav, 9.933s, looping at 1x.
+Audio-clock playback: 0.00s; phase=0.000; audio status events=0
+Audio-clock playback: 2.01s; phase=0.202; audio status events=0
+Audio-clock playback: 4.01s; phase=0.403; audio status events=0
+Audio-clock playback: 6.01s; phase=0.605; audio status events=0
+Audio-clock playback: 8.01s; phase=0.807; audio status events=0
+Audio-clock playback: 10.01s; phase=0.008; audio status events=0
+Audio-clock playback: 12.02s; phase=0.210; audio status events=0
+Audio-clock playback: 14.02s; phase=0.412; audio status events=0
+Audio-clock playback: 16.03s; phase=0.614; audio status events=0
+Audio-clock playback: 18.03s; phase=0.815; audio status events=0
+Audio-clock playback: 20.04s; phase=0.017; audio status events=0
+Audio-clock playback: 22.04s; phase=0.219; audio status events=0
+Audio-clock playback: 24.05s; phase=0.421; audio status events=0
+Audio-clock playback: 26.05s; phase=0.622; audio status events=0
+Audio-clock playback: 28.06s; phase=0.824; audio status events=0
+Audio-clock playback: 30.06s; phase=0.027; audio status events=0
+Audio-clock playback: 32.06s; phase=0.228; audio status events=0
+Audio-clock playback: 34.06s; phase=0.429; audio status events=0
+Audio-clock playback: 36.07s; phase=0.631; audio status events=0
+Audio-clock playback: 38.07s; phase=0.833; audio status events=0
+Audio-clock playback: 40.08s; phase=0.035; audio status events=0
+Audio-clock playback: 42.09s; phase=0.237; audio status events=0
+Audio-clock playback: 44.09s; phase=0.438; audio status events=0
+Audio-clock playback: 46.10s; phase=0.641; audio status events=0
+Audio-clock playback: 48.11s; phase=0.843; audio status events=0
+Audio-clock playback: 50.11s; phase=0.045; audio status events=0
+Audio-clock playback: 52.11s; phase=0.246; audio status events=0
