@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
+import time
 from functools import lru_cache
 import importlib.util
 import json
@@ -13,6 +14,10 @@ import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+
+# Bound BLAS in the parent as well as subprocesses, before importing NumPy.
+for _thread_var in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ[_thread_var] = "1"
 
 import numpy as np
 
@@ -25,6 +30,8 @@ from gmr_collision_projection import PIPELINE_VERSION, projection_settings
 
 BASE = Path(__file__).resolve().parents[1]
 SPLITS = ("train", "val", "test")
+from finedance_batch_runtime import bounded_results, run_worker, BatchStopped, console
+print = console
 
 
 def parse_args(argv=None):
@@ -37,7 +44,11 @@ def parse_args(argv=None):
     parser.add_argument("--split", choices=("all", *SPLITS), default="all")
     parser.add_argument("--motion-id", action="append")
     parser.add_argument("--limit", type=int)
-    parser.add_argument("--jobs", type=int, default=2)
+    parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--worker-timeout", type=float, default=900., help="Maximum seconds per generated clip.")
+    parser.add_argument("--worker-memory-gb", type=float, default=3., help="Windows job committed-memory cap per worker tree.")
+    parser.add_argument("--worker-cpu-percent", type=float, default=20., help="Windows CPU cap per worker tree (percent of machine).")
+    parser.add_argument("--min-free-memory-gb", type=float, default=4., help="Stop if system free memory falls below this reserve.")
     parser.add_argument("--smoothing-weight", type=float, default=2.)
     parser.add_argument("--planning-clearance", type=float, default=.008)
     parser.add_argument("--dry-run", action="store_true", help="Validate selection without writing files.")
@@ -49,6 +60,13 @@ def parse_args(argv=None):
     args = parser.parse_args(argv)
     if args.jobs < 1 or (args.limit is not None and args.limit < 1):
         parser.error("--jobs and --limit must be positive")
+    if args.jobs > 2:
+        parser.error("--jobs is limited to 1 or 2 for desktop stability")
+    for name in ("worker_timeout", "worker_memory_gb", "worker_cpu_percent", "min_free_memory_gb"):
+        if not np.isfinite(getattr(args, name)) or getattr(args, name) <= 0:
+            parser.error(f"--{name.replace('_', '-')} must be finite and positive")
+    if args.worker_cpu_percent * args.jobs > 50:
+        parser.error("Combined worker CPU budget must not exceed 50 percent")
     if sum((args.dry_run, args.audit_only, args.repair_only)) > 1:
         parser.error("--dry-run, --audit-only and --repair-only are mutually exclusive")
     for name in ("input_root", "output_root", "gmr_root", "gmr_python", "smpl_model_path"):
@@ -203,13 +221,12 @@ def process_one(args, manifest, clip, common):
             job_path = args.output_root / "logs" / f"{name}.job.json"
             _atomic_json(job_path, job)
             environment = os.environ.copy()
+            environment["PYTHONUNBUFFERED"] = "1"
             for key in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
                 environment[key] = "1"
             with log.open("w", encoding="utf-8") as handle:
-                result = subprocess.run([str(args.gmr_python), str(Path(v2.__file__).resolve()),
-                                         "--worker", str(job_path)], stdout=handle, stderr=subprocess.STDOUT,
-                                        env=environment, creationflags=(subprocess.BELOW_NORMAL_PRIORITY_CLASS
-                                                                      if os.name == "nt" else 0))
+                result = run_worker([str(args.gmr_python), str(Path(v2.__file__).resolve()),
+                                     "--worker", str(job_path)], stdout=handle, env=environment, args=args)
             if result.returncode:
                 raise RuntimeError(f"Generation/validation failed; see {log}")
             payload = cached_payload(stage, identity)
@@ -348,31 +365,63 @@ def main(argv=None):
                       segmentation_manifest_sha256=sha256(args.input_root / "manifest.json"),
                       segmentation={key: value for key, value in manifest.items() if key not in ("clips", "sources", "excluded")})
         (args.output_root / "logs").mkdir(exist_ok=True)
-        for clip in clips:
-            entries.pop(clip["clip_id"], None)
-        checkpoint(args.output_root, entries, failures, args.input_root)
-        failed = 0
-        with ThreadPoolExecutor(max_workers=args.jobs) as executor:
-            pending = {executor.submit(process_one, args, manifest, clip, common): clip for clip in clips}
-            for index, future in enumerate(as_completed(pending), 1):
-                name = pending[future]["clip_id"]
+        # Keep previously validated entries until each selected result replaces them.
+        # Only a bounded number of jobs can run ahead of durable progress.
+        stop = threading.Event()
+        args.stop_event = stop
+        failed = completed = 0
+        last_checkpoint = time.monotonic()
+        progress_path = args.output_root / "progress.json"
+        def heartbeat(active):
+            _atomic_json(progress_path, dict(status="running", completed=completed, total=len(clips),
+                         successful=len(entries), failed=failed,
+                         active=[c["clip_id"] for c in active], updated_unix=time.time()))
+        results = bounded_results(clips, args.jobs,
+            lambda clip: process_one(args, manifest, clip, common), stop, heartbeat)
+        try:
+            for clip, future in results:
+                name = clip["clip_id"]
                 try:
-                    entries[name] = future.result()
+                    entry = future.result()
+                    entries[name] = entry
                     failures.pop(name, None)
-                    status = entries[name]["status"]
+                    status = entry["status"]
+                except BatchStopped:
+                    raise
                 except Exception as exc:
                     failed += 1
                     entries.pop(name, None)
                     failures[name] = dict(source_motion_id=name, error=str(exc))
                     status = f"FAILED: {exc}"
+                if name in entries:
+                    # Persistence errors must stop dispatch, not become clip errors.
+                    _atomic_json(args.output_root / "logs" / f"{name}.result.json", entries[name])
+                completed += 1
+                if time.monotonic() - last_checkpoint >= 30:
+                    checkpoint(args.output_root, entries, failures, args.input_root)
+                    last_checkpoint = time.monotonic()
+                print(f"[{completed}/{len(clips)}] {name}: {status}", flush=True)
+            checkpoint(args.output_root, entries, failures, args.input_root)
+            _atomic_json(progress_path, dict(status="complete", completed=completed, total=len(clips),
+                         successful=len(entries), failed=failed, active=[], updated_unix=time.time()))
+        except BaseException:
+            stop.set()
+            results.close()  # terminate owned worker trees before releasing the batch lock
+            try:
                 checkpoint(args.output_root, entries, failures, args.input_root)
-                print(f"[{index}/{len(clips)}] {name}: {status}", flush=True)
+                _atomic_json(progress_path, dict(status="stopped", completed=completed, total=len(clips),
+                             successful=len(entries), failed=failed, active=[], updated_unix=time.time()))
+            except Exception:
+                pass  # retain the original error; saved PKLs remain recoverable
+            raise
+        finally:
+            results.close()
         return int(failed > 0)
 
 
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except BatchAlreadyRunning as exc:
+    except (BatchAlreadyRunning, BatchStopped, KeyboardInterrupt) as exc:
         print(str(exc), file=sys.stderr)
         raise SystemExit(2)

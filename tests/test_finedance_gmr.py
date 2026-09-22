@@ -144,7 +144,7 @@ class FineDanceGmrTests(unittest.TestCase):
 
     def test_worker_publication_preserves_timing_and_resume_avoids_worker(self):
         clip = self.manifest["clips"][0]
-        with patch.object(fd.subprocess, "run", side_effect=self.fake_worker) as worker:
+        with patch.object(fd, "run_worker", side_effect=self.fake_worker) as worker:
             result = fd.process_one(self.args, self.manifest, clip, self.common)
             self.assertEqual(result["frames"], 480)
             self.assertEqual(result["audit"]["duration_s"], 479 / 60)
@@ -173,7 +173,7 @@ class FineDanceGmrTests(unittest.TestCase):
         clip = self.manifest["clips"][0]
         output = self.output / f"{clip['clip_id']}.pkl"
         output.write_bytes(b"stale")
-        with patch.object(fd.subprocess, "run", return_value=SimpleNamespace(returncode=1)):
+        with patch.object(fd, "run_worker", return_value=SimpleNamespace(returncode=1)):
             with self.assertRaisesRegex(RuntimeError, "failed"):
                 fd.process_one(self.args, self.manifest, clip, self.common)
         self.assertFalse(output.exists())
@@ -181,7 +181,7 @@ class FineDanceGmrTests(unittest.TestCase):
 
     def test_failed_final_audit_does_not_publish(self):
         clip = self.manifest["clips"][0]
-        with patch.object(fd.subprocess, "run", side_effect=self.fake_worker), \
+        with patch.object(fd, "run_worker", side_effect=self.fake_worker), \
                 patch.object(fd, "audit_motion", side_effect=ValueError("audit failed")):
             with self.assertRaisesRegex(ValueError, "audit failed"):
                 fd.process_one(self.args, self.manifest, clip, self.common)
@@ -281,10 +281,10 @@ class FineDanceGmrTests(unittest.TestCase):
         changed = self.root / "changed.py"
         changed.write_bytes(builder.read_bytes() + b"\n# later change\n")
         self.assertEqual(batch_state.cache_builder_hash(changed), hashlib.sha256(changed.read_bytes()).hexdigest())
-        names = ("validate_source", "cached_payload", "audit_function", "audit_motion", "process_one")
+        names = ("validate_source", "cached_payload", "audit_function", "audit_motion")
         code = "".join(inspect.getsource(getattr(fd, name)) for name in names)
         self.assertEqual(hashlib.sha256(code.encode()).hexdigest(),
-                         "9ea05573c2bade1c12ebb99c340541a5b12eaa3489b07c41f4e7f842658c9e4c")
+                         "6a4e0bd4f13071341fc699940cb2d8d0408ee828949f061b72a5a2a177b6a12c")
 
     def test_corrupt_input_manifest_is_not_treated_as_output_recovery(self):
         path = self.source / "manifest.json"

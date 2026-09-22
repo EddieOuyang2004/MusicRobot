@@ -5,16 +5,20 @@ import os
 from pathlib import Path
 import tempfile
 import time
+import uuid
 
-# Only these exact two builder revisions share generation behavior. Other code
+# Only these exact builder revisions share generation behavior. Other code
 # changes retain normal whole-file cache invalidation.
 LEGACY_BUILDER_SHA256 = "97789f97b563cbf7cac4951e245e493aea2120c3b8a4bd5e84fd3a91fa259922"
 BOOKKEEPING_BUILDER_SHA256 = "0146aa6d32f3eefa9df60ef53d2684141aa3afb883814e1302823eda03c597e6"
 
 
+STABILITY_BUILDER_SHA256 = "aaf8f7e0562cb9f7e1e1d9fa1aa40ea5ad0a8de514bd59575497ba815ef30d5f"
+
+
 def cache_builder_hash(path):
     digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
-    return LEGACY_BUILDER_SHA256 if digest == BOOKKEEPING_BUILDER_SHA256 else digest
+    return LEGACY_BUILDER_SHA256 if digest in (BOOKKEEPING_BUILDER_SHA256, STABILITY_BUILDER_SHA256) else digest
 
 
 def atomic_text(path, content):
@@ -62,7 +66,7 @@ def read_checkpoint(path, key, *, recover):
     except (ValueError, UnicodeError) as exc:
         if not recover:
             raise ValueError(f"Damaged output checkpoint {path}; rerun with --resume or --repair-only.") from exc
-        backup = path.with_name(f"{path.name}.corrupt.{time.time_ns()}")
+        backup = path.with_name(f"{path.name}.corrupt.{time.time_ns()}.{uuid.uuid4().hex}")
         path.replace(backup)
         print(f"Preserved damaged {path.name} as {backup.name}.", flush=True)
         return {}, True

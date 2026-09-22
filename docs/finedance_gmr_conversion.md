@@ -25,14 +25,14 @@ realtime/humanoid_robot/.venv-gmr/Scripts/python.exe `
   realtime/humanoid_robot/src/build_finedance_gmr_dataset.py `
   --motion-id finedance_001_0000000_0000586 `
   --motion-id finedance_037_0000000_0000596 `
-  --motion-id finedance_187_0000000_0000694 --jobs 2 --resume
+  --motion-id finedance_187_0000000_0000694 --jobs 1 --resume
 ```
 
 Generate the complete collection, reusing matching pilot outputs:
 
 ```powershell
 realtime/humanoid_robot/.venv-gmr/Scripts/python.exe `
-  realtime/humanoid_robot/src/build_finedance_gmr_dataset.py --jobs 2 --resume
+  realtime/humanoid_robot/src/build_finedance_gmr_dataset.py --jobs 1 --resume
 ```
 
 Audit the saved pilot trajectories without rebuilding:
@@ -54,7 +54,7 @@ AIST++-specific catalog summary.
 `--split train|val|test|all` filters source membership. `--motion-id` is repeatable
 and IDs must belong to the selected split. `--limit N` applies after sorting and
 deduplication. An empty split is valid for a dry run; generation requires at
-least one clip. `--jobs 1` lowers concurrent resource use; each worker uses one
+least one clip. `--jobs 1` is the conservative default; `--jobs 2` is the maximum. Each worker uses one
 numeric thread. Relative path overrides resolve from the current working directory.
 
 Override paths with `--input-root`, `--output-root`, `--gmr-root`, `--gmr-python`
@@ -99,7 +99,8 @@ joins and inter-clip transitions are not certified by this conversion.
 The output root contains canonical `<clip-id>.pkl` files, `manifest.json`,
 `failures.json`, `train.txt`, `val.txt`, `test.txt`, and per-clip logs/job settings
 under `logs/`. Only successfully published clips appear in the manifest and split
-lists. Each completion is checkpointed, and the process returns nonzero if any
+lists. Each success gets a small per-clip result checkpoint; aggregate metadata is saved
+every 30 seconds and on exit. The process returns nonzero if any
 selected clip fails. Inspect `failures.json` and the named log before retrying.
 
 A shared OS batch lock prevents concurrent builds in one output directory and
@@ -218,3 +219,57 @@ and regenerated successfully with the existing constraints. The rebuilt manifest
 and split lists contain 683 motions. A known-good clip resumed as `cached`, and
 all 17 converter tests plus five batch-lock tests passed. The remaining full
 collection was not launched during this repair.
+
+## Desktop stability safeguards (2026-09-22)
+
+The local System log records unexpected restarts (events 41/6008), but does not
+establish an out-of-memory, thermal, driver or hardware root cause. These changes
+bound the converter's resource use and fix batch failure propagation; they do not
+claim to repair an unidentified OS/hardware problem.
+
+Resume conservatively from the repository root:
+
+```powershell
+realtime/humanoid_robot/.venv-gmr/Scripts/python.exe `
+  realtime/humanoid_robot/src/build_finedance_gmr_dataset.py --jobs 1 --resume
+```
+
+- Default one worker; maximum two. Only that many tasks are submitted at once.
+  A progress/checkpoint failure cannot leave thousands of queued jobs running.
+- Windows workers run at idle priority in kill-on-close Job Objects. Each job
+  includes the virtual-environment launcher and its descendants. Default limits:
+  3 GiB committed memory per worker tree and 20% of total machine CPU per tree.
+  The combined configured CPU budget cannot exceed 50%.
+- Before launching a worker, require its configured memory budget plus a 4 GiB
+  free-system-memory reserve. While running, check the reserve every 0.5 seconds;
+  stop the batch if it is breached. This monitor is not an instantaneous guarantee.
+- Default per-clip timeout: 900 seconds. A timeout fails that clip and terminates
+  its worker tree; other clips may continue. Memory pressure stops the whole run.
+- Ctrl+C, coordinator failure and parent-process exit clean up owned Windows
+  worker trees. Completed motion files remain available for resume.
+- Parent and child numeric libraries use one thread. Child logs are unbuffered.
+- Console output uses a bounded nonblocking queue. A frozen/selected console
+  cannot block batch progress. Some console lines may be dropped if it stalls.
+  `progress.json` reports current active IDs, completed count and running/stopped/
+  complete status, updating at most about five seconds apart during generation.
+- Successful results also get `logs/<clip-id>.result.json`; the larger manifest
+  and splits are synced every 30 seconds and on exit, reducing repeated full-file
+  writes. Abrupt termination can leave aggregate metadata behind saved artifacts;
+  `--resume` checks selected artifacts again, or use `--repair-only` to reconcile.
+
+The resource options are `--worker-timeout`, `--worker-memory-gb`,
+`--worker-cpu-percent`, and `--min-free-memory-gb`. Defaults are intended for this
+Windows desktop. Windows CPU and committed-memory hard caps are not provided on
+other operating systems. The generation algorithm, collision checks, source timing
+and smoothness limits are unchanged; the exact stability revision retains cache
+compatibility with prior known-compatible builder revisions.
+
+Tests exercise real lightweight Windows children for memory-limit failure,
+timeout cleanup of descendants, cancellation and normal exit, plus bounded queue,
+low-memory preflight and heartbeat/checkpoint failure behavior.
+
+Verified locally: all 24 converter/runtime tests passed. A fresh real clip
+`finedance_001_0000000_0000586` completed in 35.4 seconds under the default
+resource limits in `tmp/finedance_stability_smoke`, passed collision validation
+with zero violating samples, and resumed as `cached`. Existing dataset cache
+implementation compatibility was checked separately. No full batch was started.
