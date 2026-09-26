@@ -1,0 +1,1 @@
+realtime/humanoid_robot/data/finedance_gmr_v2/*.pkl filter=lfs diff=lfs merge=lfs -text

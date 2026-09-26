@@ -1,0 +1,36 @@
+{
+  "failures": [
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_027_0004094_0004678.log",
+      "source_motion_id": "finedance_027_0004094_0004678"
+    },
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_035_0009090_0009696.log",
+      "source_motion_id": "finedance_035_0009090_0009696"
+    },
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_044_0006718_0007328.log",
+      "source_motion_id": "finedance_044_0006718_0007328"
+    },
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_063_0003690_0004305.log",
+      "source_motion_id": "finedance_063_0003690_0004305"
+    },
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_065_0001250_0001875.log",
+      "source_motion_id": "finedance_065_0001250_0001875"
+    },
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_083_0003050_0003660.log",
+      "source_motion_id": "finedance_083_0003050_0003660"
+    },
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_087_0001172_0001758.log",
+      "source_motion_id": "finedance_087_0001172_0001758"
+    },
+    {
+      "error": "Generation/validation failed; see C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\finedance_gmr_v2\\logs\\finedance_201_0009440_0010030.log",
+      "source_motion_id": "finedance_201_0009440_0010030"
+    }
+  ]
+}

@@ -18,4 +18,18 @@ realtime/humanoid_robot/.venv-gmr/
 realtime/humanoid_robot/models/
 realtime/humanoid_robot/src/test/output/thesis_final/
 docs/thesis/experiment_results/
-realtime/humanoid_robot/data/finedance_gmr_v2/
+# Converted FineDance release: track motions and release metadata only.
+realtime/humanoid_robot/data/finedance_gmr_v2/*
+!realtime/humanoid_robot/data/finedance_gmr_v2/*.pkl
+!realtime/humanoid_robot/data/finedance_gmr_v2/manifest.json
+!realtime/humanoid_robot/data/finedance_gmr_v2/failures.json
+!realtime/humanoid_robot/data/finedance_gmr_v2/train.txt
+!realtime/humanoid_robot/data/finedance_gmr_v2/val.txt
+!realtime/humanoid_robot/data/finedance_gmr_v2/test.txt
+!realtime/humanoid_robot/data/finedance_gmr_v2/README.md
+
+# Source archive is local only; use the extracted dataset.
+/realtime/humanoid_robot/data/finedance.rar
+
+# Original FineDance source data stays local; publish converted GMR motions only.
+/realtime/humanoid_robot/data/finedance/
