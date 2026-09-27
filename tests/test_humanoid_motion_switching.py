@@ -5,7 +5,6 @@ import math
 import sys
 import tempfile
 import unittest
-from concurrent.futures import Future
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -19,18 +18,11 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from realtime_music_humanoid_matcher import (
-    MotionEntryFeatures,
-    MotionLoader,
     OneShotPhaseTracker,
-    apply_terminal_safe_idle,
-    choose_ready_transition,
-    compute_transition_duration,
     frame_root_yaw,
-    forced_transition_blend,
     initial_motion_candidates,
     sample_actuator_pose,
     select_initial_motion_id,
-    select_motion_entry,
     wrist_motion_diagnostics,
 )
 from robot_motion import (
@@ -40,40 +32,6 @@ from robot_motion import (
     RootMotionContinuity,
     load_joint_dynamics_limits,
 )
-
-
-def entry_features(
-    positions: np.ndarray,
-    *,
-    candidates: tuple[int, ...],
-    salience: tuple[float, ...],
-    contacts: np.ndarray | None = None,
-) -> MotionEntryFeatures:
-    matrix = np.asarray(positions, dtype=np.float64)
-    frame_count, joint_count = matrix.shape
-    velocities = np.zeros_like(matrix)
-    if frame_count > 1:
-        velocities[1:] = np.diff(matrix, axis=0) * 10.0
-        velocities[0] = velocities[1]
-    return MotionEntryFeatures(
-        joint_names=tuple(f"joint_{index}" for index in range(joint_count)),
-        joint_positions=matrix,
-        joint_velocities=velocities,
-        joint_ranges=np.full(joint_count, 2.0),
-        root_positions=np.zeros((frame_count, 3)),
-        root_tilt=np.zeros(frame_count),
-        root_linear_velocities=np.zeros((frame_count, 3)),
-        root_angular_speeds=np.zeros(frame_count),
-        foot_contacts=(
-            np.zeros((frame_count, 2), dtype=bool)
-            if contacts is None
-            else np.asarray(contacts, dtype=bool)
-        ),
-        candidate_indices=np.asarray(candidates, dtype=np.int32),
-        candidate_salience=np.asarray(salience, dtype=np.float64),
-        fps=10.0,
-        duration=frame_count / 10.0,
-    )
 
 
 def startup_profile(
@@ -132,7 +90,7 @@ class InitialMotionSelectionTests(unittest.TestCase):
             initial_motion_id=None,
             initial_motion_low_activity_quantile=0.75,
             initial_motion_seed=1234,
-            match_window_seconds=6.0,
+            analysis_min_seconds=2.0,
             match_interval_seconds=1.0,
             switch_required_wins=3,
         )
@@ -153,34 +111,6 @@ class InitialMotionSelectionTests(unittest.TestCase):
         args = SimpleNamespace(initial_motion_id="requested")
 
         self.assertEqual("requested", select_initial_motion_id(args, catalog))
-
-    def test_startup_duration_covers_speed_and_preparation_reserve(self) -> None:
-        catalog = SimpleNamespace(
-            motions={
-                "too_short": startup_profile(
-                    "too_short",
-                    velocity_p90=0.1,
-                    duration_seconds=20.0,
-                ),
-                "safe_length": startup_profile(
-                    "safe_length",
-                    velocity_p90=0.2,
-                    duration_seconds=21.0,
-                ),
-            }
-        )
-        args = SimpleNamespace(
-            initial_motion_id=None,
-            initial_motion_low_activity_quantile=1.0,
-            initial_motion_seed=1,
-            match_window_seconds=6.0,
-            match_interval_seconds=1.0,
-            switch_required_wins=3,
-            startup_ready_reserve_seconds=4.0,
-            speed_max=1.6,
-        )
-
-        self.assertEqual("safe_length", select_initial_motion_id(args, catalog))
 
 
 class OneShotMotionTests(unittest.TestCase):
@@ -229,73 +159,6 @@ class OneShotMotionTests(unittest.TestCase):
         self.assertLess(sampled_phases[0], 0.75)
         self.assertAlmostEqual(0.999 * 3.0 / 4.0, sampled_phases[0])
 
-    def test_forced_blend_reaches_one_exactly_at_terminal_phase(self) -> None:
-        start = 0.8
-        self.assertLess(forced_transition_blend(0.9, start), 1.0)
-        self.assertEqual(
-            1.0,
-            forced_transition_blend(OneShotPhaseTracker.terminal_phase, start),
-        )
-
-    def test_forced_blend_uses_elapsed_time_when_source_already_ended(self) -> None:
-        terminal = OneShotPhaseTracker.terminal_phase
-        self.assertEqual(
-            0.0,
-            forced_transition_blend(
-                terminal,
-                terminal,
-                elapsed_seconds=0.0,
-                duration_seconds=0.5,
-            ),
-        )
-        self.assertAlmostEqual(
-            0.5,
-            forced_transition_blend(
-                terminal,
-                terminal,
-                elapsed_seconds=0.25,
-                duration_seconds=0.5,
-            ),
-        )
-        self.assertEqual(
-            1.0,
-            forced_transition_blend(
-                terminal,
-                terminal,
-                elapsed_seconds=0.5,
-                duration_seconds=0.5,
-            ),
-        )
-
-    def test_terminal_safe_idle_moves_joints_without_moving_root(self) -> None:
-        frame = RobotMotionFrame(
-            {
-                "waist_pitch_joint": 0.1,
-                "left_shoulder_pitch_joint": -0.2,
-                "unrelated_joint": 0.3,
-            },
-            root_position=np.asarray([1.0, 2.0, 3.0]),
-            root_quaternion_wxyz=np.asarray([1.0, 0.0, 0.0, 0.0]),
-        )
-
-        idle = apply_terminal_safe_idle(frame, elapsed_seconds=1.25, amplitude=0.02)
-
-        self.assertAlmostEqual(0.12, idle.joint_positions["waist_pitch_joint"])
-        self.assertAlmostEqual(-0.191, idle.joint_positions["left_shoulder_pitch_joint"])
-        self.assertEqual(0.3, idle.joint_positions["unrelated_joint"])
-        np.testing.assert_allclose(idle.root_position, frame.root_position)
-        np.testing.assert_allclose(
-            idle.root_quaternion_wxyz,
-            frame.root_quaternion_wxyz,
-        )
-
-    def test_no_ready_candidate_holds_terminal_without_wrap(self) -> None:
-        tracker = OneShotPhaseTracker(0.95)
-        terminal, ended = tracker.clamp(0.01)
-        self.assertTrue(ended)
-        self.assertEqual(OneShotPhaseTracker.terminal_phase, terminal)
-        for cyclic_phase in (0.1, 0.5, 0.9):
-            self.assertEqual((terminal, True), tracker.clamp(cyclic_phase))
 
     def test_wrist_trace_diagnostics_separate_angle_and_speed(self) -> None:
         previous = {
@@ -317,199 +180,6 @@ class OneShotMotionTests(unittest.TestCase):
         self.assertEqual("right_wrist_yaw_joint", diagnostics.max_speed_joint)
         self.assertAlmostEqual(8.0, diagnostics.max_speed_rad_s)
         self.assertNotIn("left_elbow_joint", positions)
-
-
-class MotionEntrySelectionTests(unittest.TestCase):
-    def setUp(self) -> None:
-        self.limits = {
-            "joint_0": JointDynamicsLimits(16.0, 2000.0),
-            "joint_1": JointDynamicsLimits(16.0, 2000.0),
-        }
-
-    def test_pose_velocity_and_contact_compatibility_outweigh_salience(self) -> None:
-        source = entry_features(
-            np.asarray([[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]),
-            candidates=(0,),
-            salience=(1.0,),
-            contacts=np.asarray([[True, False]] * 3),
-        )
-        target_positions = np.zeros((20, 2))
-        target_positions[4] = (0.05, -0.05)
-        target_positions[10] = (1.0, -1.0)
-        contacts = np.zeros((20, 2), dtype=bool)
-        contacts[4] = (True, False)
-        contacts[10] = (False, True)
-        target = entry_features(
-            target_positions,
-            candidates=(4, 10),
-            salience=(0.2, 1.0),
-            contacts=contacts,
-        )
-
-        selected = select_motion_entry(
-            source,
-            1.0,
-            target,
-            self.limits,
-            beat_period=0.1,
-            beats_per_bar=1,
-            minimum_remaining_bars=0.0,
-            speed_max=1.0,
-            transition_minimum=0.05,
-            transition_maximum=0.5,
-        )
-
-        self.assertEqual(4, selected.frame_index)
-
-    def test_rejects_entry_without_required_remaining_bar(self) -> None:
-        source = entry_features(
-            np.zeros((3, 2)),
-            candidates=(0,),
-            salience=(1.0,),
-        )
-        target = entry_features(
-            np.zeros((40, 2)),
-            candidates=(4, 38),
-            salience=(0.4, 1.0),
-        )
-
-        selected = select_motion_entry(
-            source,
-            1.0,
-            target,
-            self.limits,
-            beat_period=0.5,
-            beats_per_bar=4,
-            minimum_remaining_bars=1.0,
-            speed_max=1.0,
-            transition_minimum=0.1,
-            transition_maximum=0.5,
-        )
-
-        self.assertEqual(4, selected.frame_index)
-
-    def test_transition_duration_is_half_beat_quantized_and_bounded(self) -> None:
-        duration = compute_transition_duration(
-            np.asarray([0.0]),
-            np.asarray([1.0]),
-            np.asarray([2.0]),
-            np.asarray([10.0]),
-            beat_period=0.5,
-            minimum=0.35,
-            maximum=1.2,
-        )
-        self.assertAlmostEqual(1.0, duration)
-        bounded = compute_transition_duration(
-            np.asarray([0.0]),
-            np.asarray([100.0]),
-            np.asarray([1.0]),
-            np.asarray([1.0]),
-            beat_period=0.5,
-            minimum=0.35,
-            maximum=1.2,
-        )
-        self.assertAlmostEqual(1.2, bounded)
-
-    def test_ready_pool_uses_prepared_fallback_when_preferred_is_not_ready(self) -> None:
-        source_features = entry_features(
-            np.zeros((20, 2)),
-            candidates=(0,),
-            salience=(1.0,),
-        )
-        fallback_features = entry_features(
-            np.zeros((20, 2)),
-            candidates=(2,),
-            salience=(0.8,),
-        )
-        source_sampler = SimpleNamespace(entry_features=source_features)
-        fallback_sampler = SimpleNamespace(entry_features=fallback_features)
-
-        class Loader:
-            score_seconds: list[float] = []
-
-            @staticmethod
-            def take_ready(motion_id: str) -> object | None:
-                return fallback_sampler if motion_id == "fallback" else None
-
-        args = SimpleNamespace(
-            switch_beats_per_bar=1,
-            switch_min_remaining_bars=0.0,
-            speed_max=1.0,
-            transition_min_seconds=0.05,
-            transition_max_seconds=0.5,
-        )
-        selected = choose_ready_transition(
-            Loader(),
-            source_sampler,
-            0.5,
-            ("preferred", "fallback"),
-            self.limits,
-            args,
-            beat_period=0.1,
-            preferred_id="preferred",
-        )
-
-        self.assertIsNotNone(selected)
-        assert selected is not None
-        self.assertEqual("fallback", selected[0])
-        self.assertTrue(selected[3])
-
-    def test_forced_end_can_use_cached_candidate_outside_latest_ranking(self) -> None:
-        source_features = entry_features(
-            np.zeros((20, 2)), candidates=(0,), salience=(1.0,)
-        )
-        fallback_features = entry_features(
-            np.zeros((20, 2)), candidates=(2,), salience=(0.8,)
-        )
-        source_sampler = SimpleNamespace(entry_features=source_features)
-        fallback_sampler = SimpleNamespace(entry_features=fallback_features)
-
-        class Loader:
-            score_seconds: list[float] = []
-            cache = {"current": source_sampler, "cached": fallback_sampler}
-
-            @classmethod
-            def take_ready(cls, motion_id: str) -> object | None:
-                return cls.cache.get(motion_id)
-
-        args = SimpleNamespace(
-            switch_beats_per_bar=1,
-            switch_min_remaining_bars=0.0,
-            speed_max=1.0,
-            transition_min_seconds=0.05,
-            transition_max_seconds=0.5,
-        )
-        selected = choose_ready_transition(
-            Loader(),
-            source_sampler,
-            0.5,
-            ("preferred",),
-            self.limits,
-            args,
-            beat_period=0.1,
-            preferred_id="preferred",
-            include_cached_fallback=True,
-        )
-
-        self.assertIsNotNone(selected)
-        assert selected is not None
-        self.assertEqual("cached", selected[0])
-        self.assertTrue(selected[3])
-
-    def test_failed_preparation_is_quarantined_for_fallback(self) -> None:
-        loader = object.__new__(MotionLoader)
-        failed_future: Future[object] = Future()
-        failed_future.set_exception(RuntimeError("broken motion"))
-        loader.cache = {}
-        loader.prepare_futures = {"broken": failed_future}
-        loader.futures = {"broken": Future()}
-        loader.submitted_at = {"broken": 1.0}
-        loader.failed_motions = {}
-
-        self.assertIsNone(loader.take_ready("broken"))
-        self.assertIn("broken", loader.failed_motions)
-        self.assertNotIn("broken", loader.prepare_futures)
-        self.assertIsNone(loader.take_ready("broken"))
 
 
 class JointDynamicsLimiterTests(unittest.TestCase):

@@ -18,8 +18,14 @@ $runner = Join-Path $PSScriptRoot "run_humanoid_matcher_experiments.py"
 $featureBuilder = Join-Path $PSScriptRoot "build_aistpp_fact_feature_bundle.py"
 $consolidator = Join-Path $PSScriptRoot "consolidate_thesis_experiments.py"
 $preflightValidator = Join-Path $PSScriptRoot "validate_thesis_preflight.py"
-$rawRoot = Join-Path $PSScriptRoot "output\thesis_final"
-$resultRoot = Join-Path $repoRoot "docs\thesis\experiment_results"
+$rawRoot = Join-Path $PSScriptRoot "output\thesis_protocol2"
+$resultRoot = Join-Path $repoRoot "docs\thesis\experiment_results\protocol2"
+if ($OutputDir) {
+    $rawRoot = if ([IO.Path]::IsPathRooted($OutputDir)) { $OutputDir } else { Join-Path $repoRoot $OutputDir }
+}
+if ($ResultOutputDir) {
+    $resultRoot = if ([IO.Path]::IsPathRooted($ResultOutputDir)) { $ResultOutputDir } else { Join-Path $repoRoot $ResultOutputDir }
+}
 $catalog = Join-Path $repoRoot "realtime\humanoid_robot\data\music_catalog\catalog.json"
 $negativeRoot = Join-Path $repoRoot "realtime\humanoid_robot\data\test_audio\matcher_negative_set"
 $changeRoot = Join-Path $repoRoot "realtime\humanoid_robot\data\test_audio\matcher_change_streams"

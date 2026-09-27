@@ -102,9 +102,11 @@ The player and matcher still default to the original folder. Select v2 explicitl
   --gmr-motion-root .\realtime\humanoid_robot\data\aistpp_gmr_v2
 ```
 
-The matcher also accepts `--gmr-motion-root`; add the same argument to its usual
-launch command after the desired v2 clips have been generated. The GMR **dataset**
-version here is independent of the matcher's own v2 name.
+For matcher v2's combined catalog, use `--aistpp-gmr-motion-root` to override
+only AIST++ motions; its catalog already defaults to `data/aistpp_gmr_v2`.
+The legacy global `--gmr-motion-root` remains available with an explicit original
+`--catalog realtime/humanoid_robot/data/music_catalog/catalog.json` or matcher v1.
+The GMR **dataset** version is independent of the matcher's own v2 name.
 
 Artifacts use `motion_version="gmr_v2"` and internal `pipeline_version=5`.
 The old dataset uses pipeline version 4. Internal version 2 already referred to

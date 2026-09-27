@@ -295,8 +295,8 @@ class HumanoidMatcherExperimentMetricTests(unittest.TestCase):
         cc0 = ROOT / "realtime" / "humanoid_robot" / "data" / "test_audio" / "cc0_matcher_set"
         self.assertEqual(200, len(run_matrix("literature", catalog, protocol, cc0)))
         self.assertEqual(350, len(run_matrix("full", catalog, protocol, cc0)))
-        self.assertEqual(520, len(run_matrix("ablation", catalog, protocol, cc0)))
-        self.assertEqual(40, len(run_matrix("longrun", catalog, protocol, cc0)))
+        self.assertEqual(260, len(run_matrix("ablation", catalog, protocol, cc0)))
+        self.assertEqual(20, len(run_matrix("longrun", catalog, protocol, cc0)))
         self.assertEqual(
             606.0,
             protocol["longrun"]["stable_seconds"] + protocol["longrun"]["warmup_seconds"],
@@ -414,6 +414,19 @@ class HumanoidMatcherExperimentMetricTests(unittest.TestCase):
                     "ground_truth_motion_id": None,
                 }
             ]
+            # Plan in an empty directory, then attach these complete fixture artifacts
+            # to the exact command and runtime identity recorded by the runner.
+            planned = output / "planned"
+            execute_runs(matrix, planned,
+                         ROOT / "realtime/humanoid_robot/data/music_catalog/catalog.json",
+                         max_seconds=1.0, dry_run=True, resume=False,
+                         suite="smoke", max_attempts=2)
+            status = json.loads((planned / "run_status.json").read_text(encoding="utf-8"))
+            record = status["runs"][0]
+            record["status"] = "completed"
+            for key in ("command", "trace", "timing", "pose", "log"):
+                record[key] = record[key].replace(str(planned), str(output))
+            (output / "run_status.json").write_text(json.dumps(status), encoding="utf-8")
             results, failures = execute_runs(
                 matrix,
                 output,

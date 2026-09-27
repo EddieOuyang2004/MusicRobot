@@ -39,20 +39,20 @@ TEST_DIR = Path(__file__).resolve().parent
 SRC_DIR = TEST_DIR.parent
 HUMANOID_DIR = SRC_DIR.parent
 ROOT = HUMANOID_DIR.parents[1]
-ROBOT_ARM_SRC = ROOT / "realtime" / "robot_arm" / "src"
+SHARED_SRC = ROOT / "realtime" / "shared"
 DEFAULT_MOTION = (
     HUMANOID_DIR / "data" / "aistpp" / "motions" / "gWA_sBM_cAll_d26_mWA0_ch07.pkl"
 )
 DEFAULT_OUTPUT_DIR = TEST_DIR / "output"
 
-for import_dir in (SRC_DIR, ROBOT_ARM_SRC):
+for import_dir in (SRC_DIR, SHARED_SRC):
     if str(import_dir) not in sys.path:
         sys.path.insert(0, str(import_dir))
 
-import realtime_music_adaptive_player as music_runtime  # noqa: E402
+import music_runtime  # noqa: E402
 from aistpp_velocity_keypoints import detect_aistpp_file  # noqa: E402
 from motion_keypoints import default_keypoint_count  # noqa: E402
-from realtime_music_adaptive_player import (  # noqa: E402
+from music_runtime import (  # noqa: E402
     AdaptiveMotionController,
     RealtimeMusicAnalyzer,
 )

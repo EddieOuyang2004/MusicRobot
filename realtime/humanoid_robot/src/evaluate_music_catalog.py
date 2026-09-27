@@ -1,207 +1,169 @@
+"""Evaluate library retrieval, recording-held-out genres and runtime latency."""
 from __future__ import annotations
 
 import argparse
+import json
+import os
+import time
+from collections import defaultdict
 from pathlib import Path
 
+# Evaluation should not compete with the realtime matcher for all CPU cores.
+for _name in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ[_name] = "1"
+
 import numpy as np
-
-from music_motion_catalog import (
-    AudioFeatureExtractor,
-    MusicCatalog,
-    MusicMotionMatcher,
-    iter_audio_windows,
-    load_audio_mono,
-)
-
+from music_motion_catalog import AudioDescriptor, AudioFeatureExtractor, MusicCatalog, MusicMotionMatcher, iter_audio_windows, load_audio_mono
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_CATALOG = (
-    ROOT / "realtime" / "humanoid_robot" / "data" / "music_catalog" / "catalog.json"
-)
+DEFAULT_CATALOG = ROOT / "realtime/humanoid_robot/data/music_catalog/catalog.json"
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Evaluate AIST++ catalog retrieval and recording-gain invariance."
-    )
-    parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
-    parser.add_argument(
-        "--gain-check-limit",
-        type=int,
-        default=10,
-        help="Number of representative music IDs used for waveform gain checks.",
-    )
-    return parser.parse_args()
-
-
-def descriptor_from_segment(
-    catalog: MusicCatalog,
-    index: int,
-):
-    from music_motion_catalog import AudioDescriptor
-
-    metadata = catalog.segment_metadata[index]
+def descriptor_from_segment(catalog, index):
+    item = catalog.segment_metadata[index]
     return AudioDescriptor(
-        embedding=catalog.embeddings[index],
-        rhythm_timbre=catalog.rhythm_timbre[index],
+        embedding=catalog.embeddings[index], rhythm_timbre=catalog.rhythm_timbre[index],
         tag_probabilities=catalog.tags[index],
-        bpm=float(metadata["bpm"]),
-        beat_strength=float(metadata["beat_strength"]),
-        onset_density=float(metadata["onset_density"]),
-        offbeat_ratio=float(metadata["offbeat_ratio"]),
-        tempo_stability=float(metadata["tempo_stability"]),
-        spectral_flux=float(metadata["spectral_flux"]),
-        percussive_ratio=float(metadata["percussive_ratio"]),
+        **{key: float(item.get(key, 0.0)) for key in (
+            "bpm", "beat_strength", "onset_density", "offbeat_ratio", "tempo_stability",
+            "spectral_flux", "percussive_ratio", "signal_rms", "dynamic_range_db")},
     )
 
 
-def segment_recall(catalog: MusicCatalog, matcher: MusicMotionMatcher) -> float:
-    correct = 0
+def query_groups(catalog, queries_per_recording=1):
+    groups = defaultdict(list)
     for index, segment in enumerate(catalog.segment_metadata):
-        result = matcher.match(
-            descriptor_from_segment(catalog, index),
-            top_k_tracks=1,
-            top_k_motions=1,
-        )
-        if result.tracks and result.tracks[0].music_id == segment["music_id"]:
-            correct += 1
-    return correct / max(len(catalog.segment_metadata), 1)
+        groups[catalog.recording_key(segment["music_id"])].append(index)
+    if queries_per_recording:
+        for key, indices in groups.items():
+            picks = np.linspace(0, len(indices)-1, min(queries_per_recording, len(indices)), dtype=int)
+            groups[key] = [indices[i] for i in picks]
+    return groups
 
 
-def leave_one_music_genre_recall_at_3(
-    catalog: MusicCatalog,
-    matcher: MusicMotionMatcher,
-) -> float:
-    successes = 0
-    total = 0
-    for query_index, query_metadata in enumerate(catalog.segment_metadata):
-        query_music = str(query_metadata["music_id"])
-        query_genre = str(query_metadata["genre"])
-        query_embedding = matcher._standardized_unit(
-            catalog.embeddings[query_index],
-            catalog.embedding_mean,
-            catalog.embedding_std,
-        )
-        query_rhythm = matcher._standardized_unit(
-            catalog.rhythm_timbre[query_index],
-            catalog.rhythm_mean,
-            catalog.rhythm_std,
-        )
-        embedding_scores = matcher._similarities(
-            matcher._catalog_embeddings,
-            query_embedding,
-        )
-        rhythm_scores = matcher._similarities(
-            matcher._catalog_rhythm,
-            query_rhythm,
-        )
-        if catalog.tags.shape[1]:
-            query_tags = catalog.tags[query_index]
-            tag_scores = matcher._similarities(
-                matcher._catalog_tags,
-                query_tags / max(float(np.linalg.norm(query_tags)), 1e-12),
-            )
-            scores = (
-                0.70 * embedding_scores
-                + 0.20 * rhythm_scores
-                + 0.10 * tag_scores
-            )
-        else:
-            scores = (0.70 / 0.90) * embedding_scores + (0.20 / 0.90) * rhythm_scores
-        grouped: dict[str, list[float]] = {}
-        for index, segment in enumerate(catalog.segment_metadata):
-            music_id = str(segment["music_id"])
-            if music_id == query_music:
-                continue
-            grouped.setdefault(music_id, []).append(float(scores[index]))
-        ranked = sorted(
-            grouped,
-            key=lambda music_id: float(np.mean(sorted(grouped[music_id], reverse=True)[:3])),
-            reverse=True,
-        )[:3]
-        if any(str(catalog.tracks[music_id]["genre"]) == query_genre for music_id in ranked):
-            successes += 1
-        total += 1
-    return successes / max(total, 1)
+def reference_without_recording(catalog, recording):
+    """Exclude all sibling clips, and fit feature normalization on references only."""
+    tracks = {key: value for key, value in catalog.tracks.items() if catalog.recording_key(key) != recording}
+    indices = [i for i, segment in enumerate(catalog.segment_metadata) if segment["music_id"] in tracks]
+    if not indices:
+        return None
+    motions = {key: profile.to_dict() for key, profile in catalog.motions.items() if profile.music_id in tracks}
+    metadata = dict(catalog.metadata, tracks=tracks, motions=motions,
+                    segments=[catalog.segment_metadata[i] for i in indices])
+    velocity = np.asarray([profile["velocity_p90"] for profile in motions.values()])
+    if velocity.size:
+        metadata["motion_stats"] = dict(velocity_median=float(np.median(velocity)),
+                                       velocity_scale=float(max(np.ptp(np.quantile(velocity, (.25, .75))), np.std(velocity), 1e-6)))
+    embeddings, rhythm = catalog.embeddings[indices], catalog.rhythm_timbre[indices]
+    arrays = dict(embeddings=embeddings, rhythm_timbre=rhythm, tags=catalog.tags[indices],
+                  embedding_mean=embeddings.mean(axis=0), embedding_std=embeddings.std(axis=0),
+                  rhythm_mean=rhythm.mean(axis=0), rhythm_std=rhythm.std(axis=0))
+    return MusicCatalog(catalog.catalog_path, metadata, arrays)
 
 
-def gain_invariance(
-    catalog: MusicCatalog,
-    matcher: MusicMotionMatcher,
-    extractor: AudioFeatureExtractor,
-    limit: int,
-) -> tuple[int, int]:
-    checked = 0
-    unchanged = 0
-    root = Path(catalog.metadata["aistpp_root"])
-    for music_id in sorted(catalog.tracks)[: max(limit, 0)]:
-        variant = catalog.tracks[music_id]["variants"][0]
-        audio = load_audio_mono(root / variant["source_audio"], extractor.sample_rate)
-        window = next(
-            iter(
-                iter_audio_windows(
-                    audio,
-                    extractor.sample_rate,
-                    window_seconds=float(catalog.metadata["extractor"]["window_seconds"]),
-                    hop_seconds=float(catalog.metadata["extractor"]["hop_seconds"]),
-                )
-            )
-        )[2]
-        predictions = []
-        for gain in (0.1, 0.5, 1.0, 2.0):
-            result = matcher.match(
-                extractor.describe(gain * window),
-                top_k_tracks=1,
-                top_k_motions=1,
-            )
-            predictions.append(result.tracks[0].music_id if result.tracks else None)
-        checked += 1
-        if len(set(predictions)) == 1:
-            unchanged += 1
-    return unchanged, checked
+def summarize(rows):
+    result = {}
+    for dataset in ["all", *sorted({row["dataset_id"] for row in rows})]:
+        selected = rows if dataset == "all" else [row for row in rows if row["dataset_id"] == dataset]
+        result[dataset] = dict(queries=len(selected),
+                              recall_at_1=float(np.mean([r["hit1"] for r in selected])) if selected else None,
+                              recall_at_3=float(np.mean([r["hit3"] for r in selected])) if selected else None,
+                              accepted_rate=float(np.mean([r["accepted"] for r in selected])) if selected else None)
+    return result
 
 
-def main() -> int:
-    args = parse_args()
-    catalog = MusicCatalog.load(args.catalog)
+def retrieval_evaluation(catalog, queries_per_recording=1):
     matcher = MusicMotionMatcher(catalog)
-    extractor_metadata = catalog.metadata["extractor"]
-    embedding_model = (
-        Path(extractor_metadata["embedding_model"]["path"])
-        if extractor_metadata.get("embedding_model")
-        else None
-    )
-    tag_model = (
-        Path(extractor_metadata["tag_model"]["path"])
-        if extractor_metadata.get("tag_model")
-        else None
-    )
-    if embedding_model is not None and not embedding_model.is_absolute():
-        embedding_model = ROOT / embedding_model
-    if tag_model is not None and not tag_model.is_absolute():
-        tag_model = ROOT / tag_model
-    extractor = AudioFeatureExtractor(
-        sample_rate=int(extractor_metadata["sample_rate"]),
-        embedding_model=embedding_model,
-        tag_model=tag_model,
-    )
+    library_rows, heldout_rows, times = [], [], []
+    for recording, indices in query_groups(catalog, queries_per_recording).items():
+        reference = reference_without_recording(catalog, recording)
+        heldout = MusicMotionMatcher(reference) if reference is not None else None
+        for index in indices:
+            descriptor = descriptor_from_segment(catalog, index)
+            segment = catalog.segment_metadata[index]
+            started = time.perf_counter()
+            result = matcher.match(descriptor, top_k_tracks=3)
+            times.append(1000 * (time.perf_counter() - started))
+            ids = [track.music_id for track in result.tracks]
+            library_rows.append(dict(dataset_id=recording[0], hit1=bool(ids and ids[0] == segment["music_id"]),
+                                     hit3=segment["music_id"] in ids[:3], accepted=result.accepted))
+            if heldout is not None:
+                result = heldout.match(descriptor)
+                genres = [genre.genre for genre in result.genres]
+                heldout_rows.append(dict(dataset_id=recording[0], hit1=bool(genres and genres[0] == segment["genre"]),
+                                         hit3=segment["genre"] in genres[:3], accepted=result.accepted))
+    return dict(library_self_retrieval=summarize(library_rows),
+                recording_held_out_genre_retrieval=summarize(heldout_rows),
+                matcher_latency_ms=latency_summary(times),
+                queries_per_recording=queries_per_recording,
+                evaluation_note="Library self-retrieval is not generalization. Held-out normalization uses reference recordings only; genre labels remain dataset-specific.")
 
-    recall_at_1 = segment_recall(catalog, matcher)
-    genre_recall_at_3 = leave_one_music_genre_recall_at_3(catalog, matcher)
-    gain_unchanged, gain_checked = gain_invariance(
-        catalog,
-        matcher,
-        extractor,
-        args.gain_check_limit,
+
+def latency_summary(values):
+    if not values:
+        return dict(count=0)
+    return dict(count=len(values), median=float(np.median(values)), p95=float(np.percentile(values, 95)), max=float(max(values)))
+
+
+def waveform_checks(catalog, extractor, limit_per_dataset=4):
+    groups = defaultdict(list)
+    for recording, indices in query_groups(catalog, 1).items():
+        groups[recording[0]].append(indices[0])
+    matcher = MusicMotionMatcher(catalog)
+    rows, elapsed = [], []
+    first_ms = None
+    for dataset, indices in sorted(groups.items()):
+        for index in indices[:limit_per_dataset]:
+            item = catalog.segment_metadata[index]
+            audio = load_audio_mono(catalog.audio_file(item), extractor.sample_rate)
+            start, end = (int(round(item[key] * extractor.sample_rate)) for key in ("start_seconds", "end_seconds"))
+            window = audio[start:end]
+            predictions = []
+            for gain in (.1, .5, 1., 2.):
+                started = time.perf_counter()
+                descriptor = extractor.describe(window * gain)
+                result = matcher.match(descriptor)
+                duration = 1000 * (time.perf_counter() - started)
+                if first_ms is None:
+                    first_ms = duration
+                else:
+                    elapsed.append(duration)
+                predictions.append(result.tracks[0].music_id if result.tracks else None)
+            rows.append(dict(dataset_id=dataset, music_id=item["music_id"],
+                             unchanged=len(set(predictions)) == 1 and predictions[0] is not None))
+    return dict(gain_checks=rows, extraction_and_match_ms=latency_summary(elapsed),
+                first_extraction_and_match_ms=first_ms,
+                within_one_second=bool(elapsed) and max(elapsed) < 1000)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
+    parser.add_argument("--queries-per-recording", type=int, default=1, help="Evenly spaced windows per recording; 0 evaluates all windows.")
+    parser.add_argument("--gain-check-limit", type=int, default=4, help="Recordings per dataset for waveform gain and latency checks.")
+    parser.add_argument("--output-json", type=Path)
+    args = parser.parse_args()
+    if args.queries_per_recording < 0 or args.gain_check_limit < 0:
+        parser.error("Query and gain-check limits must be nonnegative")
+    started = time.perf_counter()
+    catalog = MusicCatalog.load(args.catalog.resolve())
+    loaded = time.perf_counter()
+    metadata = catalog.metadata["extractor"]
+    extractor = AudioFeatureExtractor(
+        sample_rate=int(metadata["sample_rate"]), onnx_intra_op_threads=1,
+        embedding_model=catalog.resolve_path(metadata["embedding_model"]["path"]) if metadata.get("embedding_model") else None,
+        tag_model=catalog.resolve_path(metadata["tag_model"]["path"]) if metadata.get("tag_model") else None,
     )
-    gain_rate = gain_unchanged / max(gain_checked, 1)
-    print(f"segments={len(catalog.segment_metadata)} music_ids={len(catalog.tracks)}")
-    print(f"same-music segment Recall@1={recall_at_1:.4f}")
-    print(f"leave-one-music genre Recall@3={genre_recall_at_3:.4f}")
-    print(
-        f"gain-invariant top-1={gain_unchanged}/{gain_checked} "
-        f"({gain_rate:.4f}) for gains 0.1x/0.5x/1x/2x"
-    )
+    initialized = time.perf_counter()
+    report = dict(catalog=str(catalog.catalog_path), build_id=catalog.metadata.get("build_id"),
+                  counts=catalog.metadata.get("counts"), catalog_load_ms=1000*(loaded-started),
+                  extractor_startup_ms=1000*(initialized-loaded),
+                  **retrieval_evaluation(catalog, args.queries_per_recording),
+                  **waveform_checks(catalog, extractor, args.gain_check_limit))
+    if args.output_json:
+        args.output_json.parent.mkdir(parents=True, exist_ok=True)
+        args.output_json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(report, indent=2))
     return 0
 
 

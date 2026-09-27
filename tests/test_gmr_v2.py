@@ -166,7 +166,7 @@ class BatchTests(unittest.TestCase):
     @unittest.skipUnless(importlib.util.find_spec("librosa"), "Run playback test with project .venv")
     def test_sampler_preserves_saved_derivatives_and_refuses_fps_override(self):
         from realtime_music_humanoid_dancer import GmrUnitreeG1MotionSampler, FeatureState
-        from realtime_music_humanoid_matcher_v2 import build_motion_entry_features
+        from realtime_music_humanoid_matcher import build_motion_entry_features
         from unitree_g1_dance_adapter import UnitreeG1JointPoseAdapter
         from types import SimpleNamespace
         payload = self.payload()

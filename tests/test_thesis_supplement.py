@@ -271,7 +271,7 @@ class SupplementTests(unittest.TestCase):
                 # Deterministic detector makes the received-data causality contract observable.
                 return [float(block.sum()) for block in self.blocks]
         args = SimpleNamespace(audio_input_delay_sec=0, realtime=True, play_audio=False,
-                               experiment_causal_file_input=True)
+                               experiment_causal_file_input=True, analysis_min_seconds=2.0)
         outcomes = []
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'synthetic.wav'

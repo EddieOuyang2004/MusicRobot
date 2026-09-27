@@ -1,9 +1,9 @@
 .venv/
 .venv-py313-backup/
-offline/outputs/*
-!offline/outputs/build_music_feature_mapping_xlsx.py
-!offline/outputs/music_feature_motion_mapping.xlsx
-realtime/robot_arm/outputs/
+legacy/offline/outputs/*
+!legacy/offline/outputs/build_music_feature_mapping_xlsx.py
+!legacy/offline/outputs/music_feature_motion_mapping.xlsx
+legacy/robot_arm/outputs/
 __pycache__/
 *.pyc
 realtime/humanoid_robot/data/aistpp/
@@ -27,6 +27,32 @@ realtime/humanoid_robot/data/finedance_gmr_v2/*
 !realtime/humanoid_robot/data/finedance_gmr_v2/val.txt
 !realtime/humanoid_robot/data/finedance_gmr_v2/test.txt
 !realtime/humanoid_robot/data/finedance_gmr_v2/README.md
+
+# Locally generated combined retrieval catalog and integration smoke outputs.
+realtime/humanoid_robot/data/music_catalog_combined/
+realtime/humanoid_robot/data/music_catalog_segmented/
+tmp/segmented_*/
+tmp/combined_*
+
+# Disposable local tools, caches, and reorganization validation (kept locally).
+/tmp/project_reorganization/
+/tmp/numba_cache/
+/tmp/thesis_plot_deps/
+/tmp/thesis_tools/
+/tmp/paper-tools/
+/realtime/humanoid_robot/src/test/output/humanoid_matcher_experiment_protocol2/
+/realtime/humanoid_robot/src/test/output/thesis_protocol2/
+MUJOCO_LOG.TXT
+# TeX intermediates; sources, bibliographies, PDFs, and research outputs are retained.
+*.aux
+/docs/paper/*.log
+/docs/thesis/*.log
+/output/pdf/*.log
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
 
 # Source archive is local only; use the extracted dataset.
 /realtime/humanoid_robot/data/finedance.rar

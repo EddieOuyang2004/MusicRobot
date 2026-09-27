@@ -31,7 +31,7 @@ def digest(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--motion-id', default='gBR_sBM_cAll_d05_mBR0_ch08')
-    parser.add_argument('--video', type=Path, default=ROOT/'gBR_sBM_c01_d05_mBR0_ch08.mp4')
+    parser.add_argument('--video', type=Path, default=ROOT/'output/reference_media/gBR_sBM_c01_d05_mBR0_ch08.mp4')
     parser.add_argument('--output', type=Path, default=ROOT/'output/video_smpl_gmr_demo')
     parser.add_argument('--fps', type=int, default=30)
     parser.add_argument('--retargeted', type=Path, help='Alternate traced GMR artifact')

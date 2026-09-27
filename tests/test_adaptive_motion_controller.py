@@ -11,13 +11,13 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "realtime" / "robot_arm" / "src"
+SRC = ROOT / "realtime" / "shared"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 try:
-    import realtime_music_adaptive_player as player_module
-    from realtime_music_adaptive_player import (
+    import music_runtime as player_module
+    from music_runtime import (
         AdaptiveMotionController,
         MusicFrame,
         RealtimeMusicAnalyzer,

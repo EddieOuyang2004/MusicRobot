@@ -1,0 +1,197 @@
+{
+  "date": "2026-09-25",
+  "evaluation": {
+    "catalog": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog_combined\\catalog.json",
+    "build_id": "e151ce38b32b4d0fb954b63c568a6d90",
+    "counts": {
+      "selected": 2941,
+      "motions_included": 2933,
+      "motions_excluded": 8,
+      "music_ids": 2582,
+      "segments": 9133,
+      "by_dataset": {
+        "aistpp": 411,
+        "finedance": 2522
+      }
+    },
+    "catalog_load_ms": 415.0958000027458,
+    "extractor_startup_ms": 110.15039999620058,
+    "library_self_retrieval": {
+      "all": {
+        "queries": 716,
+        "recall_at_1": 0.9106145251396648,
+        "recall_at_3": 0.994413407821229,
+        "accepted_rate": 0.9678770949720671
+      },
+      "aistpp": {
+        "queries": 161,
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "accepted_rate": 0.9751552795031055
+      },
+      "finedance": {
+        "queries": 555,
+        "recall_at_1": 0.8846846846846846,
+        "recall_at_3": 0.9927927927927928,
+        "accepted_rate": 0.9657657657657658
+      }
+    },
+    "recording_held_out_genre_retrieval": {
+      "all": {
+        "queries": 716,
+        "recall_at_1": 0.45391061452513964,
+        "recall_at_3": 0.6857541899441341,
+        "accepted_rate": 0.9720670391061452
+      },
+      "aistpp": {
+        "queries": 161,
+        "recall_at_1": 0.2608695652173913,
+        "recall_at_3": 0.42857142857142855,
+        "accepted_rate": 0.9751552795031055
+      },
+      "finedance": {
+        "queries": 555,
+        "recall_at_1": 0.5099099099099099,
+        "recall_at_3": 0.7603603603603604,
+        "accepted_rate": 0.9711711711711711
+      }
+    },
+    "matcher_latency_ms": {
+      "count": 716,
+      "median": 63.63384999713162,
+      "p95": 79.86189999974158,
+      "max": 118.01149999519112
+    },
+    "queries_per_recording": 3,
+    "evaluation_note": "Library self-retrieval is not generalization. Held-out normalization uses reference recordings only; genre labels remain dataset-specific.",
+    "gain_checks": [
+      {
+        "dataset_id": "aistpp",
+        "music_id": "BR0",
+        "unchanged": true
+      },
+      {
+        "dataset_id": "aistpp",
+        "music_id": "BR1",
+        "unchanged": true
+      },
+      {
+        "dataset_id": "aistpp",
+        "music_id": "BR2",
+        "unchanged": true
+      },
+      {
+        "dataset_id": "aistpp",
+        "music_id": "BR3",
+        "unchanged": true
+      },
+      {
+        "dataset_id": "finedance",
+        "music_id": "finedance_001_0000000_0000586",
+        "unchanged": true
+      },
+      {
+        "dataset_id": "finedance",
+        "music_id": "finedance_002_0000000_0000622",
+        "unchanged": true
+      },
+      {
+        "dataset_id": "finedance",
+        "music_id": "finedance_003_0000000_0000592",
+        "unchanged": true
+      },
+      {
+        "dataset_id": "finedance",
+        "music_id": "finedance_004_0000000_0000578",
+        "unchanged": true
+      }
+    ],
+    "extraction_and_match_ms": {
+      "count": 31,
+      "median": 111.55370000051335,
+      "p95": 131.73710000046412,
+      "max": 149.79920000041602
+    },
+    "first_extraction_and_match_ms": 1352.812899996934,
+    "within_one_second": true
+  },
+  "playback": {
+    "catalog": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\realtime\\humanoid_robot\\data\\music_catalog_combined\\catalog.json",
+    "build_id": "e151ce38b32b4d0fb954b63c568a6d90",
+    "runs": [
+      {
+        "direction": "aistpp_to_finedance",
+        "initial_motion_id": "gBR_sBM_cAll_d04_mBR0_ch01",
+        "dataset_sequence": [
+          "aistpp",
+          "finedance"
+        ],
+        "crossed": true,
+        "startup_ms": 11630.128799995873,
+        "retrieval_completed": 29,
+        "retrieval_busy_submissions": 0,
+        "retrieval_max_ms_upper_bound": 391.5022000001045,
+        "failed_motion_ids": [],
+        "trace": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\tmp\\combined_full_acceptance_final\\aistpp_to_finedance.csv",
+        "timing": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\tmp\\combined_full_acceptance_final\\aistpp_to_finedance_timing.json"
+      },
+      {
+        "direction": "finedance_to_aistpp",
+        "initial_motion_id": "finedance_187_0000000_0000694",
+        "dataset_sequence": [
+          "finedance",
+          "aistpp"
+        ],
+        "crossed": true,
+        "startup_ms": 11350.85500000423,
+        "retrieval_completed": 29,
+        "retrieval_busy_submissions": 0,
+        "retrieval_max_ms_upper_bound": 415.4445000094711,
+        "failed_motion_ids": [],
+        "trace": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\tmp\\combined_full_acceptance_final\\finedance_to_aistpp.csv",
+        "timing": "C:\\Users\\Eddie\\Desktop\\MusicRobot\\tmp\\combined_full_acceptance_final\\finedance_to_aistpp_timing.json"
+      }
+    ]
+  },
+  "build": {
+    "status": "complete",
+    "selected": 2941,
+    "motions_included": 2933,
+    "motions_excluded": 8,
+    "music_ids": 2582,
+    "segments": 9133,
+    "by_dataset": {
+      "aistpp": 411,
+      "finedance": 2522
+    },
+    "cached": 0,
+    "elapsed_seconds": 1906.004484899997
+  },
+  "pilot_resume": {
+    "status": "complete",
+    "selected": 8,
+    "motions_included": 8,
+    "motions_excluded": 0,
+    "music_ids": 8,
+    "segments": 28,
+    "by_dataset": {
+      "aistpp": 4,
+      "finedance": 4
+    },
+    "cached": 8,
+    "elapsed_seconds": 0.9287685999988753
+  },
+  "limitation": "Forcing the 9.77-second FineDance 001 startup clip caused terminal hold while waiting for all ten AIST++ candidates, with and without concurrent evaluation. The longest FineDance clip (187, 11.57 seconds) completed the reverse transition. Transition behavior is unchanged.",
+  "regression_tests": {
+    "combined_catalog": 13,
+    "legacy_catalog": 27,
+    "matcher_v2": 24,
+    "legacy_experiments": 23
+  },
+  "default_launch_smoke": {
+    "passed": true,
+    "initial_motion_id": "finedance_187_0000000_0000694",
+    "explicit_catalog_override": false,
+    "headless": true
+  }
+}

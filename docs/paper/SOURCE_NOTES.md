@@ -11,7 +11,7 @@ The thesis sources in `docs/thesis/`, especially Chapters 1--5 and the limitatio
 | Paper content | Primary project evidence |
 | --- | --- |
 | Audio normalization, embeddings, DSP, segment/track/genre/motion scores | `realtime/humanoid_robot/src/music_motion_catalog.py`: `AudioFeatureExtractor`, `OnnxEffnetBackend`, `MusicMotionMatcher` |
-| Causal growing history, 2-second start, 30-second cap, retrieval scheduling | `realtime/humanoid_robot/src/realtime_music_humanoid_matcher_v2.py`: `RetrievalAudioHistory`, `available_history`, `RetrievalWorker`, main loop |
+| Causal growing history, 2-second start, 30-second cap, retrieval scheduling | `realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py`: `RetrievalAudioHistory`, `available_history`, `RetrievalWorker`, main loop |
 | First-20%-of-target entry policy, last-two-seconds exit search | matcher v2: `select_motion_entry`, `prepare_state_bridge`; `src/test/v2_entry_window_20260916.md` |
 | Nonlinear pose/velocity/contact/root penalty, fixed tolerances | matcher v2: `EntryScoringConfig`, `entry_difference_penalty`, `select_motion_entry` |
 | Frozen shortlist, checked replay, expanded retry, holds, stale/late plans | matcher v2: `musical_shortlist`, `AuthoredPlayback.prepare`, `AuthoredPlayback.sample` |
@@ -51,24 +51,13 @@ The thesis sources in `docs/thesis/`, especially Chapters 1--5 and the limitatio
 - MuJoCo is used for kinematic playback and geometry here. No physical G1, torque tracking, balance, friction, or actuator certification is claimed.
 - Root derivatives are not covered by the joint C2 construction.
 
-## Primary literature and formatting sources
+## Bibliography source and formatting
 
-References were checked against primary papers, author sites, or proceedings rather than copied blindly from the thesis bibliography.
+As requested by the author on 2026-09-23, `../thesis/references.bib` is the authoritative source for references shared with the thesis. The paper copies its 12 shared entries verbatim, including entry types, citation keys, titles, author lists, publication information, years, and pages. The manuscript uses the corresponding thesis citation keys. This supersedes the draft's earlier independent bibliography choices.
 
-- [IEEE conference authoring tools and templates](https://conferences.ieeeauthorcenter.ieee.org/write-your-paper/authoring-tools-and-templates/): standard IEEEtran conference layout.
-- [AI Choreographer, CVF proceedings](https://openaccess.thecvf.com/content/ICCV2021/html/Li_AI_Choreographer_Music_Conditioned_3D_Dance_Generation_With_AIST_ICCV_2021_paper.html): CVF pagination 13401--13412 is used. The thesis used the differently paginated IEEE record.
-- [Bailando](https://arxiv.org/abs/2203.13055).
-- [EDGE](https://arxiv.org/abs/2211.10658).
-- [DiscoForcing](https://arxiv.org/abs/2605.28491).
-- [RoboPerform / Do You Have Freestyle?](https://arxiv.org/abs/2512.23650): cite the identifiable arXiv work, first submitted in 2025, rather than carrying over unverified conference page numbers. Updated versions appeared in 2026.
-- [Discogs representation learning, ISMIR 2022](https://archives.ismir.net/ismir2022/paper/000099.pdf).
-- [librosa, SciPy proceedings](https://proceedings.scipy.org/articles/Majora-7b98e3ed-003.pdf): conference paper, pages 18--24.
-- [Motion Graphs, authors' publication page](https://graphics.cs.wisc.edu/Papers/2002/KGP02/): original 2002 publication, rather than its 2023 reprint.
-- [Learned Motion Matching, author page](https://theorangeduck.com/page/learned-motion-matching).
-- [SMPL, official model page](https://smpl.is.tue.mpg.de/): original 2015 publication, rather than its 2023 reprint.
-- [GMR / Retargeting Matters](https://arxiv.org/abs/2510.02252).
-- [Ruckig, RSS 2021 proceedings](https://www.roboticsproceedings.org/rss17/p015.html).
-- [MuJoCo](https://doi.org/10.1109/IROS.2012.6386109).
+The paper-only `berscheid2021ruckig` entry is retained because it is cited in the manuscript and is absent from the thesis bibliography. Its source is the [Ruckig RSS 2021 proceedings](https://www.roboticsproceedings.org/rss17/p015.html).
+
+The bibliography style remains `IEEEtran`, as in the thesis.
 
 ## Items left to the author
 

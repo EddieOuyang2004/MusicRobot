@@ -24,11 +24,11 @@ except ImportError:
     mujoco.viewer = None
 
 ROOT = Path(__file__).resolve().parents[3]
-ROBOT_ARM_SRC = ROOT / "realtime" / "robot_arm" / "src"
-if str(ROBOT_ARM_SRC) not in sys.path:
-    sys.path.insert(0, str(ROBOT_ARM_SRC))
+SHARED_SRC = ROOT / "realtime" / "shared"
+if str(SHARED_SRC) not in sys.path:
+    sys.path.insert(0, str(SHARED_SRC))
 
-from realtime_music_adaptive_player import (
+from music_runtime import (
     AdaptiveMotionController,
     MusicFrame,
     RealtimeMusicAnalyzer,

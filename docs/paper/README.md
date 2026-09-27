@@ -51,6 +51,6 @@ The portable Tectonic compiler is local build tooling, not part of the submissio
 
 ## Editing and provenance
 
-`SOURCE_NOTES.md` maps the methods to code and distinguishes current behavior from older thesis claims. It is an authoring aid, not part of the paper. It also lists the primary reference sources and unresolved submission details.
+`SOURCE_NOTES.md` maps the methods to code and distinguishes current behavior from older thesis claims. It is an authoring aid, not part of the paper. Shared bibliography entries and citation keys follow `../thesis/references.bib` verbatim; the paper-only Ruckig entry is retained. The notes also record unresolved submission details.
 
 The main paper is currently five pages, including bibliography and section placeholders. Its eventual length will change when experiments are added; the target conference's page limit has not been specified.

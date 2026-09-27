@@ -1,18 +1,20 @@
+"""Early motion selection and authored-state bridges for one-shot playback."""
 from __future__ import annotations
 
 import argparse
 import csv
 import hashlib
+import heapq
 import math
 import random
 import sys
 import threading
 import time
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, fields, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import librosa
 import numpy as np
@@ -28,6 +30,10 @@ from music_motion_catalog import (
     MusicMotionMatcher,
 )
 from music_pose_modulator import MusicPoseModulator
+from motion_bridges import (
+    AuthoredTrajectory, AuthoredClock, JointState, InfeasibleBridge,
+    make_bridge, load_jerk_limits, require_ruckig, warmup_hermite,
+)
 from robot_motion import (
     JointDynamicsLimiter,
     JointDynamicsLimits,
@@ -43,7 +49,7 @@ from robot_motion import (
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CATALOG = (
-    ROOT / "realtime" / "humanoid_robot" / "data" / "music_catalog" / "catalog.json"
+    ROOT / "realtime" / "humanoid_robot" / "data" / "music_catalog_combined" / "catalog.json"
 )
 
 
@@ -80,17 +86,77 @@ def _set_retrieval_process_priority() -> None:
         pass
 
 
+@dataclass(frozen=True)
+class EntryScoringConfig:
+    """Fixed soft tolerances; initial tuning values, not calibrated thresholds."""
+
+    pose_tolerance_fraction: float = 0.05
+    velocity_tolerance_fraction: float = 0.10
+    contact_tolerance_feet: float = 1.0
+    root_height_tolerance_m: float = 0.025
+    root_tilt_tolerance_rad: float = 0.075
+    root_linear_velocity_tolerance_m_s: float = 0.25
+    root_angular_speed_tolerance_rad_s: float = 0.5
+    excess_penalty_weight: float = 4.0
+
+    def __post_init__(self):
+        for field in fields(self):
+            value = getattr(self, field.name)
+            allow_zero = field.name == "excess_penalty_weight"
+            if not math.isfinite(value) or (value < 0 if allow_zero else value <= 0):
+                requirement = "nonnegative" if allow_zero else "positive"
+                raise ValueError(f"--entry-{field.name.replace('_', '-')} must be finite and {requirement}")
+
+    @classmethod
+    def from_args(cls, args):
+        defaults = cls()
+        return cls(**{field.name: getattr(args, f"entry_{field.name}", getattr(defaults, field.name))
+                      for field in fields(cls)})
+
+
+def entry_difference_penalty(difference, tolerance, excess_weight=4.0):
+    """Vectorized unbounded penalty for nonnegative differences; no dead zone."""
+    ratio = np.asarray(difference, dtype=np.float64) / tolerance
+    return np.square(ratio) + excess_weight * np.square(np.maximum(ratio - 1.0, 0.0))
+
+
 def parse_args() -> argparse.Namespace:
-    """Parse matcher-specific flags, then delegate all legacy flags to the frozen entrypoint."""
+    """Parse matcher-specific flags, then delegate inherited options to the dancer."""
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
+    parser.add_argument("--aistpp-gmr-motion-root", type=Path, default=None,
+                        help="Override only the AIST++ GMR directory in a dataset-aware catalog.")
+    parser.add_argument("--finedance-gmr-motion-root", type=Path, default=None,
+                        help="Override only the FineDance GMR directory in a dataset-aware catalog.")
     parser.add_argument("--embedding-model", type=Path, default=None)
     parser.add_argument("--tag-model", type=Path, default=None)
-    parser.add_argument("--match-window-seconds", type=float, default=6.0)
+    obsolete = {"--match-window-seconds", "--switch-required-wins", "--switch-score-margin",
+                "--switch-max-hold-bars", "--switch-min-remaining-bars", "--transition-max-seconds",
+                "--diagnostic-instant-top1", "--diagnostic-fixed-entry-transition",
+                "--terminal-safe-idle-amplitude", "--switch-recent-history", "--switch-beats-per-bar"}
+    for argument in sys.argv[1:]:
+        if argument.split("=", 1)[0] in obsolete:
+            parser.error(f"{argument.split('=', 1)[0]} is a v1 switching option; v2 selects authored exit and entry frames.")
+    parser.add_argument("--history-max-seconds", type=float, default=30.0)
+    parser.add_argument("--analysis-min-seconds", type=float, default=2.0)
+    parser.add_argument("--entry-max-phase", type=float, default=0.2,
+                        help="Latest eligible entry as a fraction of each motion (default: 0.2, first 20%%).")
+    parser.add_argument("--transition-exit-window-seconds", type=float, default=2.0,
+                        help="Search this many authored seconds before the source endpoint; zero uses only the endpoint.")
+    scoring_defaults = EntryScoringConfig()
+    for field in fields(scoring_defaults):
+        parser.add_argument(
+            f"--entry-{field.name.replace('_', '-')}", type=float,
+            default=getattr(scoring_defaults, field.name),
+            help=("Extra squared penalty above tolerance (default: %(default)s)."
+                  if field.name == "excess_penalty_weight" else
+                  "Soft scoring tolerance; smaller is more sensitive (default: %(default)s)."),
+        )
+    parser.set_defaults(match_window_seconds=30.0)
     parser.add_argument("--match-interval-seconds", type=float, default=1.0)
     parser.add_argument("--match-top-tracks", type=int, default=5)
-    parser.add_argument("--match-top-motions", type=int, default=10)
+    parser.add_argument("--match-top-motions", type=int, default=20)
     parser.add_argument(
         "--motion-timing",
         choices=("beat-sync", "authored"),
@@ -147,10 +213,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--switch-score-margin", type=float, default=0.08)
     parser.add_argument("--switch-beats-per-bar", type=int, default=4)
     parser.add_argument("--switch-max-hold-bars", type=int, default=4)
-    parser.add_argument("--switch-diversity-top-k", type=int, default=5)
-    parser.add_argument("--switch-diversity-score-drop", type=float, default=0.05)
+    parser.add_argument("--shortlist-size", "--switch-diversity-top-k", dest="switch_diversity_top_k", type=int, default=10)
+    parser.add_argument("--shortlist-score-drop", "--switch-diversity-score-drop", dest="switch_diversity_score_drop", type=float, default=0.05)
     parser.add_argument(
-        "--switch-diversity-music-score-drop",
+        "--shortlist-music-score-drop", "--switch-diversity-music-score-drop", dest="switch_diversity_music_score_drop",
         type=float,
         default=0.08,
     )
@@ -182,6 +248,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--switch-min-remaining-bars", type=float, default=1.0)
     parser.add_argument("--transition-min-seconds", type=float, default=0.35)
+    parser.add_argument("--transition-backend", choices=("hermite", "ruckig", "quintic"), default="hermite")
+    parser.add_argument("--transition-boundary-seconds", type=float, default=0.5)
+    parser.add_argument("--output-max-joint-jerk", type=float, default=None,
+                        help="Optional rad/s^3 bound; Ruckig requires limits for every joint.")
     parser.add_argument("--transition-max-seconds", type=float, default=1.20)
     parser.add_argument(
         "--terminal-safe-idle-amplitude",
@@ -268,6 +338,9 @@ def parse_args() -> argparse.Namespace:
         help="Show the matcher-specific options; use --help for inherited dancer options.",
     )
     matcher_args, remaining = parser.parse_known_args()
+    matcher_args.explicit_gmr_motion_root = any(
+        value.split("=", 1)[0] == "--gmr-motion-root" for value in remaining
+    )
     explicit_aistpp_motion = any(
         argument == "--aistpp-motion" or argument.startswith("--aistpp-motion=")
         for argument in remaining
@@ -275,26 +348,67 @@ def parse_args() -> argparse.Namespace:
     if matcher_args.matcher_help:
         help_parser = argparse.ArgumentParser(
             description=(
-                "Realtime AIST++ music retrieval and motion switching. "
+                "Humanoid matcher: authored exit/entry transitions (60 Hz control by default). "
                 "All realtime_music_humanoid_dancer.py options are also accepted."
             )
         )
         for action in parser._actions:
-            if action.dest != "help":
+            if action.dest != "help" and not any(option in obsolete for option in action.option_strings):
                 help_parser._add_action(action)
         help_parser.print_help()
         raise SystemExit(0)
 
     original_argv = sys.argv
     try:
-        sys.argv = [original_argv[0], *remaining]
-        args = base.parse_args()
+        # Keep the matcher's default separate from the standalone dancer.
+        # Explicit values still go through the base parser's validation.
+        speed_default = [] if any(
+            value == "--speed-max" or value.startswith("--speed-max=")
+            for value in remaining
+        ) else ["--speed-max", "1.3"]
+        sys.argv = [original_argv[0], *remaining, *speed_default]
+        args = base.parse_args(control_rate_default=60.0)
     finally:
         sys.argv = original_argv
     for name, value in vars(matcher_args).items():
         setattr(args, name, value)
+    try:
+        EntryScoringConfig.from_args(args)
+    except ValueError as exc:
+        parser.error(str(exc))
     if explicit_aistpp_motion and args.initial_motion_id is None:
         args.initial_motion_id = Path(args.aistpp_motion).stem
+    for name in ("history_max_seconds", "analysis_min_seconds", "match_interval_seconds"):
+        value = getattr(args, name)
+        if not math.isfinite(value) or value <= 0:
+            parser.error(f"--{name.replace('_', '-')} must be finite and positive")
+    if not math.isfinite(args.entry_max_phase) or not 0 <= args.entry_max_phase <= 1:
+        parser.error("--entry-max-phase must be finite and between 0 and 1")
+    if not math.isfinite(args.transition_exit_window_seconds) or args.transition_exit_window_seconds < 0:
+        parser.error("--transition-exit-window-seconds must be finite and non-negative")
+    if args.analysis_min_seconds > args.history_max_seconds:
+        parser.error("--analysis-min-seconds must not exceed --history-max-seconds")
+    if args.history_max_seconds > 30.0:
+        parser.error("--history-max-seconds must not exceed 30 seconds")
+    if args.switch_diversity_top_k <= 0 or args.match_top_motions <= 0:
+        parser.error("shortlist and retrieval sizes must be positive")
+    for name in ("switch_diversity_score_drop", "switch_diversity_music_score_drop"):
+        if not math.isfinite(getattr(args, name)) or getattr(args, name) < 0:
+            parser.error(f"--{name.replace('_', '-')} must be finite and non-negative")
+    if args.match_policy != "style-first":
+        parser.error("v2 requires --match-policy style-first")
+    if not math.isfinite(args.transition_boundary_seconds) or args.transition_boundary_seconds <= 0:
+        parser.error("--transition-boundary-seconds must be finite and positive")
+    if args.output_max_joint_jerk is not None and (
+        not math.isfinite(args.output_max_joint_jerk) or args.output_max_joint_jerk <= 0
+    ):
+        parser.error("--output-max-joint-jerk must be finite and positive")
+    if args.transition_backend != "quintic" and args.transition_min_seconds > 10:
+        parser.error("State bridge minimum duration cannot exceed 10 seconds")
+    args.match_window_seconds = args.history_max_seconds
+    args.switch_required_wins = 1
+    args.switch_ready_pool_size = max(args.switch_ready_pool_size, args.switch_diversity_top_k)
+    args.terminal_safe_idle_amplitude = 0.0
     return args
 
 
@@ -313,6 +427,7 @@ class MotionEntryFeatures:
     candidate_salience: np.ndarray
     fps: float
     duration: float
+    authored: AuthoredTrajectory | None = None
 
     def index_for_phase(self, phase: float) -> int:
         return int(
@@ -326,6 +441,10 @@ class MotionEntryFeatures:
 
 @dataclass(frozen=True)
 class MotionEntryScore:
+    """Unbounded nonlinear costs, lower is better (also in CSV entry_*_score).
+
+    Components replace the old linear differences. Music remains zero here.
+    """
     phase: float
     frame_index: int
     total: float
@@ -427,62 +546,8 @@ class OneShotPhaseTracker:
         )
 
 
-def forced_transition_blend(
-    current_phase: float,
-    start_phase: float,
-    *,
-    elapsed_seconds: float = 0.0,
-    duration_seconds: float = 1.0,
-) -> float:
-    if start_phase >= OneShotPhaseTracker.terminal_phase - 1e-9:
-        return float(
-            np.clip(
-                elapsed_seconds / max(float(duration_seconds), 1e-9),
-                0.0,
-                1.0,
-            )
-        )
-    return float(
-        np.clip(
-            (current_phase - start_phase)
-            / max(OneShotPhaseTracker.terminal_phase - start_phase, 1e-9),
-            0.0,
-            1.0,
-        )
-    )
 
 
-def apply_terminal_safe_idle(
-    frame: RobotMotionFrame,
-    elapsed_seconds: float,
-    amplitude: float,
-) -> RobotMotionFrame:
-    """Add a tiny stationary breathing/sway signal without moving the root."""
-
-    strength = max(float(amplitude), 0.0)
-    if strength <= 0.0:
-        return frame
-    breath = strength * math.sin(2.0 * math.pi * 0.20 * elapsed_seconds)
-    sway = 0.35 * strength * math.sin(2.0 * math.pi * 0.11 * elapsed_seconds)
-    joints = dict(frame.joint_positions)
-
-    def add_existing(names: tuple[str, ...], offset: float) -> None:
-        for name in names:
-            if name in joints:
-                joints[name] = float(joints[name] + offset)
-                return
-
-    add_existing(("waist_pitch_joint", "waist_pitch", "torso_pitch"), breath)
-    add_existing(("waist_roll_joint", "waist_roll", "torso_roll"), sway)
-    add_existing(
-        ("left_shoulder_pitch_joint", "left_shoulder_pitch"),
-        0.45 * breath,
-    )
-    add_existing(
-        ("right_shoulder_pitch_joint", "right_shoulder_pitch"),
-        0.45 * breath,
-    )
-    return frame.with_joint_positions(joints)
 
 
 def build_motion_entry_features(
@@ -562,6 +627,20 @@ def build_motion_entry_features(
         [candidates[int(index)] for index in candidate_indices],
         dtype=np.float64,
     )
+    stored = getattr(sampler, "authored_trajectory", None)
+    if stored is not None:
+        mapping = getattr(adapter, "name_map", {name: name for name in sampler.dof_names})
+        reverse = {resolved: logical for logical, resolved in mapping.items()}
+        try:
+            columns = [sampler.dof_names.index(reverse[name]) for name in joint_names]
+        except (KeyError, ValueError) as exc:
+            raise ValueError("Cannot map validated Hermite states to playback joints.") from exc
+        positions = stored.positions[:, columns].copy()
+        authored = AuthoredTrajectory(positions, fps, velocities=stored.velocities[:, columns],
+                                      accelerations=stored.accelerations[:, columns])
+        velocities = authored.velocities.copy()
+    else:
+        authored = AuthoredTrajectory(positions, fps)
     return MotionEntryFeatures(
         joint_names=joint_names,
         joint_positions=positions,
@@ -576,6 +655,7 @@ def build_motion_entry_features(
         candidate_salience=candidate_salience,
         fps=fps,
         duration=float(sampler.duration),
+        authored=authored,
     )
 
 
@@ -590,14 +670,12 @@ def compute_transition_duration(
     maximum: float,
 ) -> float:
     delta = np.abs(np.asarray(second, dtype=np.float64) - np.asarray(first, dtype=np.float64))
-    velocity_time = float(np.max(1.5 * delta / np.maximum(speed_limits, 1e-9)))
+    velocity_time = float(np.max(1.875 * delta / np.maximum(speed_limits, 1e-9)))
     acceleration_time = float(
-        np.max(np.sqrt(6.0 * delta / np.maximum(acceleration_limits, 1e-9)))
+        np.max(np.sqrt((10.0 / math.sqrt(3.0)) * delta / np.maximum(acceleration_limits, 1e-9)))
     )
     raw = max(float(minimum), velocity_time, acceleration_time)
-    half_beat = max(float(beat_period) * 0.5, 1e-6)
-    quantized = math.ceil(raw / half_beat) * half_beat
-    return float(np.clip(quantized, minimum, maximum))
+    return raw  # Never shorten a transition below its dynamics-derived duration.
 
 
 def select_motion_entry(
@@ -613,7 +691,12 @@ def select_motion_entry(
     transition_minimum: float,
     transition_maximum: float,
     enforce_remaining: bool = True,
-) -> MotionEntryScore:
+    entry_max_phase: float = 0.2,
+    return_all: bool | str = False,
+    scoring_config: EntryScoringConfig | None = None,
+    eligible_frame_mask: np.ndarray | None = None,
+) -> MotionEntryScore | list[MotionEntryScore] | Iterator[MotionEntryScore] | None:
+    config = scoring_config if scoring_config is not None else EntryScoringConfig()
     source_index = source.index_for_phase(source_phase)
     source_lookup = {name: index for index, name in enumerate(source.joint_names)}
     target_lookup = {name: index for index, name in enumerate(target.joint_names)}
@@ -629,21 +712,18 @@ def select_motion_entry(
     acceleration_limits = np.asarray(
         [limits[name].max_acceleration_rad_s2 for name in names]
     )
-    minimum_remaining = max(float(minimum_remaining_bars), 0.0) * max(
-        int(beats_per_bar), 1
-    ) * max(float(beat_period), 1e-3)
-    candidate_indices = np.asarray(target.candidate_indices, dtype=np.int32)
+    candidate_indices = np.arange(len(target.joint_positions), dtype=np.int32)
     candidate_pose = target.joint_positions[candidate_indices][:, target_columns]
     candidate_velocity = target.joint_velocities[candidate_indices][:, target_columns]
     phases = candidate_indices.astype(np.float64) / max(len(target.joint_positions) - 1, 1)
     deltas = np.abs(candidate_pose - source_pose[None, :])
     velocity_times = np.max(
-        1.5 * deltas / np.maximum(speed_limits[None, :], 1e-9),
+        1.875 * deltas / np.maximum(speed_limits[None, :], 1e-9),
         axis=1,
     )
     acceleration_times = np.max(
         np.sqrt(
-            6.0 * deltas / np.maximum(acceleration_limits[None, :], 1e-9)
+            (10.0 / math.sqrt(3.0)) * deltas / np.maximum(acceleration_limits[None, :], 1e-9)
         ),
         axis=1,
     )
@@ -654,120 +734,560 @@ def select_motion_entry(
             acceleration_times,
         )
     )
-    half_beat = max(float(beat_period) * 0.5, 1e-6)
-    transition_times = np.clip(
-        np.ceil(raw_times / half_beat) * half_beat,
-        transition_minimum,
-        transition_maximum,
-    )
-    remaining_times = (1.0 - phases) * target.duration / max(speed_max, 1e-6)
-    eligible = (
-        remaining_times + 1e-9 >= minimum_remaining + transition_times
-        if enforce_remaining
-        else np.ones(len(candidate_indices), dtype=bool)
-    )
+    transition_times = raw_times
+    # Search the configured prefix of each clip regardless of duration or speed.
+    # Keep authored remaining seconds for trace diagnostics.
+    remaining_times = (1.0 - phases) * target.duration
+    eligible = phases <= entry_max_phase + 1e-9
+    if not enforce_remaining:
+        eligible = candidate_indices == 0
+    if eligible_frame_mask is not None:
+        eligible &= eligible_frame_mask
     if not np.any(eligible):
-        earliest = int(target.candidate_indices[0])
-        return select_motion_entry(
-            source,
-            source_phase,
-            replace(
-                target,
-                candidate_indices=np.asarray([earliest], dtype=np.int32),
-                candidate_salience=np.asarray(
-                    [target.candidate_salience[0]],
-                    dtype=np.float64,
-                ),
-            ),
-            limits,
-            beat_period=beat_period,
-            beats_per_bar=0,
-            minimum_remaining_bars=0.0,
-            speed_max=speed_max,
-            transition_minimum=transition_minimum,
-            transition_maximum=transition_maximum,
-            enforce_remaining=False,
-        )
-    within_transition_limit = raw_times <= transition_maximum + 1e-9
-    preferred_eligible = eligible & within_transition_limit
-    if np.any(preferred_eligible):
-        eligible = preferred_eligible
-    pose_scores = np.sqrt(
-        np.mean(
-            np.square((candidate_pose - source_pose[None, :]) / joint_ranges[None, :]),
-            axis=1,
-        )
+        return None
+    pose_scores = np.mean(
+        entry_difference_penalty(deltas, joint_ranges[None, :] * config.pose_tolerance_fraction,
+                                 config.excess_penalty_weight), axis=1,
     )
-    velocity_scores = np.sqrt(
-        np.mean(
-            np.square(
-                (candidate_velocity - source_velocity[None, :])
-                / np.maximum(speed_limits[None, :], 1e-9)
-            ),
-            axis=1,
-        )
+    velocity_scores = np.mean(
+        entry_difference_penalty(
+            np.abs(candidate_velocity - source_velocity[None, :]),
+            np.maximum(speed_limits[None, :], 1e-9) * config.velocity_tolerance_fraction,
+            config.excess_penalty_weight), axis=1,
     )
-    contact_scores = np.mean(
+    contact_mismatches = np.sum(
         target.foot_contacts[candidate_indices]
         != source.foot_contacts[source_index][None, :],
         axis=1,
     )
+    contact_scores = entry_difference_penalty(
+        contact_mismatches, config.contact_tolerance_feet, config.excess_penalty_weight,
+    )
     height_errors = np.abs(
         target.root_positions[candidate_indices, 2]
         - source.root_positions[source_index, 2]
-    ) / 0.15
+    ) / config.root_height_tolerance_m
     tilt_errors = np.abs(
         target.root_tilt[candidate_indices] - source.root_tilt[source_index]
-    ) / 0.35
+    ) / config.root_tilt_tolerance_rad
     linear_errors = np.linalg.norm(
         target.root_linear_velocities[candidate_indices]
         - source.root_linear_velocities[source_index][None, :],
         axis=1,
-    ) / 3.0
+    ) / config.root_linear_velocity_tolerance_m_s
     angular_errors = np.abs(
         target.root_angular_speeds[candidate_indices]
         - source.root_angular_speeds[source_index]
-    ) / (4.0 * math.pi)
+    ) / config.root_angular_speed_tolerance_rad_s
     root_scores = np.mean(
-        np.stack((height_errors, tilt_errors, linear_errors, angular_errors), axis=1),
+        entry_difference_penalty(
+            np.stack((height_errors, tilt_errors, linear_errors, angular_errors), axis=1),
+            1.0, config.excess_penalty_weight),
         axis=1,
     )
-    music_scores = 1.0 - np.clip(target.candidate_salience, 0.0, 1.0)
+    music_scores = np.zeros(len(candidate_indices))
     totals = (
         0.45 * pose_scores
         + 0.20 * velocity_scores
         + 0.20 * contact_scores
         + 0.10 * root_scores
-        + 0.05 * music_scores
-    )
+    ) / 0.95
     eligible_indices = np.flatnonzero(eligible)
-    order = np.lexsort(
-        (
-            phases[eligible_indices],
-            -remaining_times[eligible_indices],
-            music_scores[eligible_indices],
-            totals[eligible_indices],
+    order = np.lexsort((phases[eligible_indices], totals[eligible_indices]))
+    def entry(selected):
+        return MotionEntryScore(
+            phase=float(phases[selected]),
+            frame_index=int(candidate_indices[selected]),
+            total=float(totals[selected]),
+            pose=float(pose_scores[selected]),
+            velocity=float(velocity_scores[selected]),
+            contact=float(contact_scores[selected]),
+            root=float(root_scores[selected]),
+            music=float(music_scores[selected]),
+            remaining_seconds=float(remaining_times[selected]),
+            transition_seconds=float(transition_times[selected]),
         )
+    if return_all == "iterator":
+        return (entry(int(eligible_indices[i])) for i in order)
+    if return_all:
+        return [entry(int(eligible_indices[i])) for i in order]
+    return entry(int(eligible_indices[int(order[0])]))
+
+
+def available_history(audio, sample_rate, maximum, minimum):
+    required = int(round(minimum * sample_rate))
+    if len(audio) < required:
+        return None
+    return np.asarray(audio[-int(round(maximum * sample_rate)):], dtype=np.float32).copy()
+
+
+class RetrievalAudioHistory:
+    """Own bounded buffer, independent of the beat analyser's history length."""
+    def __init__(self, analyzer, maximum, minimum):
+        self.sample_rate = analyzer.sample_rate
+        self.maximum, self.minimum = maximum, minimum
+        self.chunks = deque()
+        self.count = 0
+        self.lock = threading.Lock()
+        original = analyzer._append_audio_chunk
+
+        def append(start, mono):
+            original(start, mono)
+            chunk = np.asarray(mono, dtype=np.float32).copy()
+            with self.lock:
+                self.chunks.append(chunk)
+                self.count += len(chunk)
+                excess = self.count - int(round(self.maximum * self.sample_rate))
+                while excess > 0 and self.chunks:
+                    first = self.chunks.popleft()
+                    removed = min(excess, len(first))
+                    if removed < len(first):
+                        self.chunks.appendleft(first[removed:])
+                    excess -= removed
+                    self.count -= removed
+        analyzer._append_audio_chunk = append
+
+    def recent_audio(self):
+        with self.lock:
+            if self.count < int(round(self.minimum * self.sample_rate)):
+                return None
+            return np.concatenate(list(self.chunks)).copy()
+
+
+def musical_shortlist(result, current_id, args, *, expanded=False, exclude=()):
+    if result is None or not result.accepted or not result.motions:
+        return ()
+    best = max(result.motions, key=lambda item: item.final_score)
+    eligible = [item for item in result.motions
+                if item.motion_id != current_id and item.motion_id not in exclude
+                and item.final_score >= best.final_score - max(args.switch_diversity_score_drop, .10 if expanded else 0.)
+                and item.music_score >= best.music_score - max(args.switch_diversity_music_score_drop, .15 if expanded else 0.)]
+    return tuple(item.motion_id for item in sorted(
+        eligible, key=lambda item: (-item.final_score, -item.music_score, item.motion_id)
+    )[:args.switch_diversity_top_k])
+
+
+def quintic_blend(first, second, amount):
+    u = float(np.clip(amount, 0.0, 1.0))
+    weight = u * u * u * (10.0 + u * (-15.0 + 6.0 * u))
+    return blend_motion_frames(first, second, weight, smoothstep=False)
+
+
+def terminal_features(features, frame):
+    """Replace the cached final pose with the terminal command pose for rechecking."""
+    positions = features.joint_positions[-1:].copy()
+    for column, name in enumerate(features.joint_names):
+        positions[0, column] = frame.joint_positions.get(name, positions[0, column])
+    roots = features.root_positions[-1:].copy()
+    tilt = features.root_tilt[-1:].copy()
+    if frame.root_position is not None:
+        roots[0] = frame.root_position
+    if frame.root_quaternion_wxyz is not None:
+        rotation = wxyz_to_rotation(frame.root_quaternion_wxyz)
+        tilt[0] = (yaw_only(rotation).inv() * rotation).magnitude()
+    return replace(features, joint_positions=positions,
+                   joint_velocities=features.joint_velocities[-1:].copy(),
+                   root_positions=roots, root_tilt=tilt,
+                   root_linear_velocities=features.root_linear_velocities[-1:].copy(),
+                   root_angular_speeds=features.root_angular_speeds[-1:].copy(),
+                   foot_contacts=features.foot_contacts[-1:].copy())
+
+
+def score_ready_candidates(source_features, ready, limits, args, timing_samples=None):
+    """Worker input is an immutable snapshot; never access the loader from this thread."""
+    started = time.perf_counter()
+    choices = []
+    for rank, item in enumerate(ready):
+        motion_id, sampler = item[:2]
+        music_relevance = item[2] if len(item) > 2 else (-rank, 0.0)
+        score = select_motion_entry(
+            source_features, 1.0, sampler.entry_features, limits,
+            beat_period=0.5, beats_per_bar=4, minimum_remaining_bars=0,
+            speed_max=1.0 if args.motion_timing == "authored" else args.speed_max,
+            transition_minimum=args.transition_min_seconds, transition_maximum=math.inf,
+            entry_max_phase=args.entry_max_phase,
+            scoring_config=EntryScoringConfig.from_args(args),
+        )
+        if score is not None:
+            choices.append((score.total, -music_relevance[0], -music_relevance[1],
+                            score.frame_index, motion_id, sampler, score))
+    if timing_samples is not None:
+        timing_samples.append(time.perf_counter() - started)
+    if not choices:
+        return None
+    chosen = min(choices, key=lambda item: item[:5])
+    return chosen[4], chosen[5], chosen[6], False
+
+
+def replay_choice(current_id, sampler, source_features, limits, args):
+    score = select_motion_entry(
+        source_features, 1.0, sampler.entry_features, limits,
+        beat_period=0.5, beats_per_bar=4, minimum_remaining_bars=0,
+        speed_max=args.speed_max, transition_minimum=args.transition_min_seconds,
+        transition_maximum=math.inf, enforce_remaining=False,
+        scoring_config=EntryScoringConfig.from_args(args),
     )
-    selected = int(eligible_indices[int(order[0])])
-    return MotionEntryScore(
-        phase=float(phases[selected]),
-        frame_index=int(candidate_indices[selected]),
-        total=float(totals[selected]),
-        pose=float(pose_scores[selected]),
-        velocity=float(velocity_scores[selected]),
-        contact=float(contact_scores[selected]),
-        root=float(root_scores[selected]),
-        music=float(music_scores[selected]),
-        remaining_seconds=float(remaining_times[selected]),
-        transition_seconds=float(transition_times[selected]),
-    )
+    assert score is not None
+    return current_id, sampler, score, True
+
+
+@dataclass(frozen=True)
+class PreparedStateBridge:
+    generation: int
+    motion_id: str
+    sampler: Any
+    score: MotionEntryScore
+    trajectory: Any
+    names: tuple[str, ...]
+    replay: bool
+    residuals: tuple[float, float, float]
+    exit_frame_index: int = -1
+    exit_seconds: float = -1.0
+    pair_count: int = 0
+    bridge_attempts: int = 0
+    preparation_seconds: float = 0.0
+    source_duration: float = 0.0
+
+
+def authored_features(sampler):
+    feature = sampler.entry_features
+    authored = feature.authored
+    return replace(feature, joint_velocities=authored.velocities, duration=authored.duration)
+
+
+def prepare_state_bridge(generation, current_id, source_sampler, ready, limits, ranges, jerks, args,
+                         source_seconds=0.0, source_entry=0.0, cancel=None):
+    """Merge sorted exit/entry rows without constructing pair-sized Python objects."""
+    started = time.perf_counter()
+    source = authored_features(source_sampler)
+    rate = max(1.0, args.speed_max) if args.motion_timing == "beat-sync" else 1.0
+    deadline = started + max(0.0, source.duration-source_seconds)/rate
+    window = getattr(args, "transition_exit_window_seconds", 2.0)
+    boundary = args.transition_boundary_seconds
+    names = tuple(sorted(limits))
+    lower = np.array([ranges[n][0] if ranges.get(n) is not None else -math.inf for n in names])
+    upper = np.array([ranges[n][1] if ranges.get(n) is not None else math.inf for n in names])
+    speed = np.array([limits[n].max_speed_rad_s for n in names])
+    acceleration = np.array([limits[n].max_acceleration_rad_s2 for n in names])
+    jerk = np.array([jerks[n] for n in names])
+    pair_count = attempts = 0
+
+    def check():
+        if (cancel is not None and cancel.is_set()) or time.perf_counter() >= deadline:
+            raise InfeasibleBridge("Transition preparation deadline expired or cancelled")
+
+    def reachable(index):
+        seconds = exit_time(index)
+        progress = source_seconds + rate*(time.perf_counter()-started)
+        if index == len(source.joint_positions)-1:
+            return progress < source.duration
+        return (seconds >= source_entry+2*boundary and
+                progress <= min(seconds-boundary, source.duration-boundary))
+
+    def exit_time(index):
+        return source.duration if index == len(source.joint_positions)-1 else index/source.fps
+
+    def state_at(feature, index):
+        if not set(names).issubset(feature.joint_names):
+            raise InfeasibleBridge("Motion is missing limited joints")
+        columns = [feature.joint_names.index(n) for n in names]
+        state = feature.authored.state(index)
+        return JointState(*(getattr(state, f)[columns] for f in ("position", "velocity", "acceleration")))
+
+    def valid(state):
+        return (all(np.all(np.isfinite(v)) for v in (state.position, state.velocity, state.acceleration))
+                and np.all(state.position >= lower-1e-8) and np.all(state.position <= upper+1e-8)
+                and np.all(np.abs(state.velocity) <= speed+1e-7)
+                and np.all(np.abs(state.acceleration) <= acceleration+1e-7))
+
+    def boundary_mask(feature):
+        if not set(names).issubset(feature.joint_names):
+            return np.zeros(len(feature.joint_positions), dtype=bool)
+        columns = [feature.joint_names.index(n) for n in names]
+        q = feature.authored.positions[:, columns]
+        v = feature.authored.velocities[:, columns]
+        a = feature.authored.accelerations[:, columns]
+        return (np.all(np.isfinite(q) & np.isfinite(v) & np.isfinite(a), axis=1)
+                & np.all((q >= lower-1e-8) & (q <= upper+1e-8), axis=1)
+                & np.all(np.abs(v) <= speed+1e-7, axis=1)
+                & np.all(np.abs(a) <= acceleration+1e-7, axis=1))
+
+    exits = [i for i in range(len(source.joint_positions))
+             if exit_time(i) >= source.duration-window-1e-9 and reachable(i)]
+    starts = {i: state_at(source, i) for i in exits}
+    exits = [i for i in exits if valid(starts[i])]
+    config = EntryScoringConfig.from_args(args)
+
+    def row(scores, exit_index, motion_id, sampler, relevance, replay):
+        for score in scores:
+            yield (score.total, -relevance[0], -relevance[1], -exit_index,
+                   score.frame_index, motion_id, sampler, score, replay)
+
+    last_reason = "No eligible exit/entry pair"
+    for replay, candidates in ((False, ready), (True, ((current_id, source_sampler, (0., 0.)),))):
+        rows = []
+        targets = {}
+        for motion_id, sampler, relevance in candidates:
+            target = authored_features(sampler)
+            targets[motion_id] = target
+            mask = boundary_mask(target)
+            mask &= (np.arange(len(mask)) == 0 if replay else
+                     np.arange(len(mask))/max(len(mask)-1, 1) <= args.entry_max_phase+1e-9)
+            eligible_count = int(np.count_nonzero(mask))
+            if not eligible_count:
+                continue
+            for index in exits:
+                check()
+                if not reachable(index):
+                    continue
+                scores = select_motion_entry(
+                    source, index/max(len(source.joint_positions)-1, 1), target, limits,
+                    beat_period=.5, beats_per_bar=4, minimum_remaining_bars=0, speed_max=rate,
+                    transition_minimum=args.transition_min_seconds, transition_maximum=10,
+                    entry_max_phase=args.entry_max_phase,
+                    enforce_remaining=not replay, return_all="iterator", scoring_config=config,
+                    eligible_frame_mask=mask,
+                )
+                if scores is not None:
+                    pair_count += eligible_count
+                    rows.append(row(scores, index, motion_id, sampler, relevance, replay))
+        # Each row is sorted by total then entry. Merge compares only stable scalar keys.
+        for item in heapq.merge(*rows, key=lambda item: item[:6]):
+            check()
+            _, _, _, negative_exit, _, motion_id, sampler, score, replay = item
+            index = -negative_exit
+            if not reachable(index):
+                continue
+            start = starts[index]
+            try:
+                end = state_at(targets[motion_id], score.frame_index)
+                if not valid(end):
+                    last_reason = "Boundary state exceeds joint limits"
+                    continue
+                attempts += 1
+                bridge = make_bridge(args.transition_backend, start, end, lower, upper,
+                                     speed, acceleration, jerk, args.transition_min_seconds,
+                                     deadline=deadline, cancel=cancel)
+            except InfeasibleBridge as exc:
+                last_reason = (f"motion={motion_id} exit_frame={index} entry_frame={score.frame_index}: {exc}; "
+                               f"joint_order={','.join(names)}")
+                if attempts <= 3:
+                    print(f"Bridge rejection: {last_reason}")
+                continue
+            check()
+            if not reachable(index):
+                continue
+            residuals = tuple(max(float(np.max(np.abs(getattr(bridge.at_time(t), field)-getattr(state, field))))
+                              for t, state in ((0, start), (bridge.duration, end)))
+                              for field in ("position", "velocity", "acceleration"))
+            return PreparedStateBridge(generation, motion_id, sampler,
+                replace(score, transition_seconds=bridge.duration), bridge, names, replay, residuals,
+                index, exit_time(index), pair_count, attempts, time.perf_counter()-started, source.duration)
+    raise InfeasibleBridge(f"Candidates and replay infeasible: {last_reason}")
+
+
+def neutral_authored_frame(sampler, seconds):
+    authored = sampler.entry_features.authored
+    phase = min(max(seconds / authored.duration, 0.0), 1.0)
+    count = len(sampler.frames)
+    frame = sampler.sample_frame(phase * (count-1)/max(count, 1), 1.0, 0.0, base.FeatureState())
+    return frame.with_joint_positions(dict(zip(sampler.entry_features.joint_names,
+                                              authored.at_time(seconds).position)))
+
+
+class AuthoredPlayback:
+    """V2 state bridge lifecycle. Legacy quintic playback remains separate."""
+
+    def __init__(self, current_id, sampler, controller, loader, catalog, args, limits, ranges, jerks, now):
+        self.current_id, self.sampler, self.controller = current_id, sampler, controller
+        self.loader, self.catalog, self.args = loader, catalog, args
+        self.limits, self.ranges, self.jerks = limits, ranges, jerks
+        self.generation = 0
+        self.clock = AuthoredClock(sampler.entry_features.authored.duration, 0,
+                                   args.transition_boundary_seconds, now)
+        self.frozen = () if args.no_mic and args.audio_input is None else None
+        self.future = self.plan = self.active = None
+        self.future_generation = None
+        self.root_source = self.root_target = None
+        self.bridge_source = self.bridge_target = self.bridge_target_raw = None
+        self.bridge_start = None
+        self.status = "awaiting_retrieval"
+        self.failure = ""
+        self.event = ""
+        self.reason = ""
+        self.score = None
+        self.last_residuals = None
+        self.blend = 0.
+        self.duration = 0.
+        self.last_terminal = None
+        self.held = False
+        self.latest_match = None
+        self.search_cancel = threading.Event()
+        self.last_plan = None
+        self.preparation_started = None
+        self.expansion_attempted = False
+
+    def prepare(self, match, now=None):
+        self.latest_match = match
+        rate = max(1., self.args.speed_max) if self.args.motion_timing == "beat-sync" else 1.
+        progress = self.clock.seconds + (max(0., now-self.clock.last_wall)*rate if now is not None else 0.)
+        if self.held or self.active is not None:
+            return
+        if self.frozen is None and (match is not None or
+                self.clock.duration-self.clock.seconds <= self.args.transition_boundary_seconds):
+            ids = musical_shortlist(match, self.current_id, self.args) if match is not None else ()
+            relevance = {m.motion_id: (m.final_score, m.music_score) for m in match.motions} if match else {}
+            self.frozen = tuple((mid, relevance.get(mid, (0., 0.))) for mid in ids)
+        if self.frozen is None:
+            return
+        if self.future is not None and self.future.done():
+            future, generation = self.future, self.future_generation
+            self.future = None
+            try:
+                plan = future.result()
+                if generation == self.generation and plan.generation == self.generation:
+                    exit_time = plan.exit_seconds if plan.exit_seconds >= 0 else self.clock.duration
+                    if exit_time < self.clock.duration and (
+                            progress > min(exit_time-self.clock.window,
+                                                     self.clock.duration-self.clock.window)
+                            or exit_time < self.clock.entry+2*self.clock.window):
+                        self.status = "late_plan_discarded"
+                        return
+                    self.clock.stop = exit_time
+                    self.plan = plan
+                    self.last_plan = plan
+                    self.status = "ready"
+            except Exception as exc:
+                if generation == self.generation:
+                    self.status, self.failure = "failed", str(exc)
+            finally:
+                if hasattr(self.loader, "score_seconds") and self.preparation_started is not None:
+                    self.loader.score_seconds.append(time.perf_counter()-self.preparation_started)
+            return
+        if self.status == "failed" and not self.expansion_attempted and match is not None:
+            if progress < self.clock.duration-self.args.transition_boundary_seconds and match.accepted:
+                self.expansion_attempted = True
+                ids = musical_shortlist(match, self.current_id, self.args, expanded=True,
+                                        exclude={mid for mid, _ in self.frozen})
+                relevance = {m.motion_id: (m.final_score, m.music_score) for m in match.motions}
+                if set(ids) - {mid for mid, _ in self.frozen}:
+                    self.frozen = tuple((mid, relevance[mid]) for mid in ids)
+                    self.status, self.failure = "expanded_retry", ""
+                    print(f"Retrying bridge preparation with expanded shortlist: {', '.join(ids)}")
+        if self.plan is not None or self.future is not None or self.status == "failed":
+            return
+        ids = [mid for mid, _ in self.frozen]
+        self.loader.preload(ids)
+        self.loader.prepare_pool(ids)
+        ready = []
+        for mid, relevance in self.frozen:
+            sampler = self.loader.take_ready(mid)
+            if sampler is not None:
+                ready.append((mid, sampler, relevance))
+            elif mid not in self.loader.failed_motions:
+                self.status = "loading"
+                return
+        self.future_generation = self.generation
+        self.preparation_started = time.perf_counter()
+        self.future = self.loader.score_executor.submit(
+            prepare_state_bridge, self.generation, self.current_id, self.sampler,
+            tuple(ready), self.limits, self.ranges, self.jerks, self.args,
+            progress, self.clock.entry, self.search_cancel,
+        )
+        self.status = "preparing"
+
+    def aligned(self, frame):
+        if self.root_source is not None:
+            return align_motion_frame_root(frame, source_reference=self.root_source,
+                                           target_reference=self.root_target)
+        return frame
+
+    def sample(self, now, features, modulator, adapter):
+        self.event, self.blend = "", 0.
+        if self.held:
+            return self.aligned(neutral_authored_frame(self.sampler, self.clock.duration))
+        if self.active is None:
+            if self.clock.weight < 1.0:
+                self.controller.phase_correction_remaining = 0.0
+            _, amplitude, accent, _ = self.controller.update(now)
+            rate = self.controller.speed_multiplier if self.args.motion_timing == "beat-sync" else 1.
+            carry = self.clock.advance(now, rate)
+            phase = self.clock.seconds/self.clock.duration
+            self.controller.phase = min(phase, OneShotPhaseTracker.terminal_phase)
+            neutral = neutral_authored_frame(self.sampler, self.clock.seconds)
+            if self.clock.seconds < self.clock.stop:
+                count = len(self.sampler.frames)
+                effected = base.sample_robot_motion_frame(
+                    self.sampler, phase=phase*(count-1)/max(count, 1), amplitude=amplitude,
+                    accent=accent, features=features, pose_adapter=adapter, modulator=modulator)
+                # Apply deviations from the original neutral sampler to the C2
+                # authored trajectory, rather than replacing its interpolation.
+                raw = self.sampler.sample_frame(phase*(count-1)/max(count, 1), 1., 0., base.FeatureState())
+                raw_joints = adapter.adapt_pose(raw.joint_positions, base.FeatureState()) if adapter else raw.joint_positions
+                weight = self.clock.weight
+                joints = {n: q + weight*(effected.joint_positions.get(n, q)-raw_joints.get(n, q))
+                          for n, q in neutral.joint_positions.items()}
+                return self.aligned(neutral.with_joint_positions(joints))
+            self.last_terminal = now-carry
+            if self.plan is None:
+                self.held = True
+                self.search_cancel.set()
+                self.last_residuals = None
+                self.failure = self.failure or "Bridge preparation did not finish before the terminal state"
+                self.status, self.event = "terminal_hold", "bridge_hold"
+                return self.aligned(neutral)
+            self.active, self.plan = self.plan, None
+            self.bridge_start = now-carry
+            self.bridge_source = self.aligned(neutral)
+            self.bridge_target_raw = neutral_authored_frame(self.active.sampler, self.active.score.frame_index/self.active.sampler.entry_features.fps)
+            self.bridge_target = align_motion_frame_root(self.bridge_target_raw,
+                source_reference=self.bridge_target_raw, target_reference=self.bridge_source)
+            self.score = self.active.score
+            self.duration = self.active.trajectory.duration
+            self.last_residuals = self.active.residuals
+            self.reason = "replay_no_feasible_candidate" if self.active.replay else (
+                "selected_exit" if self.clock.stop < self.clock.duration else "motion_end")
+            self.status, self.event = "executing", "switch_start"
+        seconds = now-self.bridge_start
+        self.blend = min(seconds/self.duration, 1.)
+        frame = quintic_blend(self.bridge_source, self.bridge_target, self.blend)
+        frame = frame.with_joint_positions({**frame.joint_positions,
+                    **dict(zip(self.active.names, self.active.trajectory.at_time(seconds).position))})
+        if seconds < self.duration:
+            return frame
+        plan = self.active
+        self.current_id, self.sampler = plan.motion_id, plan.sampler
+        self.controller = make_controller(self.args, self.catalog.motions[self.current_id],
+                                         previous=self.controller, entry_phase=plan.score.phase)
+        self.controller.phase_correction_remaining = 0.
+        authored = self.sampler.entry_features.authored
+        entry = plan.score.frame_index/authored.fps
+        end_wall = self.bridge_start+self.duration
+        self.clock = AuthoredClock(authored.duration, entry, self.args.transition_boundary_seconds, end_wall)
+        self.controller.last_update_wall = end_wall
+        self.root_source, self.root_target = self.bridge_target_raw, self.bridge_source
+        self.active = self.future = None
+        self.search_cancel.set()
+        self.search_cancel = threading.Event()
+        self.generation += 1
+        self.expansion_attempted = False
+        self.last_plan = None
+        ids = musical_shortlist(self.latest_match, self.current_id, self.args) if self.latest_match else ()
+        relevance = {m.motion_id: (m.final_score, m.music_score) for m in self.latest_match.motions} if self.latest_match else {}
+        self.frozen = tuple((mid, relevance.get(mid, (0., 0.))) for mid in ids)
+        self.status, self.failure = "awaiting_preparation", ""
+        # Reuse normal playback evaluation with wall-time carryover at entry.
+        result = self.sample(now, features, modulator, adapter)
+        self.event, self.blend = "switch_complete", 1.
+        return result
 
 
 class MicrophoneSource:
-    def __init__(self, analyzer: base.RealtimeMusicAnalyzer, window_seconds: float) -> None:
+    def __init__(self, analyzer: base.RealtimeMusicAnalyzer, window_seconds: float, minimum_seconds: float = 2.0) -> None:
         self.analyzer = analyzer
+        self.sample_rate = analyzer.sample_rate
         self.window_seconds = float(window_seconds)
+        self.history = RetrievalAudioHistory(analyzer, window_seconds, minimum_seconds)
 
     @property
     def playback_seconds(self) -> float:
@@ -790,11 +1310,7 @@ class MicrophoneSource:
         return self.analyzer.drain()
 
     def recent_audio(self) -> np.ndarray | None:
-        _start, audio = self.analyzer._audio_window()
-        required = int(round(self.window_seconds * self.analyzer.sample_rate))
-        if audio.size < required:
-            return None
-        return np.asarray(audio[-required:], dtype=np.float32)
+        return self.history.recent_audio()
 
 
 class SilentSource:
@@ -835,7 +1351,7 @@ class MatcherFileMicrophoneSource(base.FileMicrophoneSource):
     ) -> None:
         self.window_seconds = float(window_seconds)
         analyzer = base.make_analyzer(args)
-        analyzer.plp_history_sec = max(analyzer.plp_history_sec, self.window_seconds)
+        self.minimum_seconds = args.analysis_min_seconds
         super().__init__(
             path,
             analyzer,
@@ -981,7 +1497,10 @@ class MatcherFileMicrophoneSource(base.FileMicrophoneSource):
         return frames
 
     def recent_audio(self) -> np.ndarray | None:
-        return super().recent_audio(self.window_seconds)
+        cursor = int(np.clip(self.cursor - self.startup_samples, 0, self.audio.size))
+        start = max(0, cursor - int(round(self.window_seconds * self.sample_rate)))
+        return available_history(self.audio[start:cursor], self.sample_rate,
+                                 self.window_seconds, self.minimum_seconds)
 
 
 @dataclass(frozen=True)
@@ -1053,13 +1572,14 @@ def _run_retrieval_process(
     samples: np.ndarray,
     top_tracks: int,
     top_motions: int,
+    source_sample_rate: int | None = None,
 ) -> RetrievalJobResult:
     extractor = _RETRIEVAL_PROCESS_EXTRACTOR
     matcher = _RETRIEVAL_PROCESS_MATCHER
     if extractor is None or matcher is None:
         raise RuntimeError("Retrieval process was not initialized.")
     feature_started = time.perf_counter()
-    descriptor = extractor.describe(samples)
+    descriptor = extractor.describe(samples, source_sample_rate=source_sample_rate)
     feature_seconds = max(time.perf_counter() - feature_started, 0.0)
     match_started = time.perf_counter()
     result = matcher.match(
@@ -1119,7 +1639,7 @@ class RetrievalWorker:
         self.matcher_stage_ms: dict[str, list[float]] = {}
         self.selection_seconds: list[float] = []
 
-    def submit(self, audio: np.ndarray) -> bool:
+    def submit(self, audio: np.ndarray, source_sample_rate: int | None = None) -> bool:
         self.submit_attempts += 1
         # A completed result still belongs to poll(); replacing that Future here
         # would silently discard the query immediately before it is consumed.
@@ -1136,17 +1656,18 @@ class RetrievalWorker:
                 samples,
                 self.top_tracks,
                 self.top_motions,
+                source_sample_rate,
             )
         else:
-            self.future = self.executor.submit(self._run, samples)
+            self.future = self.executor.submit(self._run, samples, source_sample_rate)
         return True
 
-    def _run(self, samples: np.ndarray) -> MatchResult:
+    def _run(self, samples: np.ndarray, source_sample_rate: int | None = None) -> MatchResult:
         run_started = time.perf_counter()
         if self.submitted_at is not None:
             self.queue_seconds.append(max(run_started - self.submitted_at, 0.0))
         feature_started = time.perf_counter()
-        descriptor = self.extractor.describe(samples)
+        descriptor = self.extractor.describe(samples, source_sample_rate=source_sample_rate)
         self.feature_seconds.append(max(time.perf_counter() - feature_started, 0.0))
         for key, value in self.extractor.last_timing_ms.items():
             self.feature_stage_ms.setdefault(key, []).append(float(value))
@@ -1466,12 +1987,7 @@ class MotionLoader:
                 del self.prepare_futures[motion_id]
                 self.futures.pop(motion_id, None)
                 self.submitted_at.pop(motion_id, None)
-        ready_count = len(self.cache)
-        preferred_ready = bool(desired) and desired[0] in self.cache
-        if preferred_ready and ready_count >= self.ready_pool_size:
-            return
-        prepare_count = max(self.ready_pool_size - ready_count, 1)
-        for motion_id in desired[:prepare_count]:
+        for motion_id in desired:
             self.prepare(motion_id)
 
     def wait_for_pool(
@@ -1612,12 +2128,30 @@ class MotionLoader:
 
 
 def motion_path(catalog: MusicCatalog, profile: MotionProfile) -> Path:
-    root = Path(catalog.metadata["aistpp_root"])
-    return root / Path(profile.motion_path)
+    return catalog.motion_file(profile)
 
 
-def gmr_motion_path(args: argparse.Namespace, profile: MotionProfile) -> Path:
-    root = args.gmr_motion_root if args.gmr_motion_root.is_absolute() else ROOT / args.gmr_motion_root
+def validate_catalog_overrides(args: argparse.Namespace, catalog: MusicCatalog) -> None:
+    datasets = catalog.metadata.get("datasets", {})
+    if len(datasets) > 1 and getattr(args, "explicit_gmr_motion_root", False):
+        raise ValueError("--gmr-motion-root is ambiguous for a mixed catalog; use "
+                         "--aistpp-gmr-motion-root and/or --finedance-gmr-motion-root.")
+
+
+def gmr_motion_path(args: argparse.Namespace, profile: MotionProfile,
+                    catalog: MusicCatalog | None = None) -> Path:
+    if catalog is not None and catalog.metadata.get("datasets"):
+        validate_catalog_overrides(args, catalog)
+        override = getattr(args, f"{profile.dataset_id}_gmr_motion_root", None)
+        if override is None and getattr(args, "explicit_gmr_motion_root", False):
+            override = args.gmr_motion_root
+        if override is None:
+            root = catalog.dataset_root(profile.dataset_id, gmr=True)
+        else:
+            root = Path(override)
+            root = root if root.is_absolute() else ROOT / root
+    else:
+        root = args.gmr_motion_root if args.gmr_motion_root.is_absolute() else ROOT / args.gmr_motion_root
     return root / f"{profile.motion_id}.pkl"
 
 
@@ -1626,7 +2160,7 @@ def load_motion_sampler(
     catalog: MusicCatalog,
     profile: MotionProfile,
 ) -> MotionSampler:
-    gmr_path = gmr_motion_path(args, profile)
+    gmr_path = gmr_motion_path(args, profile, catalog)
     if args.retarget_policy != "direct" and gmr_path.exists():
         return base.GmrUnitreeG1MotionSampler(
             gmr_path,
@@ -1878,7 +2412,7 @@ def select_initial_motion_id(
         return requested_id
 
     wall_clock_budget = (
-        max(float(args.match_window_seconds), 0.0)
+        max(float(args.analysis_min_seconds), 0.0)
         + max(float(args.match_interval_seconds), 0.0)
         * max(int(args.switch_required_wins), 1)
         + max(float(getattr(args, "startup_ready_reserve_seconds", 0.0)), 0.0)
@@ -1927,107 +2461,14 @@ def print_match_status(result: MatchResult) -> None:
     )
 
 
-def choose_ready_transition(
-    loader: MotionLoader,
-    current_sampler: MotionSampler,
-    current_phase: float,
-    candidate_ids: tuple[str, ...],
-    limits: dict[str, JointDynamicsLimits],
-    args: argparse.Namespace,
-    *,
-    beat_period: float,
-    preferred_id: str | None,
-    ready_only: bool = False,
-    include_cached_fallback: bool = False,
-) -> tuple[str, MotionSampler, MotionEntryScore, bool] | None:
-    source_features = getattr(current_sampler, "entry_features", None)
-    fixed_entry_transition = bool(
-        getattr(args, "diagnostic_fixed_entry_transition", False)
-    )
-    if source_features is None and not fixed_entry_transition:
-        return None
-    fallback_ids = (
-        tuple(loader.cache.keys()) if include_cached_fallback else ()
-    )
-    ordered = tuple(
-        motion_id
-        for motion_id in dict.fromkeys(
-            ([preferred_id] if preferred_id is not None else [])
-            + list(candidate_ids)
-            + list(fallback_ids)
-        )
-        if motion_id is not None
-    )
-    choices: list[tuple[str, MotionSampler, MotionEntryScore]] = []
-    for motion_id in ordered:
-        sampler = (
-            loader.cache.get(motion_id)
-            if ready_only
-            else loader.take_ready(motion_id)
-        )
-        if sampler is None:
-            continue
-        if sampler is current_sampler:
-            continue
-        target_features = getattr(sampler, "entry_features", None)
-        if target_features is None:
-            continue
-        score_started = time.perf_counter()
-        if fixed_entry_transition:
-            fixed_duration = float(
-                np.clip(0.5, args.transition_min_seconds, args.transition_max_seconds)
-            )
-            score = MotionEntryScore(
-                phase=0.0,
-                frame_index=0,
-                total=0.0,
-                pose=0.0,
-                velocity=0.0,
-                contact=0.0,
-                root=0.0,
-                music=0.0,
-                remaining_seconds=target_features.duration,
-                transition_seconds=fixed_duration,
-            )
-        else:
-            assert source_features is not None
-            score = select_motion_entry(
-                source_features,
-                current_phase,
-                target_features,
-                limits,
-                beat_period=beat_period,
-                beats_per_bar=args.switch_beats_per_bar,
-                minimum_remaining_bars=args.switch_min_remaining_bars,
-                speed_max=args.speed_max,
-                transition_minimum=args.transition_min_seconds,
-                transition_maximum=args.transition_max_seconds,
-            )
-        loader.score_seconds.append(max(time.perf_counter() - score_started, 0.0))
-        choices.append((motion_id, sampler, score))
-    if not choices:
-        return None
-    preferred = next((item for item in choices if item[0] == preferred_id), None)
-    selected = preferred if preferred is not None else min(choices, key=lambda item: item[2].total)
-    return (*selected, preferred is None and preferred_id is not None)
-
-
 def main() -> int:
     process_started = time.perf_counter()
     startup_timings_ms: dict[str, float] = {}
     args = parse_args()
-    if (
-        not math.isfinite(args.transition_min_seconds)
-        or not math.isfinite(args.transition_max_seconds)
-        or args.transition_min_seconds <= 0.0
-        or args.transition_max_seconds < args.transition_min_seconds
-    ):
-        raise ValueError("Transition seconds must be positive with max >= min.")
-    if (
-        not math.isfinite(args.switch_min_remaining_bars)
-        or args.switch_min_remaining_bars < 0.0
-    ):
-        raise ValueError("--switch-min-remaining-bars must be non-negative.")
+    if args.transition_backend == "ruckig":
+        require_ruckig()
+    if not math.isfinite(args.transition_min_seconds) or args.transition_min_seconds <= 0.0:
+        raise ValueError("--transition-min-seconds must be finite and positive.")
     if args.switch_ready_pool_size <= 0:
         raise ValueError("--switch-ready-pool-size must be positive.")
     if args.motion_cache_size <= 0:
@@ -2078,10 +2519,18 @@ def main() -> int:
     ) and not args.headless:
         raise ValueError("Matcher ablation flags are restricted to --headless runs.")
     if args.motion_source != "aistpp":
-        raise ValueError("The matcher currently selects AIST++ motions; use --motion-source aistpp.")
+        raise ValueError("The matcher uses catalog SMPL motions; use --motion-source aistpp (also supports converted FineDance).")
     catalog_path = args.catalog if args.catalog.is_absolute() else ROOT / args.catalog
+    if catalog_path == DEFAULT_CATALOG and not catalog_path.exists():
+        raise FileNotFoundError(
+            "Combined catalog is not built. Run: python "
+            "realtime/humanoid_robot/src/build_combined_music_catalog.py; "
+            "or select the original library with --catalog "
+            "realtime/humanoid_robot/data/music_catalog/catalog.json"
+        )
     stage_started = time.perf_counter()
     catalog = MusicCatalog.load(catalog_path)
+    validate_catalog_overrides(args, catalog)
     startup_timings_ms["startup_catalog_load_ms"] = (
         time.perf_counter() - stage_started
     ) * 1_000.0
@@ -2153,6 +2602,12 @@ def main() -> int:
         default_speed=args.output_max_joint_speed,
         default_acceleration=args.output_max_joint_acceleration,
     )
+    jerk_limits = load_jerk_limits(limits_path, player.actuator_names, args.output_max_joint_jerk)
+    if args.transition_backend == "hermite":
+        warmup_hermite()
+    if args.transition_backend == "ruckig":
+        if any(not math.isfinite(value) for value in jerk_limits.values()):
+            raise ValueError("Ruckig requires --output-max-joint-jerk or JSON jerk limits for every joint.")
     dynamics_limiter = JointDynamicsLimiter(joint_limits)
     modulation_off = args.disable_music_modulation or args.pose_modulation_mode == "off"
     modulator = (
@@ -2179,11 +2634,12 @@ def main() -> int:
     else:
         if args.no_mic:
             source = SilentSource()
-            print("No microphone input: holding the current motion.")
+            print("No microphone input: smoothly replaying the current motion at each end.")
         else:
             source = MicrophoneSource(
                 base.make_analyzer(args),
                 args.match_window_seconds,
+                args.analysis_min_seconds,
             )
             print(
                 f"Calibrating microphone noise from the first "
@@ -2239,6 +2695,25 @@ def main() -> int:
         },
     )
     features = base.FeatureState()
+    terminal_frame = None
+    terminal_time = None
+    terminal_recheck = None
+    terminal_ready = ()
+    terminal_source_features = None
+    background_score_future = None
+    background_score_key = None
+    pending_plan = None
+    bridge_source = None
+    bridge_target = None
+    bridge_target_raw = None
+    bridge_features = None
+    entry_features_override = None
+    terminal_recheck_key = None
+    audio_history_seconds = 0.0
+    scored_history_seconds = 0.0
+    shortlist_relevance = {}
+    source_generation = 0
+    last_terminal_time = None
     transition_sampler: MotionSampler | None = None
     transition_controller: base.AdaptiveMotionController | None = None
     current_phase_tracker = OneShotPhaseTracker(current_controller.phase)
@@ -2311,9 +2786,16 @@ def main() -> int:
                 "audio_time_seconds",
                 "wall_time_seconds",
                 "event",
+                "transition_backend", "bridge_preparation_status", "bridge_failure_reason",
+                "bridge_position_residual", "bridge_velocity_residual", "bridge_acceleration_residual",
+                "bridge_output_modified", "boundary_effect_weight", "bridge_generation",
                 "current_motion_id",
                 "pending_motion_id",
                 "preferred_motion_id",
+                "audio_history_seconds", "shortlist", "terminal_time_seconds",
+                "entry_frame_index", "preparation_delay_seconds",
+                "exit_frame_index", "exit_seconds", "exit_phase", "trimmed_seconds",
+                "transition_pair_count", "bridge_attempts", "transition_preparation_seconds",
                 "transition_motion_id",
                 "fallback_reason",
                 "current_phase",
@@ -2458,6 +2940,9 @@ def main() -> int:
     )
     scheduler = base.RealtimeLoopScheduler(args.control_rate_hz, args.realtime)
     timing_warmup_reset = args.experiment_warmup_seconds <= 0.0
+    authored_playback = (AuthoredPlayback(current_id, current_sampler, current_controller,
+        loader, catalog, args, joint_limits, player.actuator_joint_ranges, jerk_limits, wall_start)
+        if args.transition_backend != "quintic" else None)
     print(f"Initial motion: {current_id}")
     try:
         while player.is_running() and not source.done:
@@ -2494,8 +2979,7 @@ def main() -> int:
                     beat_events.append([frame.timestamp - audio_wall_origin,
                                         received_wall - audio_wall_origin,
                                         source.playback_seconds, float(accepted)])
-                if transition_controller is not None:
-                    transition_controller.observe(frame)
+                # Incoming controller is held fixed throughout interpolation.
                 dt = max(now - last_feature_update, scheduler.period)
                 alpha = 1.0 - math.exp(
                     -dt / max(args.feature_smoothing_tau, 1e-6)
@@ -2514,7 +2998,7 @@ def main() -> int:
                     )
                     if is_switch_boundary:
                         switch_boundary = True
-                        ready_selection = selection_policy.on_bar_boundary()
+                        pass  # V2 switches only after the terminal frame.
             control_stage_seconds.setdefault("audio_beat_analysis", []).append(
                 max(time.perf_counter() - audio_stage_started, 0.0)
             )
@@ -2522,360 +3006,226 @@ def main() -> int:
             match_clock = source.playback_seconds
             if match_clock - last_match_clock >= args.match_interval_seconds:
                 audio = source.recent_audio()
-                if audio is not None and retrieval.submit(audio):
+                if audio is not None and retrieval.submit(audio, source.sample_rate):
                     last_match_clock = match_clock
+                    audio_history_seconds = len(audio) / source.sample_rate
 
             try:
                 result = retrieval.poll()
             except Exception as exc:
                 print(f"Warning: realtime retrieval failed: {type(exc).__name__}: {exc}")
                 result = None
+                last_match_result = None
+                candidate_motion_ids = ()
             if result is not None:
                 last_match_result = result
+                scored_history_seconds = audio_history_seconds
                 trace_event = "match"
                 print_match_status(result)
-                selection_started = time.perf_counter()
-                previous_pending = selection_policy.pending
-                pending = selection_policy.observe(result)
-                ranked_ids = tuple(
-                    motion_id
-                    for motion_id in selection_policy.preload_motion_ids(result)
-                    if motion_id != current_id
-                )
-                candidate_motion_ids = tuple(
-                    dict.fromkeys((*ranked_ids, *bootstrap_ids))
-                )
-                retrieval.record_selection_time(time.perf_counter() - selection_started)
-                forced_transition_plan = None
-                bar_transition_plan = None
-                bar_score_generation += 1
-                loader.preload(list(candidate_motion_ids))
-                loader.prepare_pool(list(candidate_motion_ids))
-                if previous_pending is None and pending is not None:
-                    pool = ", ".join(
-                        f"{item.motion_id}:{item.final_score:.3f}/{item.music_score:.3f}"
-                        for item in selection_policy.diversity_pool()
-                    )
-                    print(
-                        f"Pending motion ({pending.reason}): {pending.motion_id} "
-                        f"score={pending.final_score:.3f} "
-                        f"music={pending.music_score:.3f} "
-                        f"held={selection_policy.bars_held} bar(s) "
-                        f"pool=[{pool}]"
-                    )
-                if switch_boundary and ready_selection is None:
-                    ready_selection = selection_policy.ready_selection()
+                candidate_motion_ids = musical_shortlist(result, current_id, args)
+                shortlist_relevance = {item.motion_id: (item.final_score, item.music_score)
+                                       for item in result.motions}
+                if authored_playback is None:
+                    loader.preload(list(candidate_motion_ids))
+                    loader.prepare_pool(list(candidate_motion_ids))
 
-            if (
-                args.diagnostic_instant_top1
-                and transition_sampler is None
-                and selection_policy.pending is not None
-            ):
-                ready_selection = selection_policy.ready_selection()
-
-            if bar_score_future is not None and bar_score_future.done():
-                try:
-                    completed_bar_plan = bar_score_future.result()
-                except Exception as exc:
-                    print(
-                        f"Warning: transition entry scoring failed: "
-                        f"{type(exc).__name__}: {exc}"
+            if authored_playback is not None:
+                transition_stage_started = time.perf_counter()
+                authored_playback.prepare(last_match_result, now)
+                motion_frame = authored_playback.sample(now, features, modulator, adapter)
+                current_id = authored_playback.current_id
+                current_sampler = authored_playback.sampler
+                current_controller = authored_playback.controller
+                current_profile = catalog.motions[current_id]
+                current_phase = authored_playback.clock.seconds / authored_playback.clock.duration
+                current_phase_tracker = OneShotPhaseTracker(current_phase)
+                transition_sampler = authored_playback.active.sampler if authored_playback.active else None
+                transition_controller = None
+                transition_phase = authored_playback.score.phase if authored_playback.score else None
+                transition_entry_score = authored_playback.score
+                transition_duration = authored_playback.duration
+                transition_start = authored_playback.bridge_start
+                transition_selection = (MotionSelection(authored_playback.active.motion_id,
+                    authored_playback.reason, 0., 0.) if authored_playback.active else None)
+                active_transition_reason = authored_playback.reason
+                trace_transition_blend = authored_playback.blend
+                last_terminal_time = authored_playback.last_terminal
+                if authored_playback.event:
+                    trace_event = authored_playback.event
+                    if trace_event == "switch_start":
+                        forced_fallback_count += int(authored_playback.active.replay)
+                        print(f"Switching ({active_transition_reason}, {args.transition_backend}): "
+                              f"{current_id} -> {authored_playback.active.motion_id} "
+                              f"entry={transition_phase:.4f} blend={transition_duration:.3f}s")
+                    elif trace_event == "switch_complete":
+                        selection_policy.complete_switch(current_id)
+                        print(f"Motion switch complete: {current_id}")
+                    elif trace_event == "bridge_hold":
+                        hold_last_count += 1
+                        print(f"Warning: terminal hold: {authored_playback.failure}")
+                selection_policy.pending = (MotionSelection(authored_playback.plan.motion_id,
+                    "prepared_motion_end", 0., 0.) if authored_playback.plan else None)
+                candidate_motion_ids = tuple(mid for mid, _ in (authored_playback.frozen or ()))
+                root_source_id = "v2_continuous"
+            else:
+                ready_snapshot = tuple(
+                    (motion_id, ready, shortlist_relevance.get(motion_id, (0.0, 0.0))) for motion_id in candidate_motion_ids
+                    if (ready := loader.take_ready(motion_id)) is not None
+                )
+                score_key = (source_generation, tuple((item[0], item[2]) for item in ready_snapshot))
+                if background_score_future is not None and background_score_future.done():
+                    try:
+                        completed = background_score_future.result()
+                        pending_plan = completed if background_score_key == score_key else None
+                        selection_policy.pending = (
+                            MotionSelection(pending_plan[0], "planned_motion_end", 0.0, 0.0)
+                            if pending_plan is not None else None
+                        )
+                    except Exception as exc:
+                        print(f"Warning: background entry scoring failed: {exc}")
+                        pending_plan = None
+                    background_score_future = None
+                if (terminal_frame is None and transition_sampler is None
+                        and background_score_future is None and background_score_key != score_key):
+                    background_score_key = score_key
+                    background_score_future = loader.score_executor.submit(
+                        score_ready_candidates, current_sampler.entry_features,
+                        ready_snapshot, joint_limits, args, loader.score_seconds,
                     )
-                    completed_bar_plan = None
-                if submitted_bar_score_generation == bar_score_generation:
-                    bar_transition_plan = completed_bar_plan
-                bar_score_future = None
 
-            if (
-                accepted_times_this_iteration
-                and transition_sampler is None
-                and bar_score_future is None
-            ):
-                beat_period = max(current_controller.last_period or 0.5, 1e-3)
-                beats_per_bar = max(args.switch_beats_per_bar, 1)
-                beats_until_boundary = (-accepted_beat_count) % beats_per_bar
-                estimated_boundary_phase = min(
-                    current_phase_tracker.last_phase
-                    + current_controller.phase_rate
-                    * beat_period
-                    * beats_until_boundary,
-                    OneShotPhaseTracker.terminal_phase,
-                )
-                preferred_id = (
-                    selection_policy.pending.motion_id
-                    if selection_policy.pending is not None
-                    else None
-                )
-                submitted_bar_score_generation = bar_score_generation
-                bar_score_future = loader.score_executor.submit(
-                    choose_ready_transition,
-                    loader,
-                    current_sampler,
-                    estimated_boundary_phase,
-                    candidate_motion_ids,
-                    joint_limits,
-                    args,
-                    beat_period=beat_period,
-                    preferred_id=preferred_id,
-                    ready_only=True,
-                )
-
-            if transition_sampler is None:
-                beat_period = max(current_controller.last_period or 0.5, 1e-3)
-                requested_id = (
-                    ready_selection.motion_id
-                    if ready_selection is not None
-                    else (
-                        selection_policy.pending.motion_id
-                        if selection_policy.pending is not None
-                        else None
-                    )
-                )
-                choice: tuple[str, MotionSampler, MotionEntryScore, bool] | None = None
-                switch_reason = ""
-                if ready_selection is not None:
-                    if bar_transition_plan is not None and (
-                        bar_transition_plan[0] == requested_id
-                        or bar_transition_plan[3]
-                    ):
-                        choice = bar_transition_plan
+                transition_stage_started = time.perf_counter()
+                if terminal_frame is None and transition_sampler is None:
+                    # Freeze feature values for the first sample after a bridge, so its
+                    # target pose and the resumed clip agree exactly at the entry frame.
+                    if entry_features_override is not None:
+                        current_frame = bridge_target
+                        current_phase = current_phase_tracker.last_phase
+                        current_controller.last_update_wall = now
+                        entry_features_override = None
                     else:
-                        choice = choose_ready_transition(
-                            loader,
-                            current_sampler,
-                            current_phase_tracker.last_phase,
-                            candidate_motion_ids,
-                            joint_limits,
-                            args,
-                            beat_period=beat_period,
-                            preferred_id=requested_id,
+                        current_frame, current_phase = sample_actuator_pose(
+                            current_sampler, current_controller, now,
+                            features, modulator, adapter,
+                            current_phase_tracker, control_stage_seconds,
                         )
-                    switch_reason = "bar_fallback" if choice is not None and choice[3] else "bar"
-                else:
-                    if (
-                        forced_transition_plan is not None
-                        and requested_id is not None
-                        and forced_transition_plan[0] != requested_id
-                        and loader.take_ready(requested_id) is not None
-                    ):
-                        forced_transition_plan = None
-                    if forced_transition_plan is None:
-                        forced_transition_plan = choose_ready_transition(
-                            loader,
-                            current_sampler,
-                            OneShotPhaseTracker.terminal_phase,
-                            candidate_motion_ids,
-                            joint_limits,
-                            args,
-                            beat_period=beat_period,
-                            preferred_id=requested_id,
-                            include_cached_fallback=True,
-                        )
-                    forced_choice = forced_transition_plan
-                    if forced_choice is not None:
-                        maximum_phase_rate = (
-                            current_controller.authored_phase_rate * args.speed_max
-                        )
-                        if current_phase_tracker.minimum_time_to_end(maximum_phase_rate) <= (
-                            forced_choice[2].transition_seconds + scheduler.period
-                        ):
-                            choice = forced_choice
-                            switch_reason = (
-                                "forced_end_fallback" if forced_choice[3] else "forced_end"
+                        if current_root_source_reference is not None:
+                            current_frame = align_motion_frame_root(
+                                current_frame, source_reference=current_root_source_reference,
+                                target_reference=current_root_target_reference,
                             )
+                    if current_phase_tracker.ended:
+                        terminal_frame = current_frame
+                        terminal_time = last_terminal_time = now
+                        terminal_ready = ready_snapshot
+                        terminal_source_features = None
+                        terminal_recheck_key = None
+                        trace_event = "terminal_frame"
+                else:
+                    current_frame = terminal_frame if terminal_frame is not None else bridge_source
+                    current_phase = OneShotPhaseTracker.terminal_phase
 
-                if choice is not None:
-                    chosen_id, ready, entry_score, used_fallback = choice
-                    match = next(
-                        (
-                            item
-                            for item in (last_match_result.motions if last_match_result else ())
-                            if item.motion_id == chosen_id
-                        ),
-                        None,
-                    )
-                    transition_sampler = ready
-                    transition_profile = catalog.motions[chosen_id]
-                    transition_selection = MotionSelection(
-                        motion_id=chosen_id,
-                        reason=switch_reason,
-                        final_score=match.final_score if match is not None else 0.0,
-                        music_score=match.music_score if match is not None else 0.0,
-                    )
+                # Recheck with the final command captured after limiting, on a worker.
+                # New music can still replace the shortlist until the bridge starts.
+                recheck_key = tuple((item[0], item[2]) for item in ready_snapshot)
+                if (terminal_source_features is not None and terminal_frame is not None
+                        and transition_sampler is None and terminal_recheck_key != recheck_key):
+                    if terminal_recheck is not None:
+                        terminal_recheck.cancel()
+                    terminal_recheck_key = recheck_key
+                    terminal_recheck = loader.score_executor.submit(
+                        score_ready_candidates, terminal_source_features,
+                        ready_snapshot, joint_limits, args, loader.score_seconds,
+                    ) if ready_snapshot else None
+
+                # Emit the final frame for at least one control tick before a bridge.
+                if (terminal_frame is not None and transition_sampler is None
+                        and now > terminal_time and terminal_source_features is not None
+                        and (terminal_recheck is None or terminal_recheck.done())):
+                    choice = None
+                    if terminal_recheck is not None:
+                        try:
+                            choice = terminal_recheck.result()
+                        except Exception as exc:
+                            print(f"Warning: terminal recheck failed; replaying current motion: {exc}")
+                    if choice is None:
+                        choice = replay_choice(current_id, current_sampler, terminal_source_features, joint_limits, args)
+                    chosen_id, transition_sampler, entry_score, used_fallback = choice
+                    active_transition_reason = "replay_no_suitable_ready_motion" if used_fallback else "motion_end"
+                    transition_entry_score = entry_score
+                    transition_selection = MotionSelection(chosen_id, active_transition_reason, 0.0, 0.0)
                     transition_controller = make_controller(
-                        args,
-                        transition_profile,
-                        previous=current_controller,
+                        args, catalog.motions[chosen_id], previous=current_controller,
                         entry_phase=entry_score.phase,
                     )
+                    transition_controller.last_update_wall = now
+                    transition_controller.phase_correction_remaining = 0.0
                     transition_phase_tracker = OneShotPhaseTracker(entry_score.phase)
-                    transition_start = now
-                    transition_source_start_phase = current_phase_tracker.last_phase
-                    transition_duration = entry_score.transition_seconds
-                    transition_forced_end = switch_reason.startswith("forced_end")
-                    active_transition_reason = switch_reason
-                    transition_entry_score = entry_score
-                    if used_fallback:
-                        forced_fallback_count += 1
-                    print(
-                        f"Switching ({switch_reason}): {current_id} -> {chosen_id} "
-                        f"entry={entry_score.phase:.4f} blend={transition_duration:.3f}s "
-                        f"entry_score={entry_score.total:.3f}"
+                    bridge_features = replace(features)
+                    bridge_target_raw, _ = sample_actuator_pose(
+                        transition_sampler, transition_controller, now, bridge_features,
+                        modulator, adapter, transition_phase_tracker,
                     )
+                    bridge_source = terminal_frame
+                    bridge_target = align_motion_frame_root(
+                        bridge_target_raw, source_reference=bridge_target_raw,
+                        target_reference=bridge_source,
+                    )
+                    names = sorted(set(bridge_source.joint_positions) & set(bridge_target.joint_positions) & set(joint_limits))
+                    transition_duration = compute_transition_duration(
+                        np.array([bridge_source.joint_positions[name] for name in names]),
+                        np.array([bridge_target.joint_positions[name] for name in names]),
+                        np.array([joint_limits[name].max_speed_rad_s for name in names]),
+                        np.array([joint_limits[name].max_acceleration_rad_s2 for name in names]),
+                        beat_period=0.5, minimum=args.transition_min_seconds, maximum=math.inf,
+                    )
+                    transition_start = now
+                    forced_fallback_count += int(used_fallback)
+                    print(f"Switching ({active_transition_reason}): {current_id} -> {chosen_id} "
+                          f"entry={entry_score.phase:.4f} frame={entry_score.frame_index} "
+                          f"blend={transition_duration:.3f}s cost={entry_score.total:.4f}")
                     trace_event = "switch_start"
 
-            current_frame, current_phase = sample_actuator_pose(
-                current_sampler,
-                current_controller,
-                now,
-                features,
-                modulator,
-                adapter,
-                current_phase_tracker,
-                control_stage_seconds,
-            )
-            transition_stage_started = time.perf_counter()
-            if (
-                not args.diagnostic_fixed_entry_transition
-                and current_root_source_reference is not None
-                and current_root_target_reference is not None
-            ):
-                current_frame = align_motion_frame_root(
-                    current_frame,
-                    source_reference=current_root_source_reference,
-                    target_reference=current_root_target_reference,
-                )
-            terminal_safe_idle_active = (
-                current_phase_tracker.ended
-                and transition_sampler is None
-                and args.terminal_safe_idle_amplitude > 0.0
-            )
-            if terminal_safe_idle_active:
-                if terminal_safe_idle_started is None:
-                    terminal_safe_idle_started = now
-                current_frame = apply_terminal_safe_idle(
-                    current_frame,
-                    now - terminal_safe_idle_started,
-                    args.terminal_safe_idle_amplitude,
-                )
-            else:
-                terminal_safe_idle_started = None
-            if current_phase_tracker.ended and transition_sampler is None:
-                if not holding_last:
-                    hold_last_count += 1
-                    trace_event = "hold_last"
-                holding_last = True
-            else:
-                holding_last = False
-            if (
-                transition_sampler is not None
-                and transition_controller is not None
-                and transition_start is not None
-            ):
-                next_frame, transition_phase = sample_actuator_pose(
-                    transition_sampler,
-                    transition_controller,
-                    now,
-                    features,
-                    modulator,
-                    adapter,
-                    transition_phase_tracker,
-                    control_stage_seconds,
-                )
-                if transition_root_source_reference is None:
-                    transition_root_source_reference = next_frame
-                    transition_root_target_reference = current_frame
-                assert transition_root_target_reference is not None
-                if not args.diagnostic_fixed_entry_transition:
-                    next_frame = align_motion_frame_root(
-                        next_frame,
-                        source_reference=transition_root_source_reference,
-                        target_reference=transition_root_target_reference,
-                    )
-                if trace_event == "switch_start":
-                    if (
-                        current_frame.root_position is not None
-                        and next_frame.root_position is not None
-                    ):
-                        root_delta = (
-                            next_frame.root_position - current_frame.root_position
-                        )
-                        trace_anchor_xy_delta = float(np.linalg.norm(root_delta[:2]))
-                        trace_anchor_z_delta = float(abs(root_delta[2]))
-                    current_yaw = frame_root_yaw(current_frame)
-                    next_yaw = frame_root_yaw(next_frame)
-                    if current_yaw is not None and next_yaw is not None:
-                        trace_anchor_yaw_delta = abs(
-                            wrapped_angle_difference(next_yaw, current_yaw)
-                        )
-                if transition_forced_end:
-                    assert transition_source_start_phase is not None
-                    blend = forced_transition_blend(
-                        current_phase,
-                        transition_source_start_phase,
-                        elapsed_seconds=now - transition_start,
-                        duration_seconds=transition_duration,
-                    )
-                else:
-                    blend = (now - transition_start) / max(transition_duration, 1e-6)
-                trace_transition_blend = float(np.clip(blend, 0.0, 1.0))
-                motion_frame = blend_motion_frames(
-                    current_frame,
-                    next_frame,
-                    blend,
-                    smoothstep=not args.diagnostic_fixed_entry_transition,
-                )
-                root_source_id = (
-                    transition_selection.motion_id if transition_selection else "pending"
-                )
-                if blend >= 1.0:
-                    if transition_selection is None:
-                        raise RuntimeError("Motion transition lost its selection state.")
-                    current_id = transition_selection.motion_id
-                    current_profile = catalog.motions[current_id]
-                    current_sampler = transition_sampler
-                    current_controller = transition_controller
-                    assert transition_phase_tracker is not None
-                    current_phase_tracker = transition_phase_tracker
-                    current_root_source_reference = transition_root_source_reference
-                    current_root_target_reference = transition_root_target_reference
-                    forced_transition_plan = None
-                    bar_transition_plan = None
-                    bar_score_generation += 1
-                    selection_policy.complete_switch(current_id)
-                    transition_sampler = None
-                    transition_controller = None
-                    transition_phase_tracker = None
-                    transition_selection = None
-                    transition_start = None
-                    transition_source_start_phase = None
-                    transition_forced_end = False
-                    transition_root_source_reference = None
-                    transition_root_target_reference = None
-                    candidate_motion_ids = tuple(
-                        motion_id for motion_id in candidate_motion_ids if motion_id != current_id
-                    )
-                    source_description = (
-                        "GMR artifact"
-                        if isinstance(
-                            current_sampler,
-                            base.GmrUnitreeG1MotionSampler,
-                        )
-                        else "direct AIST++ fallback"
-                    )
-                    print(
-                        f"Motion switch complete: {current_id} "
-                        f"({source_description})"
-                    )
-                    trace_event = "switch_complete"
-            else:
-                motion_frame = current_frame
                 transition_phase = None
-                root_source_id = current_id
+                root_source_id = "v2_continuous"  # Already aligned across clips, including replay.
+                if transition_sampler is not None:
+                    transition_phase = transition_entry_score.phase
+                    blend = (now - transition_start) / transition_duration
+                    trace_transition_blend = float(np.clip(blend, 0.0, 1.0))
+                    motion_frame = quintic_blend(bridge_source, bridge_target, blend)
+                    if blend >= 1.0:
+                        current_id = transition_selection.motion_id
+                        current_profile = catalog.motions[current_id]
+                        current_sampler = transition_sampler
+                        current_controller = transition_controller
+                        current_controller.last_update_wall = now
+                        current_controller.phase = transition_entry_score.phase
+                        current_controller.phase_correction_remaining = 0.0
+                        current_phase_tracker = OneShotPhaseTracker(transition_entry_score.phase)
+                        current_root_source_reference = bridge_target_raw
+                        current_root_target_reference = bridge_source
+                        entry_features_override = bridge_features
+                        terminal_frame = None
+                        terminal_time = None
+                        terminal_recheck = None
+                        terminal_source_features = None
+                        transition_sampler = None
+                        transition_controller = None
+                        transition_selection = None
+                        transition_start = None
+                        selection_policy.complete_switch(current_id)
+                        candidate_motion_ids = musical_shortlist(last_match_result, current_id, args)
+                        loader.preload(list(candidate_motion_ids))
+                        loader.prepare_pool(list(candidate_motion_ids))
+                        source_generation += 1
+                        pending_plan = None
+                        trace_event = "switch_complete"
+                        print(f"Motion switch complete: {current_id}")
+                else:
+                    motion_frame = current_frame
 
             motion_frame = root_motion.apply(
                 motion_frame,
-                phase=current_phase if transition_phase is None else transition_phase,
+                phase=0.0,  # V2 aligns roots itself; clip phases must not trigger loop reanchoring.
                 source_id=root_source_id,
             )
             if completed_root_reference is not None:
@@ -2933,6 +3283,7 @@ def main() -> int:
             )
 
             safety_stage_started = time.perf_counter()
+            planned_joint_positions = dict(motion_frame.joint_positions)
             limiter_dt = scheduler.time_since_last_output(safety_stage_started)
             if args.diagnostic_disable_output_limiter:
                 limited_frame = motion_frame
@@ -3050,6 +3401,16 @@ def main() -> int:
             )
             mujoco_stage_started = time.perf_counter()
             player.set_frame(motion_frame)
+            bridge_output_modified = any(
+                abs(float(player.data.qpos[player.actuator_joint_qpos_ids[name]]) - value) > 1e-8
+                for name, value in planned_joint_positions.items()
+                if name in player.actuator_joint_qpos_ids
+            )
+            if trace_event == "terminal_frame":
+                # Keep the local root reference, but use the final joint command
+                # after the output limiter and collision policy have run.
+                terminal_frame = replace(terminal_frame, joint_positions=dict(motion_frame.joint_positions))
+                terminal_source_features = terminal_features(current_sampler.entry_features, terminal_frame)
             emitted_at = time.perf_counter()
             actual_output_dt = scheduler.record_output(emitted_at)
             if not args.diagnostic_disable_output_limiter:
@@ -3123,7 +3484,7 @@ def main() -> int:
                 pending_selection = selection_policy.pending
                 reported_current_phase = (
                     transition_phase
-                    if trace_event == "switch_complete"
+                    if authored_playback is None and trace_event == "switch_complete"
                     and transition_phase is not None
                     else current_phase
                 )
@@ -3132,6 +3493,16 @@ def main() -> int:
                         "audio_time_seconds": f"{elapsed:.6f}",
                         "wall_time_seconds": f"{time.perf_counter() - audio_wall_origin:.9f}",
                         "event": trace_event,
+                        "transition_backend": args.transition_backend,
+                        "bridge_preparation_status": authored_playback.status if authored_playback else "legacy",
+                        "bridge_failure_reason": authored_playback.failure if authored_playback else "",
+                        "bridge_position_residual": authored_playback.last_residuals[0] if authored_playback and authored_playback.last_residuals is not None else "",
+                        "bridge_velocity_residual": authored_playback.last_residuals[1] if authored_playback and authored_playback.last_residuals is not None else "",
+                        "bridge_acceleration_residual": authored_playback.last_residuals[2] if authored_playback and authored_playback.last_residuals is not None else "",
+                        "bridge_output_modified": int(bridge_output_modified),
+                        "boundary_effect_weight": authored_playback.clock.weight if authored_playback and not authored_playback.active else 0.,
+                        "bridge_generation": authored_playback.generation if authored_playback else "",
+
                         "current_motion_id": current_id,
                         "pending_motion_id": (
                             pending_selection.motion_id if pending_selection is not None else ""
@@ -3141,19 +3512,27 @@ def main() -> int:
                             if pending_selection is not None
                             else ""
                         ),
+                        "audio_history_seconds": f"{scored_history_seconds:.6f}",
+                        "shortlist": ";".join(candidate_motion_ids),
+                        "terminal_time_seconds": "" if last_terminal_time is None else f"{last_terminal_time - wall_start:.6f}",
+                        "entry_frame_index": "" if transition_entry_score is None else transition_entry_score.frame_index,
+                        **({
+                            "exit_frame_index": authored_playback.last_plan.exit_frame_index,
+                            "exit_seconds": authored_playback.last_plan.exit_seconds,
+                            "exit_phase": authored_playback.last_plan.exit_seconds / authored_playback.last_plan.source_duration,
+                            "trimmed_seconds": authored_playback.last_plan.source_duration-authored_playback.last_plan.exit_seconds,
+                            "transition_pair_count": authored_playback.last_plan.pair_count,
+                            "bridge_attempts": authored_playback.last_plan.bridge_attempts,
+                            "transition_preparation_seconds": authored_playback.last_plan.preparation_seconds,
+                        } if authored_playback is not None and authored_playback.last_plan is not None else {}),
+                        "preparation_delay_seconds": "" if terminal_time is None else f"{max(0.0, (transition_start or now) - terminal_time):.6f}",
                         "transition_motion_id": (
                             transition_selection.motion_id
                             if transition_selection is not None
                             else ""
                         ),
                         "fallback_reason": (
-                            "no_ready_candidate"
-                            if trace_event == "hold_last"
-                            else (
-                                "preferred_not_ready"
-                                if "fallback" in active_transition_reason
-                                else ""
-                            )
+                            active_transition_reason if active_transition_reason.startswith("replay_") else ""
                         ),
                         "current_phase": f"{reported_current_phase:.9f}",
                         "transition_phase": (
@@ -3438,6 +3817,8 @@ def main() -> int:
     finally:
         source.stop()
         retrieval.close()
+        if authored_playback is not None:
+            authored_playback.search_cancel.set()
         loader.close()
         if args.experiment_pose_npz is not None:
             pose_path = (

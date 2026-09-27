@@ -10,7 +10,7 @@ import sys
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import realtime_music_humanoid_matcher_v2 as v2
+import realtime_music_humanoid_matcher as v2
 
 
 def main():

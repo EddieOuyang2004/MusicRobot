@@ -126,9 +126,10 @@ Audio references are relative to the input dataset recorded by the output
 manifest; audio is not copied. The segmentation manifest hash covers its full
 recording plans and exclusions without duplicating those lists per output.
 
-Existing motion samplers can load the files directly. FineDance music-catalog
-integration remains separate because the current catalog parses AIST++ names
-and genres. See [segmentation details](finedance_segmentation.md) and
+Existing motion samplers can load the files directly. Register successful outputs
+with the [combined music retrieval catalog](finedance_matcher_integration.md),
+which reads FineDance labels and resolves each dataset's GMR directory.
+See [segmentation details](finedance_segmentation.md) and
 [the AIST++ correction](gmr_v2_batch.md).
 
 ## Regression checks

@@ -21,81 +21,66 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
-\bibitem{li2021aist}
-\BIBentryALTinterwordspacing
-R.~Li, S.~Yang, D.~A. Ross, and A.~Kanazawa, ``{AI Choreographer}: Music
-  conditioned {3D} dance generation with {AIST++},'' in \emph{Proc. IEEE/CVF
-  International Conference on Computer Vision (ICCV)}, 2021, pp.
-  13\,401--13\,412. [Online]. Available: \url{https://arxiv.org/abs/2101.08779}
-\BIBentrySTDinterwordspacing
+\bibitem{li2021ai}
+R.~Li, S.~Yang, D.~A. Ross, and A.~Kanazawa, ``Ai choreographer: Music
+  conditioned 3d dance generation with aist++,'' in \emph{2021 IEEE/CVF
+  International Conference on Computer Vision (ICCV)}.\hskip 1em plus 0.5em
+  minus 0.4em\relax Ieee, 2021, pp. 13\,381--13\,392.
 
 \bibitem{siyao2022bailando}
-\BIBentryALTinterwordspacing
 L.~Siyao, W.~Yu, T.~Gu, C.~Lin, Q.~Wang, C.~Qian, C.~C. Loy, and Z.~Liu,
-  ``{Bailando}: {3D} dance generation by actor-critic {GPT} with choreographic
-  memory,'' in \emph{Proc. IEEE/CVF Conference on Computer Vision and Pattern
-  Recognition (CVPR)}, 2022, pp. 11\,050--11\,059. [Online]. Available:
-  \url{https://arxiv.org/abs/2203.13055}
-\BIBentrySTDinterwordspacing
+  ``Bailando: 3d dance generation by actor-critic gpt with choreographic
+  memory,'' in \emph{Proceedings of the IEEE/CVF conference on computer vision
+  and pattern recognition}, 2022, pp. 11\,050--11\,059.
 
 \bibitem{tseng2023edge}
-\BIBentryALTinterwordspacing
-J.~Tseng, R.~Castellon, and K.~Liu, ``{EDGE}: Editable dance generation from
-  music,'' in \emph{Proc. IEEE/CVF Conference on Computer Vision and Pattern
-  Recognition (CVPR)}, 2023, pp. 448--458. [Online]. Available:
-  \url{https://arxiv.org/abs/2211.10658}
-\BIBentrySTDinterwordspacing
+J.~Tseng, R.~Castellon, and K.~Liu, ``Edge: Editable dance generation from
+  music,'' in \emph{Proceedings of the IEEE/CVF conference on computer vision
+  and pattern recognition}, 2023, pp. 448--458.
 
 \bibitem{ji2026discoforcing}
-\BIBentryALTinterwordspacing
-K.~Ji, B.~Qian, B.~Wu, K.~Chen, Y.~Shi, and J.~Wang, ``{DiscoForcing}: A
-  unified framework for real-time audio-driven character control with diffusion
-  forcing,'' \emph{arXiv preprint arXiv:2605.28491}, 2026. [Online]. Available:
-  \url{https://arxiv.org/abs/2605.28491}
-\BIBentrySTDinterwordspacing
+K.~Ji, B.~Qian, B.~Wu, K.~Chen, Y.~Shi, and J.~Wang, ``Discoforcing: A unified
+  framework for real-time audio-driven character control with diffusion
+  forcing,'' \emph{arXiv preprint arXiv:2605.28491}, 2026.
 
-\bibitem{li2025freestyle}
-\BIBentryALTinterwordspacing
+\bibitem{li2026you}
 Z.~Li, C.~Chi, Y.~Wei, B.~Zhu, T.~Huang, Z.~Sun, Y.~Peng, P.~Wang, Z.~Wang,
-  F.~Liu, C.~Xu, and S.~Zhang, ``Do you have freestyle? expressive humanoid
-  locomotion via audio control,'' \emph{arXiv preprint arXiv:2512.23650}, 2025.
-  [Online]. Available: \url{https://arxiv.org/abs/2512.23650}
-\BIBentrySTDinterwordspacing
+  F.~Liu \emph{et~al.}, ``Do you have freestyle? expressive humanoid locomotion
+  via audio control,'' in \emph{Proceedings of the IEEE/CVF Conference on
+  Computer Vision and Pattern Recognition}, 2026, pp. 956--965.
 
-\bibitem{alonso2022discogs}
-\BIBentryALTinterwordspacing
+\bibitem{alonso2022music}
 P.~Alonso-Jim{\'e}nez, X.~Serra, and D.~Bogdanov, ``Music representation
-  learning based on editorial metadata from {Discogs},'' in \emph{Proc.
-  International Society for Music Information Retrieval Conference (ISMIR)},
-  2022, pp. 825--833. [Online]. Available:
-  \url{https://archives.ismir.net/ismir2022/paper/000099.pdf}
-\BIBentrySTDinterwordspacing
+  learning based on editorial metadata from discogs,'' in \emph{Rao P, Murthy
+  H, Srinivasamurthy A, Bittner R, Caro Repetto R, Goto M, Serra X, Miron M,
+  editors. Proceedings of the 23nd International Society for Music Information
+  Retrieval Conference (ISMIR 2022); 2022 Dec 4-8; Bengaluru, India.[Canada]:
+  International Society for Music Information Retrieval; 2022. p.
+  825-33.}\hskip 1em plus 0.5em minus 0.4em\relax International Society for
+  Music Information Retrieval (ISMIR), 2022.
 
 \bibitem{mcfee2015librosa}
-B.~McFee, C.~Raffel, D.~Liang, D.~P.~W. Ellis, M.~McVicar, E.~Battenberg, and
-  O.~Nieto, ``{librosa}: Audio and music signal analysis in {Python},'' in
-  \emph{Proc. Python in Science Conference}, 2015, pp. 18--24.
+B.~McFee, C.~Raffel, D.~Liang, D.~P. Ellis, M.~McVicar, E.~Battenberg, O.~Nieto
+  \emph{et~al.}, ``librosa: Audio and music signal analysis in python.''
+  \emph{SciPy}, vol. 2015, no. 18-24, p.~7, 2015.
 
-\bibitem{kovar2002graphs}
-L.~Kovar, M.~Gleicher, and F.~Pighin, ``Motion graphs,'' \emph{ACM Transactions
-  on Graphics}, vol.~21, no.~3, pp. 473--482, 2002.
+\bibitem{kovar2023motion}
+L.~Kovar, M.~Gleicher, and F.~Pighin, ``Motion graphs,'' in \emph{Seminal
+  Graphics Papers: Pushing the Boundaries, Volume 2}, 2023, pp. 723--732.
 
-\bibitem{holden2020matching}
+\bibitem{holden2020learned}
 D.~Holden, O.~Kanoun, M.~Perepichka, and T.~Popa, ``Learned motion matching,''
-  \emph{ACM Transactions on Graphics}, vol.~39, no.~4, 2020.
+  \emph{ACM Transactions on Graphics (ToG)}, vol.~39, no.~4, pp. 53--1, 2020.
 
-\bibitem{loper2015smpl}
-M.~Loper, N.~Mahmood, J.~Romero, G.~Pons-Moll, and M.~J. Black, ``{SMPL}: A
-  skinned multi-person linear model,'' \emph{ACM Transactions on Graphics},
-  vol.~34, no.~6, pp. 248:1--248:16, 2015.
+\bibitem{loper2023smpl}
+M.~Loper, N.~Mahmood, J.~Romero, G.~Pons-Moll, and M.~J. Black, ``Smpl: A
+  skinned multi-person linear model,'' in \emph{Seminal Graphics Papers:
+  Pushing the Boundaries, Volume 2}, 2023, pp. 851--866.
 
-\bibitem{araujo2025gmr}
-\BIBentryALTinterwordspacing
+\bibitem{araujo2025retargeting}
 J.~P. Araujo, Y.~Ze, P.~Xu, J.~Wu, and C.~K. Liu, ``Retargeting matters:
   General motion retargeting for humanoid motion tracking,'' \emph{arXiv
-  preprint arXiv:2510.02252}, 2025. [Online]. Available:
-  \url{https://arxiv.org/abs/2510.02252}
-\BIBentrySTDinterwordspacing
+  preprint arXiv:2510.02252}, 2025.
 
 \bibitem{berscheid2021ruckig}
 L.~Berscheid and T.~Kr{\"o}ger, ``Jerk-limited real-time trajectory generation
@@ -103,8 +88,9 @@ L.~Berscheid and T.~Kr{\"o}ger, ``Jerk-limited real-time trajectory generation
   Systems}, 2021.
 
 \bibitem{todorov2012mujoco}
-E.~Todorov, T.~Erez, and Y.~Tassa, ``{MuJoCo}: A physics engine for model-based
-  control,'' in \emph{Proc. IEEE/RSJ International Conference on Intelligent
-  Robots and Systems (IROS)}, 2012, pp. 5026--5033.
+E.~Todorov, T.~Erez, and Y.~Tassa, ``Mujoco: A physics engine for model-based
+  control,'' in \emph{2012 IEEE/RSJ international conference on intelligent
+  robots and systems}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2012, pp.
+  5026--5033.
 
 \end{thebibliography}

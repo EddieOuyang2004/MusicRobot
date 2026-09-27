@@ -187,6 +187,10 @@ def run_one_file(
             if match_clock - last_match_clock >= runtime_args.match_interval_seconds:
                 audio = source.recent_audio()
                 if audio is not None:
+                    audio = matcher_app.available_history(audio, source.sample_rate,
+                                                          runtime_args.history_max_seconds,
+                                                          runtime_args.analysis_min_seconds)
+                if audio is not None:
                     submit_attempts += 1
                     submitted = worker.submit(audio)
                     if submitted:
@@ -238,7 +242,7 @@ def run_one_file(
         1e-9,
     )
     schedulable_seconds = max(
-        seconds_per_file - runtime_args.match_window_seconds,
+        seconds_per_file - runtime_args.analysis_min_seconds,
         0.0,
     )
     scheduled_slots = (
@@ -248,7 +252,7 @@ def run_one_file(
                 - 1e-9
             )
         )
-        if seconds_per_file > runtime_args.match_window_seconds
+        if seconds_per_file > runtime_args.analysis_min_seconds
         else 0
     )
     return {

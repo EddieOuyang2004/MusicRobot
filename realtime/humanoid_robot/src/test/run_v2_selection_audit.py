@@ -183,7 +183,7 @@ def embedding_tracks(matcher, descriptor):
 
 def diagnostic(manifest, song, destination, limit=None):
     from music_motion_catalog import MusicCatalog, MusicMotionMatcher, load_audio_mono
-    from realtime_music_humanoid_matcher_v2 import make_extractor
+    from realtime_music_humanoid_matcher import make_extractor
     catalog = MusicCatalog.load(ROOT / manifest["catalog"])
     extractor = make_extractor(argparse.Namespace(embedding_model=None, tag_model=None), catalog)
     matchers = {"production": MusicMotionMatcher(catalog, speed_min=0.55, speed_max=1.3)}

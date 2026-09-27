@@ -1,4 +1,35 @@
-# Humanoid dancer analysis tools
+# Humanoid matcher analysis tools
+
+## Current matcher and experiment protocol
+
+New runs use `realtime_music_humanoid_matcher.py`, the former v2 implementation.
+Protocol 2 uses two seconds of minimum audio and up to 30 seconds of growing
+history. Its six-second `match_window_seconds` remains the offline reference
+window and analysis warmup, not a fixed runtime retrieval window.
+
+Supported conditions are `full`, `no_motion_compatibility`, `authored_timing`, and
+`no_output_limiter`. The v1-only `legacy_retrieval`, `instant_top1`, `no_diversity`,
+and `fixed_entry_simple_transition` conditions are retired and rejected for new runs.
+New acceptance reports omit comparisons that require those conditions.
+
+The evaluation protocol still uses the original AIST++ catalog; normal matcher
+playback defaults to the combined catalog. Saved reports, thesis measurements,
+and result readers remain available with their original provenance.
+Use a fresh output directory when changing runtime or protocol: run status now
+fingerprints the matcher, shared runtime, protocol, and catalog, and refuses
+incompatible reuse. Historical measured numbers are not new protocol-2 results.
+
+The runner defaults to `output/humanoid_matcher_experiment_protocol2/`. The
+PowerShell thesis launcher defaults to `output/thesis_protocol2/` and writes
+consolidated results under `docs/thesis/experiment_results/protocol2/`.
+Use `-OutputDir` and `-ResultOutputDir` to select other fresh destinations.
+Historical validation notes retain the old `_v2.py` command spelling; use the
+canonical unversioned entrypoint for new runs.
+
+```powershell
+python -m unittest discover -s tests
+python -m unittest discover -s realtime/humanoid_robot/src/test -p "test_*.py"
+```
 
 ## Motion/audio phase comparison
 
@@ -167,9 +198,11 @@ powershell -ExecutionPolicy Bypass -File `
   -Stage all -Resume
 ```
 
-Raw data are fixed at
-`realtime/humanoid_robot/src/test/output/thesis_final/`; validated thesis
-inputs are fixed at `docs/thesis/experiment_results/`. The stages are `preflight`,
+New raw data default to
+`realtime/humanoid_robot/src/test/output/thesis_protocol2/`; validated
+results default to `docs/thesis/experiment_results/protocol2/`. Historical
+`thesis_final/` data and the original thesis results remain unchanged.
+The stages are `preflight`,
 `offline`, `literature`, `full`, `ablation`, `longrun`, `features`, and
 `consolidate`. They may be run separately with `-Stage`; rerunning with
 `-Resume` validates trace, timing, pose and log artifacts before skipping a
@@ -200,8 +233,8 @@ so an older run that stopped at source EOF is archived and rerun automatically.
 `consolidate` checks expected run counts, artifact integrity, absence of
 unresolved failures/dry runs, cross-suite commit/catalog/model/protocol/schema
 hashes, provider identity, and feature shapes. It writes
-`docs/thesis/experiment_results/READY_FOR_THESIS` only when the complete data
-set is internally consistent. Chapter 6 must read
+`docs/thesis/experiment_results/protocol2/READY_FOR_THESIS` only when the complete data
+set is internally consistent. New analyses should read that directory's
 `consolidated_results.json`; a failed real-time or safety criterion remains a
 reported failure and does not prevent complete results from being analysed.
 

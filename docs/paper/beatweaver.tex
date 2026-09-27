@@ -16,11 +16,12 @@ with State-Continuous Smoothing and Transitions}
 \begin{document}
 \maketitle
 \begin{abstract}
-Music-responsive humanoid animation requires both relevant motion selection and
-continuous trajectories. Retrieving a suitable dance does not ensure that its
-retargeted joint motion is smooth, or that it can be connected to the motion
-currently being played. We present BeatWeaver, a causal retrieval-and-synthesis
-system for the 29-joint Unitree G1 representation. Streaming audio is compared
+Humanoid animation conveys expressive intent through coordinated whole-body
+movement and its timing. In interactive settings, this movement must adapt to
+changing external cues while remaining coherent over time and consistent with
+the constraints of the animated body. To address these demands in music-driven
+performance, we present BeatWeaver, a causal retrieval-and-synthesis system for
+the 29-joint Unitree G1 representation. Streaming audio is compared
 with a paired music--motion catalogue using learned music embeddings and
 explicit rhythm, tempo, and activity descriptors. Offline, retargeted motions
 are regenerated from their human sources and refined by a collision-aware,
@@ -31,8 +32,7 @@ bridges subject to continuous polynomial bounds. Boundary-aware time scaling
 and modulation connect authored trajectories to these bridges without
 predicting future audio. A shared Hermite representation links offline
 validation, online planning, and playback. The system produces inspectable
-kinematic motion references; physical tracking and comparative performance
-remain subjects for evaluation.
+kinematic motion references.
 \end{abstract}
 \begin{IEEEkeywords}
 music-driven motion, humanoid animation, motion retrieval, motion retargeting,
@@ -49,9 +49,9 @@ also requires attention to joint ranges, derivative limits, and geometry.
 
 Music-conditioned dance generation has advanced through paired datasets and
 transformer models, learned choreographic codes, and diffusion-based synthesis
-\cite{li2021aist,siyao2022bailando,tseng2023edge}. Recent work addresses causal
+\cite{li2021ai,siyao2022bailando,tseng2023edge}. Recent work addresses causal
 streaming and direct audio-conditioned humanoid motion
-\cite{ji2026discoforcing,li2025freestyle}. These approaches motivate increasingly
+\cite{ji2026discoforcing,li2026you}. These approaches motivate increasingly
 responsive interfaces, but generation is not the only useful design choice.
 When a finite collection of choreographies is available, retrieval permits
 offline inspection and preparation of each motion, explicit selection rules,
@@ -69,9 +69,8 @@ of joint states, rather than a sequence of poses.
 We present \emph{BeatWeaver}, a music-conditioned retrieval and kinematic
 synthesis system that addresses both continuity problems through a shared
 trajectory representation. Music retrieval identifies a relevant motion
-neighbourhood. Offline state-aware smoothing prepares its clips; online
-state-to-state planning connects them. The transition method is the current
-\emph{humanoid matcher v2}, replacing the moving-clip blending method in the
+neighbourhood. Offline state-aware smoothing prepares its clips. Online
+state-to-state planning connects them. The transition method replace the moving-clip blending method in the
 earlier system. Its paired exit--entry search also allows a short terminal
 portion of a source clip to be trimmed when an earlier boundary is more
 compatible.
@@ -86,9 +85,6 @@ same states used by playback.
 \item An online transition method combining nonlinear exit--entry scoring,
 checked Hermite bridges, and boundary-aware music adaptation.
 \end{itemize}
-The scope is kinematic reference synthesis. Empirical evaluation is reserved
-for Sections~\ref{sec:experiments} and~\ref{sec:results}; physical execution
-requires a separate tracking controller.
 
 \begin{figure*}[t]
 \centering
@@ -127,7 +123,7 @@ does not certify newly synthesized transitions or physical tracking.}
 \section{Related Work}
 \subsection{Music-Conditioned Motion}
 AI Choreographer introduces AIST++ and FACT, pairing 3D dance with music and
-learning cross-modal temporal relationships \cite{li2021aist}. Bailando
+learning cross-modal temporal relationships \cite{li2021ai}. Bailando
 represents dance using a learned choreographic memory and composes motion
 units with an actor--critic transformer \cite{siyao2022bailando}. EDGE uses
 diffusion for editable music-conditioned dance and incorporates contact-related
@@ -137,7 +133,7 @@ mapping and an execution strategy.
 
 DiscoForcing explicitly addresses causal, bounded-latency audio-driven
 character control \cite{ji2026discoforcing}. RoboPerform investigates
-expressive humanoid motion driven by music and speech \cite{li2025freestyle}.
+expressive humanoid motion driven by music and speech \cite{li2026you}.
 BeatWeaver occupies a complementary point in this design space: it selects and
 connects existing robot-space references instead of training an online
 choreography generator. Its expressive coverage is consequently limited by
@@ -145,32 +141,32 @@ the catalogue, while its selection and transition constraints remain explicit.
 
 \subsection{Music Representation and Motion Retrieval}
 Music embeddings learned from Discogs metadata capture relationships that
-complement engineered acoustic descriptors \cite{alonso2022discogs}.
+complement engineered acoustic descriptors \cite{alonso2022music}.
 Signal-processing libraries such as librosa provide tempo, onset, and spectral
 features \cite{mcfee2015librosa}. BeatWeaver combines these feature families
 because stylistic similarity does not by itself imply a usable motion speed
 or matching event density.
 
 Motion graphs assemble captured motion through transitions between compatible
-states \cite{kovar2002graphs}. Learned motion matching develops a compact
+states \cite{kovar2023motion}. Learned motion matching develops a compact
 learned alternative to database-based motion matching
-\cite{holden2020matching}. BeatWeaver shares the use of reusable motion data,
+\cite{holden2020learned}. BeatWeaver shares the use of reusable motion data,
 but separates musical relevance from instantaneous boundary compatibility.
 It retrieves a music-conditioned shortlist and plans joint-state bridges
 online rather than constructing a fixed all-pairs motion graph.
 
 \subsection{Retargeting and Constrained Trajectories}
-SMPL supplies a common human-motion representation \cite{loper2015smpl}, while
+SMPL supplies a common human-motion representation \cite{loper2023smpl}, while
 General Motion Retargeting (GMR) maps human motion to humanoid embodiments.
 The GMR study shows that reference-motion quality affects downstream tracking
-\cite{araujo2025gmr}. BeatWeaver uses GMR as its retargeter and adds its own
+\cite{araujo2025retargeting}. BeatWeaver uses GMR as its retargeter and adds its own
 state-aware collision correction and motion-file representation. This
 postprocessing is distinct from the published GMR method.
 
 Position, velocity, and acceleration are also central to constrained trajectory
 generation. Ruckig constructs synchronized trajectories under derivative
 constraints for arbitrary target states \cite{berscheid2021ruckig}.
-BeatWeaver provides an optional Ruckig backend; its default method uses quintic
+BeatWeaver provides an optional Ruckig backend. Its default method uses quintic
 Hermite curves with an explicit duration search. The focus here is the
 integration of state-preserving clip preparation, musical retrieval, and
 online boundary selection, rather than a new general-purpose trajectory solver.

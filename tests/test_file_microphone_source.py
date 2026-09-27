@@ -212,6 +212,7 @@ class FileMicrophoneSourceTests(unittest.TestCase):
                 patch("librosa.onset.onset_strength", return_value=onset),
                 patch("librosa.beat.beat_track", return_value=(np.asarray([120.0]), beat_frames)),
             ):
+                args.analysis_min_seconds = 1.0
                 source = MatcherFileMicrophoneSource(audio_path, args, window_seconds=1.0)
 
         contrasts = np.asarray(source._pending_beat_contrasts)

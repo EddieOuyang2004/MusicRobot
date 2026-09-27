@@ -51,6 +51,14 @@ EXPECTED_DURATIONS_SECONDS = {
 }
 
 
+def expected_runs(protocol: dict[str, Any]) -> dict[str, int]:
+    """Keep historical v1 cohorts readable alongside the reduced v2 protocol."""
+    counts = dict(EXPECTED_RUNS)
+    if int(protocol.get("protocol_version", 1)) >= 2:
+        counts.update(ablation=260, longrun=20)
+    return counts
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw-root", type=Path, default=DEFAULT_RAW_ROOT)
@@ -83,6 +91,7 @@ def _identity(manifest: dict[str, Any]) -> dict[str, Any]:
         "realtime_matcher",
         "realtime_dancer",
         "robot_motion",
+        "music_runtime",
     }
     return {
         "git_commit": manifest.get("git_commit"),
@@ -287,7 +296,8 @@ def consolidate(raw_root: Path, output_dir: Path) -> dict[str, Any]:
         errors.append(f"offline: expected only CPUExecutionProvider, got {providers!r}")
 
     suites: dict[str, Any] = {}
-    for name, expected in EXPECTED_RUNS.items():
+    counts = expected_runs(offline.get("protocol", {}))
+    for name, expected in counts.items():
         status, report = validate_suite(name, raw_root / name, expected, errors)
         suites[name] = {"status": status, "report": report}
     preflight_validation = _load_json(
@@ -315,8 +325,8 @@ def consolidate(raw_root: Path, output_dir: Path) -> dict[str, Any]:
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "raw_root": str(raw_root),
         "output_dir": str(output_dir),
-        "expected_runs": EXPECTED_RUNS,
-        "total_expected_process_runs": sum(EXPECTED_RUNS.values()),
+        "expected_runs": counts,
+        "total_expected_process_runs": sum(counts.values()),
         "identities": identities,
         "errors": errors,
         "ready": not errors,

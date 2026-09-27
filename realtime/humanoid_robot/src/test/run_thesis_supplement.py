@@ -174,7 +174,7 @@ def input_paths(catalog, matrices):
     paths.update(path for key in ("embedding_model", "tag_model")
                  if (path := runner._model_path(catalog, key)) is not None)
     # Include transitive runtime helpers and robot assets, not just entrypoints.
-    for folder in (runner.SRC_DIR, runner.ROOT / "realtime" / "robot_arm" / "src"):
+    for folder in (runner.SRC_DIR, runner.ROOT / "realtime" / "shared"):
         paths.update(path for path in folder.rglob("*.py") if "output" not in path.parts)
     paths.update((runner.HUMANOID_DIR / "data" / "aistpp_gmr").glob("*.pkl"))
     paths.update((runner.HUMANOID_DIR / "data" / "aistpp_gmr").glob("*.json"))
@@ -351,7 +351,7 @@ def main():
                 resume=args.resume, suite=f"supplement_{suite}", max_attempts=2,
                 artifact_validator=validate_causal_artifacts, before_run=check_unchanged,
                 require_completed_status=True, stop_on_failure=True,
-                control_rate_hz=args.control_rate_hz)
+                control_rate_hz=args.control_rate_hz, protocol=protocol)
             if failures:
                 raise RuntimeError(f"{suite} stopped after retries. See {root / 'run_status.json'}; rerun with --resume.")
             print(f"Validated {len(records)} {suite} runs (performance failures remain included).", flush=True)

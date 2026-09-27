@@ -15,7 +15,7 @@ import io
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import realtime_music_humanoid_matcher_v2 as v2
+import realtime_music_humanoid_matcher as v2
 
 
 def motion_features(positions, duration=10.0):

@@ -158,11 +158,10 @@ files. For example, test one clip with the installed GMR environment:
   --fps 60 --limit 1
 ```
 
-The existing **music retrieval catalog is not yet a drop-in consumer**:
-`music_motion_catalog.parse_motion_name` requires AIST++ filenames and its genre
-priors assume AIST++'s ten genres. Adapt that parser and genre handling to the
-exported labels before building a mixed catalog. The export does not disguise
-FineDance as AIST++ filenames or assign invented AIST genres.
+For music retrieval, use the [combined catalog builder](finedance_matcher_integration.md).
+It reads FineDance labels and successful GMR outputs directly and preserves separate
+dataset genres. The legacy AIST++ builder still requires AIST++ filenames; do not
+rename FineDance files to imitate them.
 
 ## Local verification (2026-09-20)
 

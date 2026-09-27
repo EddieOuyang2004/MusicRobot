@@ -1,6 +1,8 @@
-# Realtime
+# Realtime humanoid matching
 
-This folder contains active realtime robot-control work.
+- [humanoid_robot/](humanoid_robot/README.md): active Unitree G1 music matching, authored motion transitions, and MuJoCo playback.
+- `shared/`: robot-independent audio analysis, beat estimation, and adaptive motion timing.
 
-- `robot_arm/`: current PyBullet robot-arm implementation.
-- `humanoid_robot/`: upcoming MuJoCo humanoid robot implementation.
+Start with `humanoid_robot/src/realtime_music_humanoid_matcher.py`.
+The former v2 implementation is now the single unversioned matcher.
+Archived robot-arm examples are documented under [legacy/](../legacy/README.md).

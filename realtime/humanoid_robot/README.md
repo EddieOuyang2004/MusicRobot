@@ -1,12 +1,36 @@
 # Realtime Humanoid Robot
 
-MuJoCo realtime humanoid dancer driven by the same microphone music features used by
-`realtime/robot_arm/`.
+Realtime humanoid music matching and authored-state transitions for Unitree G1.
+Shared audio analysis and motion timing live in `realtime/shared/`.
 
-The default motion is the checked-in AIST++ pickle at
+For standalone dancer playback, the default motion is the local AIST++ pickle at
 `realtime/humanoid_robot/data/aistpp/motions/gWA_sBM_cAll_d26_mWA0_ch07.pkl`.
 It plays on the included G1 MJCF scene in `assets/open_humanoid_dancer.xml`,
 with robot meshes under `assets/meshes/`.
+
+## Run the matcher
+
+After preparing the [combined catalog](../../docs/finedance_matcher_integration.md):
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py --realtime
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py --headless --no-mic --max-seconds 1
+```
+
+Use `--matcher-help` for retrieval and transition options, and `--help` for the
+inherited audio/controller options. For file-driven playback:
+
+```powershell
+python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
+  --audio-input "realtime/humanoid_robot/data/test_audio/Metronome 120 BPM - QuickSounds.com.mp3" `
+  --play-audio --realtime
+```
+
+## Combined FineDance and AIST++ retrieval
+
+The matcher defaults to the combined FineDance/AIST++ catalog with separate genres
+and per-dataset motion roots. Build it once using the instructions below.
+See [catalog build, playback, resume, and evaluation](../../docs/finedance_matcher_integration.md).
 
 ## FineDance segmentation
 
@@ -19,7 +43,7 @@ The separate collision-projection batch builder regenerates existing GMR clips f
 SMPL into `data/aistpp_gmr_v2`, with resume support and per-clip validation.
 See [batch generation and playback instructions](../../docs/gmr_v2_batch.md).
 
-## Run
+## Standalone motion playback
 
 From the repository root:
 
@@ -324,173 +348,32 @@ If you are using the checked-in virtual environment:
 .\.venv\Scripts\python.exe realtime/humanoid_robot/src/realtime_music_humanoid_dancer.py --realtime
 ```
 
-## Music Retrieval and Automatic Motion Switching
+## Matching and authored-state transitions
 
-`realtime_music_humanoid_matcher.py` is a separate entrypoint that keeps
-`realtime_music_humanoid_dancer.py` unchanged. It analyzes a six-second rolling
-music window, retrieves matching AIST++ music, ranks only motions that passed
-catalog preflight, and changes motion on a stable four-beat boundary.
-At startup it randomly chooses a sufficiently long motion from the lowest-activity
-quartile of the catalog. Use `--initial-motion-seed` for a reproducible choice,
-`--initial-motion-low-activity-quantile` to tune the pool, or
-`--initial-motion-id` to request an exact catalog motion.
-
-Build the catalog after downloading the synchronized AIST++ audio:
-
-```powershell
-python realtime/humanoid_robot/src/build_aistpp_music_catalog.py
-```
-
-The default catalog uses a local, gain-invariant DSP embedding. To build with
-Windows CPU ONNX Runtime, place the official dynamic-batch Discogs EffNet model
-and its same-named JSON metadata under `realtime/humanoid_robot/models/`. Passing
-the same model for both flags runs it once per window and reads both its
-1280-dimensional embedding and 400 explainable style activations:
-
-```powershell
-python realtime/humanoid_robot/src/build_aistpp_music_catalog.py `
-  --embedding-model realtime/humanoid_robot/models/discogs-effnet-bsdynamic-1.onnx `
-  --tag-model realtime/humanoid_robot/models/discogs-effnet-bsdynamic-1.onnx
-```
-
-Use the microphone:
+`src/realtime_music_humanoid_matcher.py` is the sole supported matcher,
+using the former v2 implementation. It defaults to `data/music_catalog_combined/catalog.json`.
+The original AIST++ catalog remains usable through `--catalog`; the v1 implementation
+and the separate `_v2.py` launcher have been removed.
 
 ```powershell
 python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py --realtime
 ```
 
-Use `--matcher-help` for retrieval/switching options and `--help` for the
-inherited dancer/controller options. A hardware-free silent smoke test keeps the
-current motion without attempting retrieval:
-
-For playback-speed diagnosis, `--motion-timing authored` keeps music retrieval,
-beat accents, bar-boundary switching, and motion blending enabled while advancing
-every source and target motion at its authored `1.0x` rate. It prevents detected
-beats and motion keypoints from correcting phase or changing speed. Use the same
-`--initial-motion-seed` in authored and default `beat-sync` runs for a repeatable
-A/B comparison. Add `--disable-music-modulation` only for a second, stricter pass
-that also removes music-driven pose modulation.
-
-The default `--match-policy style-first` first selects a confident AIST++ genre
-family, then ranks only that family's motions. Weak beat evidence and strong
-ambient/non-music tags reject the retrieval and hold the current motion instead
-of forcing a dance. `--match-policy legacy` is available for A/B diagnosis, and
-`--match-weak-music-threshold` tunes the ambient/non-music gate. Trace CSV files
-include the decision state, confidence, rejection reason, genre ranking, motion
-ranking, audio evidence, and visual motion-cluster IDs.
-
-Both matcher v1 and v2 rank genres by the mean similarity of each genre's
-three highest-scoring tracks (or all tracks when fewer than three exist).
-There is no hand-written tag-to-genre preference or tag-prior reweighting.
-The leading genre is eligible, together with the runner-up when its score is
-within `0.025`. Tags still contribute 10% of the combined track-similarity score
-and remain available for ambient/non-music rejection and diagnostic output.
-Existing catalogs remain compatible; no model or catalog rebuild is required.
-Prepare a new experiment output directory after this change, since previous
-experiment manifests fingerprint the old matcher code.
-
-The matcher separates relevance-driven changes from diversity rotation. A
-clearly better motion still wins after the configured consecutive retrievals;
-when music remains stable, the default policy changes after four held bars to a
-stable, least-recently-used motion within `0.05` of the best total score and
-`0.08` of the best music score. Tune this with
-`--switch-max-hold-bars`, `--switch-diversity-top-k`,
-`--switch-diversity-score-drop`, `--switch-diversity-music-score-drop`, and
-`--switch-recent-history`. Set `--switch-max-hold-bars 0` to disable forced
-diversity rotation.
-The recency policy prefers a motion from a visual activity/density/regularity
-cluster that has not recently played before considering another motion from the
-same cluster.
-
-Startup motion selection reserves enough authored duration for the rolling
-match window, consecutive wins, maximum playback speed, and background motion
-preparation. Tune the preparation allowance with
-`--startup-ready-reserve-seconds` (default `4`). If a one-shot motion still
-reaches its terminal frame before a candidate is ready—or the current audio is
-rejected as ambient/non-music—the matcher applies a small stationary breathing
-idle instead of displaying a completely frozen pose. Tune it with
-`--terminal-safe-idle-amplitude` or set that value to `0` to disable it.
-
-```powershell
-python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
-  --headless --no-mic --max-seconds 1
-```
-
-Evaluate segment retrieval, leave-one-music genre retrieval, and gain
-invariance:
-
-```powershell
-python realtime/humanoid_robot/src/evaluate_music_catalog.py
-```
-
-Use an MP3 or WAV as a realtime virtual microphone for the matcher:
-
-```powershell
-python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
-  --audio-input "realtime/humanoid_robot/data/test_audio/Metronome 120 BPM - QuickSounds.com.mp3" `
-  --play-audio `
-  --headless --realtime --max-seconds 10
-```
-
-Run the same matcher and switching path at authored speed:
-
-```powershell
-python realtime/humanoid_robot/src/realtime_music_humanoid_matcher.py `
-  --audio-input "realtime/humanoid_robot/data/test_audio/Metronome 120 BPM - QuickSounds.com.mp3" `
-  --motion-timing authored `
-  --initial-motion-seed 0 `
-  --trace-csv realtime/humanoid_robot/src/test/output/authored_timing.csv `
-  --play-audio --realtime --max-seconds 30
-```
-
-Matcher traces include the timing mode, source and transition speed multipliers,
-remaining phase correction, and raw/output wrist angle and speed maxima. These
-fields distinguish source-motion saturation from beat-driven changes and
-transition-blend spikes.
-
-Absolute microphone RMS and LUFS are not retrieval features. RMS is retained
-only for the noise gate, silence handling, and live pose amplitude. Catalog and
-query audio are DC-removed and robustly gain-normalized before extracting
-embedding, rhythm, timbre, and optional tag probabilities.
-
-## Current Feature Mapping
-
-The mapping follows `offline/outputs/music_feature_motion_mapping.xlsx`:
-
-- Beat period and PLP beat events retime the dance cycle and align AIST++ motions
-  to detected velocity-valley key poses (or configured fixed phases).
-- RMS loudness controls full-body amplitude and fades motion toward silence.
-- Onsets and beat confidence produce short pose accents.
-- Brightness raises arm height and sharpens beat accents.
-- Low-frequency energy increases hip sway, knee bounce, and grounded weight shifts.
-- Mid-frequency energy increases torso twist.
-- High-frequency energy adds faster arm/elbow texture.
-- Rhythm density and offbeat ratio add extra upper-body texture on subdivisions.
-
-## Humanoid Matcher V2
-
-`src/realtime_music_humanoid_matcher_v2.py` is a separate copy of the matcher
-with end-only switching. The original matcher remains available for comparison.
-
-```powershell
-python realtime/humanoid_robot/src/realtime_music_humanoid_matcher_v2.py --realtime
-```
-
-V2 starts retrieval after two seconds of audio, requests updates approximately
+The matcher starts retrieval after two seconds of audio, requests updates approximately
 once per second, and uses equally weighted available history up to 30 seconds.
 The live retrieval buffer is separate from the beat analyser's shorter buffer.
 It keeps the existing genre-first matching and confidence gates, then shortlists
-up to five musically suitable clips. Kinematic cost chooses the clip and entry
+up to ten musically suitable clips. Kinematic cost chooses the clip and entry
 frame jointly from every eligible frame in that shortlist. Cost combines joint
 position, velocity, foot-contact, and root continuity, without music salience.
-Entries must leave at least four seconds at maximum playback speed (1x in
-authored timing mode).
+Entries default to the first 20% of a clip and must leave eight authored seconds.
+Exit/entry planning uses the configured authored exit window.
 
 Hermite limit checking uses sampled rejection, Bernstein bounds and at most
 three subdivision levels, followed by the original polynomial extrema check for
 uncertain joints. It keeps the same duration trials and boundary states. When
 Numba is installed, these bounds run as cached native code with the GIL released;
-v2 warms the kernel before playback. A Python fallback works without Numba.
+the matcher warms the kernel before playback. A Python fallback works without Numba.
 This improves computation time but does not make infeasible transitions feasible.
 Use `src/test/benchmark_hermite_checks.py` with captured JSONL inputs to compare
 the optimized checker against the original extrema checks.
@@ -504,8 +387,7 @@ Cached piecewise quintics provide the same authored states during playback.
 
 Music effects and playback speed fade to neutral and 1x over the final
 `--transition-boundary-seconds` (default 0.5 authored seconds), and fade back in
-after entry to the next clip. The current clip reaches its last frame without
-an extra terminal hold; elapsed time carries across both bridge boundaries.
+after entry to the next clip. At the selected authored exit, elapsed time carries across both bridge boundaries.
 Root translation and quaternion interpolation remain separate from joint-state
 generation. Bridges last at least 0.35 seconds; Hermite searches up to 10 seconds
 and checks analytic position, velocity and acceleration extrema.
@@ -517,7 +399,7 @@ objects. Every limited joint needs a jerk bound for Ruckig. Hermite also checks
 jerk when configured. No hardware jerk defaults are assumed.
 
 If ranked candidates are infeasible, the same backend tries replay to frame zero.
-If replay is infeasible or preparation misses the terminal state, v2 holds the
+If replay is infeasible or preparation misses the terminal state, the matcher holds the
 terminal target through the existing output limiter and reports the reason.
 That failure path remains held until restart; late results cannot splice a
 moving-endpoint bridge onto a stationary hold. No limits are silently relaxed.
@@ -526,8 +408,8 @@ rest-to-rest interpolation for comparison.
 
 Use `--history-max-seconds` (at most 30), `--analysis-min-seconds`,
 `--entry-min-remaining-seconds`, `--shortlist-size`, `--shortlist-score-drop`,
-`--shortlist-music-score-drop`, and `--transition-min-seconds` to tune v2.
-V2 defaults to `--speed-max 1.3`. Its default entry minimum is eight seconds
+`--shortlist-music-score-drop`, and `--transition-min-seconds` to tune the matcher.
+The matcher defaults to `--speed-max 1.3`. Its default entry minimum is eight seconds
 of **authored motion** after the chosen entry, independent of playback speed.
 At 1.3x, eight authored seconds take about 6.15 seconds to play; the entry
 remains eligible. The trace's `entry_remaining_seconds` also uses authored time.
@@ -557,6 +439,15 @@ comparison and its limitations are recorded in
 Kinematic cost measures continuity rather than physical energy or dynamic balance.
 New backend checks and reproduction commands are in
 [`src/test/authored_motion_bridges_validation.md`](src/test/authored_motion_bridges_validation.md).
+
+Use `--motion-timing authored` for constant authored playback speed, or the
+default `beat-sync` for beat-driven timing. `--initial-motion-seed` makes startup
+selection reproducible; `--initial-motion-id` requests a specific catalog clip.
+Microphone/file input, pose modulation, root continuity, and output limits keep
+the same behavior as the former v2 implementation.
+
+New experiments use protocol 2 and fresh output directories. See
+[experiment tools](src/test/README.md); historical results retain their original provenance.
 
 ## Next Extension Points
 

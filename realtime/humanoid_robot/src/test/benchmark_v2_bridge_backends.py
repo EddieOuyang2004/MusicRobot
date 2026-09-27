@@ -27,7 +27,7 @@ from motion_bridges import JointState, HermiteBridge, InfeasibleBridge, make_bri
 
 
 def capture(path, remaining):
-    import realtime_music_humanoid_matcher_v2 as v2
+    import realtime_music_humanoid_matcher as v2
     original = v2.make_bridge
     path.parent.mkdir(parents=True, exist_ok=True)
     # Exclusive creation avoids overwriting an earlier experiment.

@@ -67,11 +67,54 @@ DEFAULT_CC0_ROOT = HUMANOID_DIR / "data" / "test_audio" / "cc0_matcher_set"
 DEFAULT_NEGATIVE_ROOT = HUMANOID_DIR / "data" / "test_audio" / "matcher_negative_set"
 DEFAULT_PROTOCOL = TEST_DIR / "humanoid_matcher_experiment_protocol.json"
 DEFAULT_SCHEMA = TEST_DIR / "humanoid_matcher_experiment.schema.json"
-DEFAULT_OUTPUT = TEST_DIR / "output" / "humanoid_matcher_experiment"
+DEFAULT_OUTPUT = TEST_DIR / "output" / "humanoid_matcher_experiment_protocol2"
 MATCHER_ENTRYPOINT = SRC_DIR / "realtime_music_humanoid_matcher.py"
 STITCHED_MANIFEST = HUMANOID_DIR / "data" / "test_audio" / "aistpp_stitched_test.json"
 AUDIO_SUFFIXES = {".wav", ".mp3", ".flac", ".ogg", ".opus", ".m4a"}
 TRACE_DURATION_TOLERANCE_SECONDS = 0.1
+SUPPORTED_CONDITIONS = frozenset({"full", "no_motion_compatibility", "authored_timing", "no_output_limiter"})
+RETIRED_CONDITIONS = frozenset({"legacy_retrieval", "instant_top1", "no_diversity", "fixed_entry_simple_transition"})
+
+
+def validate_conditions(conditions: Iterable[str]) -> None:
+    unsupported = set(conditions) - SUPPORTED_CONDITIONS
+    if unsupported:
+        raise ValueError(
+            "Unsupported or retired v1 experiment condition(s): " + ", ".join(sorted(unsupported))
+            + ". Use full, no_motion_compatibility, authored_timing, or no_output_limiter. "
+            "Historical results can still be read; v1 switching cannot be run."
+        )
+
+
+def execution_identity(catalog_path: Path, protocol: Mapping[str, Any]) -> str:
+    """Bind new runs to the current runtime, protocol, and catalog contents."""
+    paths = {*SRC_DIR.glob("*.py"), *(ROOT / "realtime" / "shared").glob("*.py"),
+             Path(__file__).resolve(), TEST_DIR / "humanoid_matcher_experiment_metrics.py",
+             catalog_path.resolve()}
+    # Catalog arrays are part of retrieval semantics as well as the JSON manifest.
+    if catalog_path.is_file():
+        metadata = json.loads(catalog_path.read_text(encoding="utf-8"))
+        if metadata.get("arrays_file"):
+            paths.add((catalog_path.parent / metadata["arrays_file"]).resolve())
+    payload = {"protocol": protocol, "files": {str(path): file_sha256(path) if path.is_file() else None
+                                               for path in sorted(paths)}}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def validate_output_provenance(output_dir: Path, identity: str) -> None:
+    """Reject old outputs before preparing audio or writing any new run artifacts."""
+    status_path = output_dir / "run_status.json"
+    if status_path.is_file():
+        try:
+            status = json.loads(status_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise RuntimeError("Cannot verify existing run provenance; use a new output directory.") from exc
+        if not isinstance(status, dict) or status.get("execution_identity") != identity:
+            raise RuntimeError("Existing runs belong to a different or historical runtime/protocol. Use a new output directory.")
+    else:
+        runs = output_dir / "runs"
+        if (runs.is_dir() and any(runs.iterdir())) or (output_dir / "experiment_report.json").exists():
+            raise RuntimeError("Existing run artifacts have no runtime/protocol provenance; use a new output directory.")
 
 
 def parse_args() -> argparse.Namespace:
@@ -193,6 +236,7 @@ def environment_manifest(
         "catalog_matcher": SRC_DIR / "music_motion_catalog.py",
         "realtime_matcher": MATCHER_ENTRYPOINT,
         "realtime_dancer": SRC_DIR / "realtime_music_humanoid_dancer.py",
+        "music_runtime": ROOT / "realtime" / "shared" / "music_runtime.py",
         "robot_motion": SRC_DIR / "robot_motion.py",
         "experiment_metrics": TEST_DIR / "humanoid_matcher_experiment_metrics.py",
         "experiment_runner": Path(__file__).resolve(),
@@ -586,6 +630,10 @@ def run_matrix(
     protocol: Mapping[str, Any],
     cc0_root: Path,
 ) -> list[dict[str, Any]]:
+    if suite != "none":
+        validate_conditions(protocol["ablations"])
+        if int(protocol.get("protocol_version", 1)) != 2:
+            raise ValueError("New matcher runs require experiment protocol version 2; use a new output directory.")
     seeds = list(protocol["seeds"])
     full_condition = {"name": "full", "arguments": []}
     ground_truth_by_source: dict[str, str] = {}
@@ -830,7 +878,14 @@ def execute_runs(
     require_completed_status: bool = False,
     stop_on_failure: bool = False,
     control_rate_hz: float = 120.0,
+    protocol: Mapping[str, Any] | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    protocol = dict(protocol) if protocol is not None else json.loads(DEFAULT_PROTOCOL.read_text(encoding="utf-8"))
+    validate_conditions(item["condition"] for item in matrix)
+    if int(protocol.get("protocol_version", 1)) != 2:
+        raise ValueError("New matcher runs require experiment protocol version 2.")
+    identity = execution_identity(catalog_path, protocol)
+    validate_output_provenance(output_dir, identity)
     validator = artifact_validator or validate_run_artifacts
     results = []
     failures = []
@@ -842,6 +897,8 @@ def execute_runs(
     if previous_status_path.is_file():
         try:
             previous_status = json.loads(previous_status_path.read_text(encoding="utf-8"))
+            if previous_status.get("suite") != suite:
+                raise RuntimeError("Existing output belongs to a different experiment suite; use a new output directory.")
             if previous_status.get("suite") == suite:
                 attempt_history.extend(previous_status.get("attempt_history", []))
                 previous_run_by_key = {
@@ -849,8 +906,8 @@ def execute_runs(
                     for run in previous_status.get("runs", [])
                     if run.get("run_key")
                 }
-        except (OSError, ValueError, TypeError):
-            pass
+        except (OSError, ValueError, TypeError) as exc:
+            raise RuntimeError("Cannot verify existing run provenance; use a new output directory.") from exc
 
     def atomic_status_write() -> None:
         status_path = output_dir / "run_status.json"
@@ -864,6 +921,8 @@ def execute_runs(
         payload = {
             "schema_version": 1,
             "suite": suite,
+            "execution_identity": identity,
+            "protocol_version": 2,
             "expected_runs": len(matrix),
             "updated_utc": datetime.now(timezone.utc).isoformat(),
             "runs": persisted_results,
@@ -901,10 +960,12 @@ def execute_runs(
             str(float(control_rate_hz)),
             "--runtime-collision-check",
             "always",
-            "--match-window-seconds",
-            "6",
+            "--history-max-seconds",
+            str(float(protocol["history_max_seconds"])),
+            "--analysis-min-seconds",
+            str(float(protocol["analysis_min_seconds"])),
             "--match-interval-seconds",
-            "1",
+            str(float(protocol["match_interval_seconds"])),
             "--experiment-warmup-seconds",
             "6",
             "--initial-motion-seed",
@@ -942,6 +1003,10 @@ def execute_runs(
                 ),
             )
             previous_record = previous_run_by_key.get(stem, {})
+            if (previous_record.get("status") not in {"completed", "reused"}
+                    or previous_record.get("command") != record["command"]):
+                valid = False
+                validation_errors.append("No completed status with matching command")
             if require_completed_status and (
                 previous_record.get("status") not in {"completed", "reused"}
                 or previous_record.get("cohort_identity") != item.get("cohort_identity")
@@ -1388,7 +1453,7 @@ def ablation_report(
             "expected": relation,
             "passed": passed,
         }
-    return {
+    report = {
         "evaluated": bool(comparisons),
         "paired_unit": "source_id, averaging matched seeds before testing",
         "difference_direction": "ablation_minus_full",
@@ -1418,6 +1483,12 @@ def ablation_report(
             ),
         },
     }
+
+    if int(protocol.get("protocol_version", 1)) >= 2:
+        for name in ("diversity_mean_score_loss_fraction", "full_recall_exceeds_legacy",
+                     "full_transition_jerk_below_fixed_entry", "diversity_entropy_exceeds_no_diversity"):
+            report["quality_checks"].pop(name, None)
+    return report
 
 
 def write_csv_summary(path: Path, report: Mapping[str, Any]) -> None:
@@ -1702,6 +1773,8 @@ def main() -> int:
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    if args.execute_suite != "none":
+        validate_output_provenance(output_dir, execution_identity(catalog_path, protocol))
     catalog = MusicCatalog.load(catalog_path)
     extractor = None if args.no_audio_evaluation else make_extractor(catalog)
     cluster_by_motion = {
@@ -1809,6 +1882,7 @@ def main() -> int:
         resume=args.resume,
         suite=args.execute_suite,
         max_attempts=args.max_attempts,
+        protocol=protocol,
     ) if matrix else ([], [])
     failures.extend(run_failures)
 

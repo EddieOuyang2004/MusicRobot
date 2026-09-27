@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 def main():
-    import realtime_music_humanoid_matcher_v2 as v2
+    import realtime_music_humanoid_matcher as v2
 
     original_poll = v2.RetrievalWorker.poll
     path = Path(os.environ["MATCHER_AUDIT_JSONL"])

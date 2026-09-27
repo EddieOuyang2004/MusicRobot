@@ -21,8 +21,9 @@ import soundfile as sf
 from aistpp_velocity_keypoints import detect_aistpp_file
 
 
-CATALOG_SCHEMA_VERSION = 2
-SUPPORTED_CATALOG_SCHEMA_VERSIONS = (1, CATALOG_SCHEMA_VERSION)
+CATALOG_SCHEMA_VERSION = 2  # The legacy builder retains its schema.
+COMBINED_CATALOG_SCHEMA_VERSION = 3
+SUPPORTED_CATALOG_SCHEMA_VERSIONS = (1, 2, COMBINED_CATALOG_SCHEMA_VERSION)
 DEFAULT_ANALYSIS_SAMPLE_RATE = 16_000
 DEFAULT_WINDOW_SECONDS = 6.0
 DEFAULT_HOP_SECONDS = 2.0
@@ -703,6 +704,9 @@ class MotionProfile:
     preflight_passed: bool
     preflight_reason: str
     motion_cluster_id: str = ""
+    dataset_id: str = "aistpp"
+    recording_id: str = ""
+    split: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         result = dict(self.__dict__)
@@ -773,6 +777,28 @@ class MatchResult:
 
 
 class MusicCatalog:
+    def resolve_path(self, value: str | Path) -> Path:
+        path = Path(value)
+        return path if path.is_absolute() else (self.catalog_path.parent / path).resolve()
+
+    def dataset_root(self, dataset_id: str = "aistpp", *, gmr: bool = False) -> Path:
+        datasets = self.metadata.get("datasets", {})
+        if datasets:
+            return self.resolve_path(datasets[dataset_id]["gmr_root" if gmr else "source_root"])
+        if gmr:
+            raise ValueError("Legacy catalogs require a GMR directory from playback configuration")
+        return self.resolve_path(self.metadata["aistpp_root"])
+
+    def motion_file(self, profile: MotionProfile) -> Path:
+        return self.dataset_root(profile.dataset_id) / profile.motion_path
+
+    def audio_file(self, item: Mapping[str, Any]) -> Path:
+        return self.dataset_root(item.get("dataset_id", "aistpp")) / item["source_audio"]
+
+    def recording_key(self, music_id: str) -> tuple[str, str]:
+        track = self.tracks[music_id]
+        return track.get("dataset_id", "aistpp"), track.get("recording_id") or music_id
+
     def __init__(
         self,
         catalog_path: Path,
@@ -914,13 +940,24 @@ class MusicMotionMatcher:
         tracks_by_genre: dict[str, list[TrackMatch]] = defaultdict(list)
         for item in all_track_matches:
             tracks_by_genre[item.genre].append(item)
+        # Each source recording contributes at most once to a genre score.
+        distinct_by_genre: dict[str, list[TrackMatch]] = {}
+        for genre, items in tracks_by_genre.items():
+            seen = set()
+            distinct = []
+            for item in items:
+                recording = self.catalog.recording_key(item.music_id)
+                if recording not in seen:
+                    distinct.append(item)
+                    seen.add(recording)
+            distinct_by_genre[genre] = distinct
         genre_matches = [
             GenreMatch(
                 genre=genre,
                 score=float(np.mean([item.score for item in items[:3]])),
                 track_ids=tuple(item.music_id for item in items),
             )
-            for genre, items in tracks_by_genre.items()
+            for genre, items in distinct_by_genre.items()
         ]
         genre_matches.sort(key=lambda item: item.score, reverse=True)
 

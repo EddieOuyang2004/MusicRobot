@@ -1,10 +1,12 @@
 {
-  "protocol_version": 1,
-  "description": "Pre-registered Humanoid Matcher objective evaluation protocol.",
+  "protocol_version": 2,
+  "description": "Humanoid matcher authored-transition evaluation protocol. Historical v1 reports retain their original protocol.",
   "seeds": [0, 1, 2, 3, 4],
   "control_rate_hz": 120.0,
   "match_window_seconds": 6.0,
   "match_interval_seconds": 1.0,
+  "history_max_seconds": 30.0,
+  "analysis_min_seconds": 2.0,
   "longrun": {
     "stable_seconds": 600.0,
     "warmup_seconds": 6.0
@@ -46,12 +48,8 @@
   },
   "ablations": {
     "full": [],
-    "legacy_retrieval": ["--match-policy", "legacy"],
     "no_motion_compatibility": ["--diagnostic-disable-motion-compatibility"],
-    "instant_top1": ["--switch-required-wins", "1", "--switch-score-margin", "0", "--diagnostic-instant-top1"],
-    "no_diversity": ["--switch-max-hold-bars", "1000000", "--switch-diversity-top-k", "1"],
     "authored_timing": ["--motion-timing", "authored"],
-    "fixed_entry_simple_transition": ["--diagnostic-fixed-entry-transition"],
     "no_output_limiter": ["--diagnostic-disable-output-limiter"]
   }
 }
