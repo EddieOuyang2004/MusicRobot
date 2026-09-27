@@ -192,3 +192,10 @@ FineDance as AIST++ filenames or assign invented AIST genres.
 - [FineDance source splits](https://github.com/li-ronghui/FineDance/blob/main/dataset/FineDance_dataset.py)
 - [PyTorch3D rotation representation](https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversions.py)
 - [Official AIST++ loader](https://github.com/google/aistplusplus_api/blob/main/aist_plusplus/loader.py)
+
+## Reproduce the published GMR release
+
+The [release reproduction guide](finedance_reproduction/README.md) includes the
+frozen full segmentation manifest, exact clip-to-audio mapping, source/output
+checksums, and an audio-only reconstruction command. The historical pilot status
+above predates the completed 2,530-clip export and 2,522 successful GMR motions.

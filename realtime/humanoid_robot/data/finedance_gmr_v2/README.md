@@ -26,4 +26,17 @@ SMPL data, or generated combined retrieval catalog. Those assets are still
 required separately for building and using the complete music matcher catalog.
 Absolute paths in the manifest describe the original conversion environment.
 See [conversion documentation](../../../../docs/finedance_gmr_conversion.md)
-and [catalog integration](../../../../docs/finedance_matcher_integration.md).
+and [exact segmentation and audio reconstruction](../../../../docs/finedance_reproduction/README.md).
+
+## Recover matching audio from the original FineDance release
+
+The frozen segmentation manifest, clip-to-audio map, and SHA-256 checksums are
+tracked in `docs/finedance_reproduction/`. From the repository root, run:
+
+```powershell
+.venv/Scripts/python.exe realtime/humanoid_robot/src/restore_finedance_audio.py
+```
+
+This recreates the WAV matching each released GMR clip ID, without rerunning GMR.
+Use `--input-root` for the original dataset location; see the reproduction guide
+for full segmentation parameters, verification, and complete regeneration.
