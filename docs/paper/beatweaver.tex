@@ -9,8 +9,7 @@
 \usepackage[hidelinks]{hyperref}
 \newcommand{\vect}[1]{\boldsymbol{#1}}
 \newcommand{\R}{\mathbb{R}}
-\title{BeatWeaver: Music-Conditioned Humanoid Motion\protect\\
-with State-Continuous Smoothing and Transitions}
+\title{BeatWeaver:A Real-Time Music-Conditioned Framework for Adaptive Humanoid Control}
 \author{\IEEEauthorblockN{Chengjun Ouyang}
 \IEEEauthorblockA{University College London\\London, United Kingdom}}
 \begin{document}
@@ -23,8 +22,9 @@ the constraints of the animated body. To address these demands in music-driven
 performance, we present BeatWeaver, a causal retrieval-and-synthesis system for
 the 29-joint Unitree G1 representation. Streaming audio is compared
 with a paired music--motion catalogue using learned music embeddings and
-explicit rhythm, tempo, and activity descriptors. Offline, retargeted motions
-are regenerated from their human sources and refined by a collision-aware,
+explicit rhythm, tempo, and activity descriptors. Offline, human motions are
+retargeted to the humanoid using General Motion Retargeting (GMR). Our
+collision-aware smoothing procedure then refines these trajectories with a
 receding-horizon quintic planner that preserves accepted position, velocity,
 and acceleration. Online, a transition planner searches compatible exit--entry
 frame pairs within a musically relevant shortlist and constructs joint-state
@@ -69,9 +69,10 @@ of joint states, rather than a sequence of poses.
 We present \emph{BeatWeaver}, a music-conditioned retrieval and kinematic
 synthesis system that addresses both continuity problems through a shared
 trajectory representation. Music retrieval identifies a relevant motion
-neighbourhood. Offline state-aware smoothing prepares its clips. Online
-state-to-state planning connects them. The transition method replace the moving-clip blending method in the
-earlier system. Its paired exit--entry search also allows a short terminal
+neighbourhood. Offline state-aware smoothing prepares GMR-retargeted clips.
+Online state-to-state planning connects the resulting trajectories through
+joint position, velocity, and acceleration at their boundaries. Paired
+exit--entry search also allows a short terminal
 portion of a source clip to be trimmed when an earlier boundary is more
 compatible.
 
@@ -93,15 +94,15 @@ box/.style={draw,rounded corners=2pt,align=center,text width=3.25cm,
 minimum height=1.12cm,font=\small,inner sep=4pt},
 flow/.style={-{Latex[length=2mm]},thick},node distance=0.7cm and 0.50cm]
 \node[box] (data) {\textbf{Paired source data}\\AIST++ music and\\SMPL motion};
-\node[box,right=of data] (offline) {\textbf{Offline preparation}\\Audio descriptors; GMR\\state-aware smoothing};
+\node[box,right=of data] (offline) {\textbf{Offline preparation}\\Audio descriptors; GMR\\retargeting; our smoothing};
 \node[box,right=of offline] (validation) {\textbf{Offline validation}\\Polynomial bounds and\\sampled collision checks};
-\node[box,right=of validation] (library) {\textbf{Versioned catalogue}\\Music / motion profiles\\Hermite joint states};
+\node[box,right=of validation] (library) {\textbf{Music--motion catalogue}\\Music / motion profiles\\Hermite joint states};
 \draw[flow] (data)--(offline);
 \draw[flow] (offline)--(validation);
 \draw[flow] (validation)--(library);
 \node[box,below=1.00cm of data] (audio) {\textbf{Streaming audio}\\Causal history; local\\beat and activity events};
 \node[box,right=of audio] (retrieve) {\textbf{Hierarchical retrieval}\\Music similarity and\\motion compatibility};
-\node[box,right=of retrieve] (plan) {\textbf{Matcher v2}\\Exit--entry pair search\\Checked joint-state bridge};
+\node[box,right=of retrieve] (plan) {\textbf{Matcher}\\Exit--entry pair search\\Checked joint-state bridge};
 \node[box,right=of plan] (play) {\textbf{Kinematic playback}\\Boundary-aware timing\\Output conditioning};
 \draw[flow] (audio)--(retrieve);
 \draw[flow] (retrieve)--(plan);
@@ -114,9 +115,7 @@ flow/.style={-{Latex[length=2mm]},thick},node distance=0.7cm and 0.50cm]
 \node[anchor=west,font=\footnotesize\bfseries] at (-1.75,0.93) {OFFLINE};
 \node[anchor=west,font=\footnotesize\bfseries] at (-1.75,-1.22) {ONLINE};
 \end{tikzpicture}
-\caption{BeatWeaver overview. Both offline smoothing and online transitions
-use joint position, velocity, and acceleration. Offline geometric validation
-does not certify newly synthesized transitions or physical tracking.}
+\caption{Overview of the BeatWeaver pipeline}
 \label{fig:architecture}
 \end{figure*}
 
@@ -159,9 +158,11 @@ online rather than constructing a fixed all-pairs motion graph.
 SMPL supplies a common human-motion representation \cite{loper2023smpl}, while
 General Motion Retargeting (GMR) maps human motion to humanoid embodiments.
 The GMR study shows that reference-motion quality affects downstream tracking
-\cite{araujo2025retargeting}. BeatWeaver uses GMR as its retargeter and adds its own
-state-aware collision correction and motion-file representation. This
-postprocessing is distinct from the published GMR method.
+\cite{araujo2025retargeting}. BeatWeaver uses GMR as its retargeter and applies
+our collision-aware, state-preserving smoothing procedure to its output.
+The resulting trajectories store joint position, velocity, and acceleration
+for playback and transition planning. This postprocessing is distinct from
+the published GMR method.
 
 Position, velocity, and acceleration are also central to constrained trajectory
 generation. Ruckig constructs synchronized trajectories under derivative
@@ -178,7 +179,7 @@ catalogue contains music descriptors, motion profiles, and robot trajectories:
 \begin{equation}
 \mathcal{D}=\{(\vect{x}_i,\vect{m}_i,M_i)\}_{i=1}^{N}.
 \end{equation}
-Each trajectory has a floating-base pose and joint states
+Here $N$ is the number of catalogue entries. Each trajectory has a floating-base pose and joint states
 $\vect{s}_{i,k}=(\vect{q}_{i,k},\vect{v}_{i,k},\vect{a}_{i,k})$, where
 $\vect{q}_{i,k}\in\R^{29}$ and derivatives are defined in authored time.
 The system chooses a motion index, its playback time, and, when needed, a
@@ -186,11 +187,12 @@ transition to another motion using only $\mathcal{A}_{\leq t}$ and stored state.
 
 Fig.~\ref{fig:architecture} separates offline preparation from online
 execution. Offline, paired AIST++ music and SMPL motion are converted into
-audio descriptors and G1 reference trajectories. Online, audio retrieval,
+audio descriptors and G1 reference trajectories through GMR retargeting
+followed by our smoothing procedure. Online, audio retrieval,
 candidate loading, and transition search run outside the foreground playback
 path. The foreground consumes completed plans and emits kinematic poses to
-MuJoCo \cite{todorov2012mujoco}. The default matcher v2 update rate is 60~Hz;
-this is a configuration, not a hard real-time guarantee.
+MuJoCo \cite{todorov2012mujoco}. The default matcher update rate is 60~Hz.
+This is a configuration, not a hard real-time guarantee.
 
 
 
@@ -203,7 +205,7 @@ activations $\vect{g}$. A 24-dimensional rhythm--timbre vector $\vect{r}$
 combines tempo, onset and beat statistics, spectral flux, percussive and band
 energy ratios, MFCCs, and spectral contrast.
 
-Matcher v2 maintains a causal history of up to 30~s, beginning analysis after
+The matcher maintains a causal history of up to 30~s, beginning analysis after
 2~s. It requests retrieval at one-second intervals when the worker is free.
 Unlike the six-second catalogue segmentation, the query descriptor summarizes
 the currently available history; learned patch outputs are averaged. Thus
@@ -246,18 +248,16 @@ S_{\mathrm{motion},i}&=0.50S_{\mathrm{tempo},i}
 +0.35S_{\mathrm{key},i}+0.15S_{\mathrm{activity},i},\\
 S_i&=0.65S_{\mathrm{track},i}+0.35S_{\mathrm{motion},i}.
 \end{align}
-These are fixed engineering weights, not learned or experimentally optimized
-parameters in this draft.
+
 
 \subsection{State-Preserving Offline Motion Smoothing}
 \label{sec:smoothing}
-GMR transfers each SMPL sequence to the target humanoid. BeatWeaver's updated
-motion preparation, called \emph{GMR v2} within this project, regenerates the
-reference from the original human motion. Filtering an older saved trajectory
-cannot reconstruct movement already removed by collision-induced holds.
-The revised pipeline first constructs a collision-aware positional guide using
-joint displacement optimization, range and speed bounds, and linearized
-distance constraints. Nonlinear geometry checks restrict unsafe steps.
+GMR transfers each SMPL sequence to the target humanoid. The input to our
+smoothing procedure is the GMR-retargeted trajectory before it has undergone
+our smoothing. We first construct a collision-aware positional guide from
+this trajectory using joint displacement optimization, range and speed
+bounds, and linearized distance constraints. Nonlinear geometry checks
+restrict unsafe steps.
 
 The guide is not the final playback trajectory. Starting from an accepted
 state $\vect{s}_0$, a receding-horizon planner fits a quintic joint curve over
@@ -302,8 +302,8 @@ continuation exists, generation fails. At clip initialization only, estimated
 derivatives may be reduced if no incoming state was supplied, and the
 adjustment is recorded.
 
-The resulting files retain source frame count and timing and store float64
-position, velocity, and acceleration arrays. A checksum binds these arrays to
+The smoothed trajectories retain the GMR input's frame count and timing and
+are stored as float64 position, velocity, and acceleration arrays. A checksum binds these arrays to
 the frame rate. Playback and transition planning reuse the saved states after
 joint-name mapping rather than re-estimating derivatives from poses. The
 serialized piecewise Hermite curves are checked again for joint bounds and
@@ -313,13 +313,11 @@ not establish continuous collision avoidance or validate later time warping.
 
 \subsection{Musical Shortlists and Exit--Entry Search}
 \label{sec:pair-search}
-Matcher v2 retrieves up to 20 motions and retains at most ten alternatives
+The matcher retrieves up to 20 motions and retains at most ten alternatives
 whose final and music scores lie within 0.05 and 0.08 of the leading motion,
 respectively. The active motion is excluded from this normal shortlist.
 The shortlist is frozen for preparation, and a successful plan is retained.
-This policy avoids replacing an imminent transition with every new ranking;
-it does not use the earlier matcher's consecutive-winner and bar-triggered
-switching rule.
+This policy avoids replacing an imminent transition with every new ranking.
 
 For each shortlisted motion $j$, eligible entries include every authored
 frame with phase $k/(N_j-1)\leq0.2$. Source exits include reachable frames in
@@ -462,33 +460,27 @@ their fade deadline are discarded. Asynchronous execution avoids deliberately
 waiting for planning in the playback loop, but does not establish a worst-case
 execution-time bound.
 
-The terms \emph{matcher v2} and \emph{GMR v2} refer to independent components.
-The corrected dataset must be selected explicitly; choosing matcher v2 alone
-does not regenerate or select corrected clips. Motion provenance and saved
-state checks prevent stale interpolation revisions from being treated as
-validated data. Offline joint-curve bounds concern authored speed. Sampled
+The online matcher loads trajectories processed by our offline smoothing
+procedure, together with their saved joint states. Motion provenance and
+saved-state checks verify consistency with the validated trajectory
+representation. Offline joint-curve bounds concern authored speed. Sampled
 self-collision checks do not certify inter-clip bridges, root dynamics,
 balance, ground-contact forces, or hardware tracking.
 
 \section{Experiments}
 \label{sec:experiments}
-\textit{Reserved for the experimental design. Datasets, baselines, metrics,
-operating conditions, and evaluation protocol will be added after the
-experiments are selected.}
-% Deliberately no thesis/v1 or development benchmark results are reused here.
+TODO
 
 \section{Results and Discussion}
 \label{sec:results}
-\textit{Reserved for quantitative results, qualitative comparisons,
-ablations, and analysis of failure cases. No empirical claims are made in
-this section at the draft stage.}
+TODO
 
 \section{Conclusion}
 BeatWeaver combines causal music retrieval with state-aware humanoid motion
 synthesis. Its central design choice is to use a consistent joint-state
 representation across offline smoothing, transition planning, and playback.
-The revised offline pipeline carries accepted derivatives through
-collision-aware replanning, while matcher v2 searches musically relevant
+Our offline smoothing procedure refines GMR-retargeted motions while carrying
+accepted derivatives through collision-aware replanning. The matcher searches musically relevant
 exit--entry pairs and joins them with checked trajectories. Boundary-aware
 adaptation reconciles music-dependent playback with authored bridge states.
 Evaluation of musical relevance, delivered smoothness, transition availability,
